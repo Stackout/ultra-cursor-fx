@@ -1,0 +1,92 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Get version from tag
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+      - name: Determine release type
+        id: release_type
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          if [[ "$VERSION" == *"alpha"* ]]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+            echo "type=Alpha" >> $GITHUB_OUTPUT
+          elif [[ "$VERSION" == *"beta"* ]]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+            echo "type=Beta" >> $GITHUB_OUTPUT
+          else
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+            echo "type=Release" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Update TOC version
+        run: |
+          sed -i "s/@project-version@/${{ steps.get_version.outputs.version }}/g" UltraCursorFX.toc
+      
+      - name: Create release package
+        run: |
+          mkdir -p release/UltraCursorFX
+          cp UltraCursorFX.toc release/UltraCursorFX/
+          cp UltraCursorFX.lua release/UltraCursorFX/
+          cp Localization.lua release/UltraCursorFX/
+          cp Bindings.xml release/UltraCursorFX/
+          cp icon.png release/UltraCursorFX/
+          cp CHANGELOG.md release/UltraCursorFX/
+          cd release
+          zip -r UltraCursorFX-${{ steps.get_version.outputs.version }}.zip UltraCursorFX/
+      
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          if [ -f CHANGELOG.md ]; then
+            CHANGELOG=$(awk '/^## \[/{if(p)exit;p=1;next}p' CHANGELOG.md)
+            echo "changelog<<EOF" >> $GITHUB_OUTPUT
+            echo "$CHANGELOG" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "changelog=See commit history for details." >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: UltraCursorFX ${{ steps.get_version.outputs.version }} (${{ steps.release_type.outputs.type }})
+          body: |
+            ## UltraCursorFX ${{ steps.get_version.outputs.version }}
+            
+            **Release Type:** ${{ steps.release_type.outputs.type }}
+            
+            ### Installation
+            1. Download `UltraCursorFX-${{ steps.get_version.outputs.version }}.zip`
+            2. Extract to `World of Warcraft\_retail_\Interface\AddOns\`
+            3. Restart WoW or reload UI with `/reload`
+            
+            ### Changes
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ### Links
+            - [CurseForge](https://www.curseforge.com/wow/addons/ultracursorfx) (will be available shortly)
+            - [GitHub](https://github.com/Stackout/ultra-cursor-fx)
+          files: release/UltraCursorFX-${{ steps.get_version.outputs.version }}.zip
+          prerelease: ${{ steps.release_type.outputs.prerelease }}
+          draft: false

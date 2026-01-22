@@ -1,0 +1,1076 @@
+-- ===============================
+-- Saved Variables / Defaults
+-- ===============================
+UltraCursorFXDB = UltraCursorFXDB or {}
+
+local defaults = {
+    enabled = true,
+    flashEnabled = true,
+    color = { 0.0, 1.0, 1.0 },
+    points = 48,
+    size = 34,
+    glowSize = 64,
+    smoothness = 0.18,
+    pulseSpeed = 2.5,
+
+    -- Rainbow Mode
+    rainbowMode = false,
+    rainbowSpeed = 1.0,
+
+    -- Click Effects
+    clickEffects = true,
+    clickParticles = 12,
+    clickSize = 50,
+    clickDuration = 0.6,
+
+    -- Particle Shape
+    particleShape = "star", -- star, glow, spark, ring, dot
+
+    -- Comet Mode
+    cometMode = false,
+    cometLength = 2.0,
+}
+
+for k, v in pairs(defaults) do
+    if UltraCursorFXDB[k] == nil then
+        UltraCursorFXDB[k] = v
+    end
+end
+
+-- ===============================
+-- Config
+-- ===============================
+local parent = UIParent
+local points, glow = {}, {}
+local clickParticles = {}
+local f = CreateFrame("Frame")
+local rainbowHue = 0
+
+local particleTextures = {
+    star = "Interface\\TARGETINGFRAME\\UI-RaidTargetingIcon_1",
+    skull = "Interface\\TARGETINGFRAME\\UI-RaidTargetingIcon_8",
+    spark = "Interface\\Cooldown\\star4",
+    dot = "Interface\\CastingBar\\UI-CastingBar-Spark",
+}
+
+local function Lerp(a, b, t)
+    return a + (b - a) * t
+end
+
+local function HSVtoRGB(h, s, v)
+    local r, g, b
+    local i = math.floor(h * 6)
+    local f = h * 6 - i
+    local p = v * (1 - s)
+    local q = v * (1 - f * s)
+    local t = v * (1 - (1 - f) * s)
+    i = i % 6
+
+    if i == 0 then
+        r, g, b = v, t, p
+    elseif i == 1 then
+        r, g, b = q, v, p
+    elseif i == 2 then
+        r, g, b = p, v, t
+    elseif i == 3 then
+        r, g, b = p, q, v
+    elseif i == 4 then
+        r, g, b = t, p, v
+    elseif i == 5 then
+        r, g, b = v, p, q
+    end
+
+    return r, g, b
+end
+
+-- ===============================
+-- Import/Export Functions
+-- ===============================
+
+-- Base64 encoding/decoding
+local b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+local b64lookup = {}
+for i = 1, #b64chars do
+    b64lookup[b64chars:sub(i, i)] = i - 1
+end
+
+local function Base64Encode(data)
+    return (
+        (data:gsub(".", function(x)
+            local r, b = "", x:byte()
+            for i = 8, 1, -1 do
+                r = r .. (b % 2 ^ i - b % 2 ^ (i - 1) > 0 and "1" or "0")
+            end
+            return r
+        end) .. "0000"):gsub("%d%d%d?%d?%d?%d?", function(x)
+            if #x < 6 then
+                return ""
+            end
+            local c = 0
+            for i = 1, 6 do
+                c = c + (x:sub(i, i) == "1" and 2 ^ (6 - i) or 0)
+            end
+            return b64chars:sub(c + 1, c + 1)
+        end) .. ({ "", "==", "=" })[#data % 3 + 1]
+    )
+end
+
+local function Base64Decode(data)
+    data = data:gsub("[^" .. b64chars .. "=]", "")
+    return (
+        data:gsub(".", function(x)
+            if x == "=" then
+                return ""
+            end
+            local r, f = "", b64lookup[x]
+            for i = 6, 1, -1 do
+                r = r .. (f % 2 ^ i - f % 2 ^ (i - 1) > 0 and "1" or "0")
+            end
+            return r
+        end):gsub("%d%d%d?%d?%d?%d?%d?%d?", function(x)
+            if #x ~= 8 then
+                return ""
+            end
+            local c = 0
+            for i = 1, 8 do
+                c = c + (x:sub(i, i) == "1" and 2 ^ (8 - i) or 0)
+            end
+            return string.char(c)
+        end)
+    )
+end
+
+local function SerializeValue(v)
+    local t = type(v)
+    if t == "number" then
+        return tostring(v)
+    elseif t == "boolean" then
+        return v and "1" or "0"
+    elseif t == "string" then
+        return v
+    elseif t == "table" then
+        local parts = {}
+        for i, val in ipairs(v) do
+            table.insert(parts, tostring(val))
+        end
+        return table.concat(parts, ",")
+    end
+    return ""
+end
+
+local function DeserializeValue(str, expectedType)
+    if expectedType == "number" then
+        return tonumber(str) or 0
+    elseif expectedType == "boolean" then
+        return str == "1" or str == "true"
+    elseif expectedType == "string" then
+        return str
+    elseif expectedType == "table" then
+        local tbl = {}
+        for val in string.gmatch(str, "[^,]+") do
+            table.insert(tbl, tonumber(val) or 0)
+        end
+        return tbl
+    end
+    return nil
+end
+
+local function ExportSettings()
+    local exportData = {}
+    local fields = {
+        "enabled",
+        "flashEnabled",
+        "points",
+        "size",
+        "glowSize",
+        "smoothness",
+        "pulseSpeed",
+        "rainbowMode",
+        "rainbowSpeed",
+        "clickEffects",
+        "clickParticles",
+        "clickSize",
+        "clickDuration",
+        "particleShape",
+        "cometMode",
+        "cometLength",
+        "color",
+    }
+
+    for _, field in ipairs(fields) do
+        local value = UltraCursorFXDB[field]
+        if value ~= nil then
+            table.insert(exportData, field .. "=" .. SerializeValue(value))
+        end
+    end
+
+    local plaintext = table.concat(exportData, ";")
+    local encoded = Base64Encode(plaintext)
+    return "UCFX:" .. encoded
+end
+
+local function ImportSettings(importString)
+    if not importString or importString == "" then
+        return false, "Empty import string"
+    end
+
+    -- Remove whitespace and check prefix
+    importString = importString:gsub("%s+", "")
+    if not importString:match("^UCFX:") then
+        return false, "Invalid import string format. Must start with UCFX:"
+    end
+
+    -- Remove prefix
+    local encoded = importString:sub(6)
+
+    -- Decode base64
+    local success, decoded = pcall(Base64Decode, encoded)
+    if not success or not decoded then
+        return false, "Invalid base64 encoding"
+    end
+
+    local typeMap = {
+        enabled = "boolean",
+        flashEnabled = "boolean",
+        points = "number",
+        size = "number",
+        glowSize = "number",
+        smoothness = "number",
+        pulseSpeed = "number",
+        rainbowMode = "boolean",
+        rainbowSpeed = "number",
+        clickEffects = "boolean",
+        clickParticles = "number",
+        clickSize = "number",
+        clickDuration = "number",
+        particleShape = "string",
+        cometMode = "boolean",
+        cometLength = "number",
+        color = "table",
+    }
+
+    local imported = 0
+    for pair in string.gmatch(decoded, "[^;]+") do
+        local field, value = pair:match("([^=]+)=(.+)")
+        if field and value and typeMap[field] then
+            UltraCursorFXDB[field] = DeserializeValue(value, typeMap[field])
+            imported = imported + 1
+        end
+    end
+
+    if imported > 0 then
+        return true, "Successfully imported " .. imported .. " settings"
+    else
+        return false, "No valid settings found in import string"
+    end
+end
+
+-- ===============================
+-- Build Visuals
+-- ===============================
+local function BuildTrail()
+    for i = 1, #points do
+        if points[i] then
+            points[i]:Hide()
+        end
+        if glow[i] then
+            glow[i]:Hide()
+        end
+    end
+    wipe(points)
+    wipe(glow)
+
+    local shape = UltraCursorFXDB.particleShape
+    local texture = particleTextures[shape] or particleTextures.star
+
+    for i = 1, UltraCursorFXDB.points do
+        local p = parent:CreateTexture(nil, "OVERLAY")
+        p:SetTexture(texture)
+        p:SetBlendMode("ADD")
+        p:SetSize(UltraCursorFXDB.size, UltraCursorFXDB.size)
+        p:SetVertexColor(unpack(UltraCursorFXDB.color))
+        p.x, p.y = 0, 0
+        points[i] = p
+
+        local g = parent:CreateTexture(nil, "OVERLAY")
+        g:SetTexture("Interface\\SPELLBOOK\\Spellbook-IconGlow")
+        g:SetBlendMode("ADD")
+        g:SetSize(UltraCursorFXDB.glowSize, UltraCursorFXDB.glowSize)
+        g:SetVertexColor(unpack(UltraCursorFXDB.color))
+        glow[i] = g
+    end
+end
+
+-- ===============================
+-- Click Effects
+-- ===============================
+local lastMouseState = { false, false }
+
+local function CreateClickEffect(x, y)
+    if not UltraCursorFXDB.clickEffects then
+        return
+    end
+
+    local color = UltraCursorFXDB.rainbowMode and { HSVtoRGB(rainbowHue, 1, 1) } or UltraCursorFXDB.color
+
+    local shape = UltraCursorFXDB.particleShape
+    local texture = particleTextures[shape] or particleTextures.star
+
+    for i = 1, UltraCursorFXDB.clickParticles do
+        local angle = (i / UltraCursorFXDB.clickParticles) * math.pi * 2
+        local speed = 200 + math.random(0, 100)
+
+        local p = parent:CreateTexture(nil, "OVERLAY")
+        p:SetTexture(texture)
+        p:SetBlendMode("ADD")
+        p:SetSize(UltraCursorFXDB.clickSize, UltraCursorFXDB.clickSize)
+        p:SetVertexColor(unpack(color))
+        p:SetPoint("CENTER", parent, "BOTTOMLEFT", x, y)
+
+        p.velocityX = math.cos(angle) * speed
+        p.velocityY = math.sin(angle) * speed
+        p.life = 0
+        p.maxLife = UltraCursorFXDB.clickDuration
+
+        table.insert(clickParticles, p)
+    end
+end
+
+local function UpdateClickParticles(elapsed)
+    for i = #clickParticles, 1, -1 do
+        local p = clickParticles[i]
+        p.life = p.life + elapsed
+
+        if p.life >= p.maxLife then
+            p:Hide()
+            table.remove(clickParticles, i)
+        else
+            local progress = p.life / p.maxLife
+            local alpha = 1 - progress
+
+            local x, y = p:GetCenter()
+            if x and y then
+                x = x + p.velocityX * elapsed
+                y = y + p.velocityY * elapsed
+                p:SetPoint("CENTER", parent, "BOTTOMLEFT", x, y)
+            end
+
+            local size = UltraCursorFXDB.clickSize * (1 - progress * 0.5)
+            p:SetSize(size, size)
+            p:SetAlpha(alpha)
+        end
+    end
+end
+
+-- ===============================
+-- Mouse Click Detection (Non-Intrusive)
+-- ===============================
+local function CheckMouseClicks()
+    if not UltraCursorFXDB.clickEffects then
+        return
+    end
+
+    local leftDown = IsMouseButtonDown("LeftButton")
+    local rightDown = IsMouseButtonDown("RightButton")
+
+    -- Detect left click
+    if leftDown and not lastMouseState[1] then
+        local cx, cy = GetCursorPosition()
+        local scale = parent:GetEffectiveScale()
+        CreateClickEffect(cx / scale, cy / scale)
+    end
+
+    -- Detect right click
+    if rightDown and not lastMouseState[2] then
+        local cx, cy = GetCursorPosition()
+        local scale = parent:GetEffectiveScale()
+        CreateClickEffect(cx / scale, cy / scale)
+    end
+
+    lastMouseState[1] = leftDown
+    lastMouseState[2] = rightDown
+end
+-- ===============================
+-- Animation Loop
+-- ===============================
+local tAccum = 0
+local function OnUpdate(self, elapsed)
+    if not UltraCursorFXDB.enabled then
+        return
+    end
+
+    local pulseSpeed = UltraCursorFXDB.pulseSpeed or 2.5
+    local smoothness = UltraCursorFXDB.smoothness or 0.18
+    local flashEnabled = UltraCursorFXDB.flashEnabled
+
+    if #points == 0 then
+        return
+    end
+
+    tAccum = tAccum + elapsed
+    local pulse = 0.6 + math.sin(tAccum * pulseSpeed) * 0.4
+
+    if flashEnabled and pulse > 0.95 then
+        UIParent:SetAlpha(1)
+    end
+
+    -- Rainbow Mode
+    if UltraCursorFXDB.rainbowMode then
+        rainbowHue = (rainbowHue + elapsed * UltraCursorFXDB.rainbowSpeed * 0.1) % 1
+        local r, g, b = HSVtoRGB(rainbowHue, 1, 1)
+        UltraCursorFXDB.color = { r, g, b }
+
+        for i = 1, #points do
+            points[i]:SetVertexColor(r, g, b)
+            glow[i]:SetVertexColor(r, g, b)
+        end
+    end
+
+    local cx, cy = GetCursorPosition()
+    local scale = parent:GetEffectiveScale()
+    cx, cy = cx / scale, cy / scale
+
+    -- Comet Mode - adjust spacing between points
+    local spacing = UltraCursorFXDB.cometMode and (1 / UltraCursorFXDB.cometLength) or 1
+
+    for i = 1, #points do
+        local p = points[i]
+        if i == 1 then
+            p.x = Lerp(p.x, cx, smoothness)
+            p.y = Lerp(p.y, cy, smoothness)
+        else
+            local prev = points[i - 1]
+            p.x = Lerp(p.x, prev.x, smoothness * spacing)
+            p.y = Lerp(p.y, prev.y, smoothness * spacing)
+        end
+
+        local alpha = ((#points - i + 1) / #points) ^ (UltraCursorFXDB.cometMode and 2.5 or 1.5)
+        p:SetPoint("CENTER", parent, "BOTTOMLEFT", p.x, p.y)
+        p:SetAlpha(alpha * pulse)
+
+        local g = glow[i]
+        g:SetPoint("CENTER", p)
+        g:SetAlpha(alpha * 0.75 * pulse)
+    end
+
+    CheckMouseClicks()
+    UpdateClickParticles(elapsed)
+end
+
+-- ===============================
+-- Settings Panel
+-- ===============================
+local settingsPanel
+
+local function CreateSettingsPanel()
+    settingsPanel = CreateFrame("Frame", "UltraCursorFXPanel")
+    settingsPanel.name = "UltraCursorFX"
+
+    -- Scrollable content
+    local scroll = CreateFrame("ScrollFrame", nil, settingsPanel, "UIPanelScrollFrameTemplate")
+    scroll:SetPoint("TOPLEFT", 3, -4)
+    scroll:SetPoint("BOTTOMRIGHT", -27, 4)
+
+    local content = CreateFrame("Frame", nil, scroll)
+    content:SetSize(1, 1)
+    scroll:SetScrollChild(content)
+
+    -- Icon
+    local iconFrame = CreateFrame("Frame", nil, content)
+    iconFrame:SetSize(64, 64)
+    iconFrame:SetPoint("TOPLEFT", 16, -16)
+
+    local icon = iconFrame:CreateTexture(nil, "ARTWORK")
+    icon:SetAllPoints()
+    icon:SetTexture("Interface\\AddOns\\UltraCursorFX\\icon.png")
+
+    -- Fallback border if texture doesn't load
+    local iconBorder = iconFrame:CreateTexture(nil, "BACKGROUND")
+    iconBorder:SetAllPoints()
+    iconBorder:SetColorTexture(0.2, 0.2, 0.2, 0.5)
+
+    local title = content:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    title:SetPoint("LEFT", iconFrame, "RIGHT", 10, 8)
+    title:SetText("UltraCursorFX Settings")
+
+    local subtitle = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
+    subtitle:SetText("Customize your cursor trail effects")
+
+    local function CreateCheckbox(name, label, yOffset, tooltip)
+        local cb = CreateFrame("CheckButton", nil, content, "InterfaceOptionsCheckButtonTemplate")
+        cb:SetPoint("TOPLEFT", 20, yOffset)
+        cb.Text:SetText(label)
+        cb.tooltipText = tooltip
+        return cb
+    end
+
+    local function CreateSlider(name, label, yOffset, minVal, maxVal, step, tooltip)
+        local slider = CreateFrame("Slider", nil, content, "OptionsSliderTemplate")
+        slider:SetPoint("TOPLEFT", 20, yOffset)
+        slider:SetMinMaxValues(minVal, maxVal)
+        slider:SetValueStep(step)
+        slider:SetObeyStepOnDrag(true)
+        slider:SetWidth(200)
+
+        slider.Text:SetText(label)
+        slider.Low:SetText(minVal)
+        slider.High:SetText(maxVal)
+        slider.tooltipText = tooltip
+
+        local valueText = slider:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+        valueText:SetPoint("TOP", slider, "BOTTOM", 0, 0)
+        slider.valueText = valueText
+
+        return slider
+    end
+
+    local function CreateColorPicker(name, label, yOffset)
+        local btn = CreateFrame("Button", nil, content)
+        btn:SetSize(24, 24)
+        btn:SetPoint("TOPLEFT", 20, yOffset)
+
+        local texture = btn:CreateTexture(nil, "BACKGROUND")
+        texture:SetAllPoints()
+        texture:SetColorTexture(1, 1, 1)
+        btn.texture = texture
+
+        local labelText = btn:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        labelText:SetPoint("LEFT", btn, "RIGHT", 8, 0)
+        labelText:SetText(label)
+
+        return btn
+    end
+
+    local function CreateSection(label, yOffset)
+        local section = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        section:SetPoint("TOPLEFT", 16, yOffset)
+        section:SetText("|cFFFFD700" .. label .. "|r")
+
+        local line = content:CreateTexture(nil, "ARTWORK")
+        line:SetHeight(1)
+        line:SetPoint("TOPLEFT", section, "BOTTOMLEFT", 0, -4)
+        line:SetPoint("RIGHT", content, -40, 0)
+        line:SetColorTexture(1, 0.82, 0, 0.3)
+
+        return yOffset - 30
+    end
+
+    local yPos = -100
+
+    -- BASIC SETTINGS
+    yPos = CreateSection("Basic Settings", yPos)
+
+    local enableCB = CreateCheckbox("Enable", "Enable Cursor Trail", yPos, "Toggle the cursor trail effect")
+    enableCB:SetChecked(UltraCursorFXDB.enabled)
+    enableCB:SetScript("OnClick", function(self)
+        UltraCursorFXDB.enabled = self:GetChecked()
+        if UltraCursorFXDB.enabled then
+            f:SetScript("OnUpdate", OnUpdate)
+        else
+            f:SetScript("OnUpdate", nil)
+        end
+    end)
+    yPos = yPos - 30
+
+    local flashCB = CreateCheckbox("Flash", "Enable Pulse Flash", yPos, "Enable HDR flash effect on pulse")
+    flashCB:SetChecked(UltraCursorFXDB.flashEnabled)
+    flashCB:SetScript("OnClick", function(self)
+        UltraCursorFXDB.flashEnabled = self:GetChecked()
+    end)
+    yPos = yPos - 40
+
+    -- TRAIL SETTINGS
+    yPos = CreateSection("Trail Settings", yPos)
+
+    local pointsSlider = CreateSlider("Points", "Trail Points", yPos, 10, 100, 1, "Number of points in the trail")
+    pointsSlider:SetValue(UltraCursorFXDB.points or 48)
+    pointsSlider.valueText:SetText(UltraCursorFXDB.points or 48)
+    pointsSlider:SetScript("OnValueChanged", function(self, value)
+        value = math.floor(value)
+        UltraCursorFXDB.points = value
+        self.valueText:SetText(value)
+        BuildTrail()
+    end)
+    yPos = yPos - 60
+
+    local sizeSlider = CreateSlider("Size", "Particle Size", yPos, 10, 100, 1, "Size of trail particles")
+    sizeSlider:SetValue(UltraCursorFXDB.size or 34)
+    sizeSlider.valueText:SetText(UltraCursorFXDB.size or 34)
+    sizeSlider:SetScript("OnValueChanged", function(self, value)
+        value = math.floor(value)
+        UltraCursorFXDB.size = value
+        self.valueText:SetText(value)
+        BuildTrail()
+    end)
+    yPos = yPos - 60
+
+    local glowSlider = CreateSlider("GlowSize", "Glow Size", yPos, 10, 150, 1, "Size of particle glow")
+    glowSlider:SetValue(UltraCursorFXDB.glowSize or 64)
+    glowSlider.valueText:SetText(UltraCursorFXDB.glowSize or 64)
+    glowSlider:SetScript("OnValueChanged", function(self, value)
+        value = math.floor(value)
+        UltraCursorFXDB.glowSize = value
+        self.valueText:SetText(value)
+        BuildTrail()
+    end)
+    yPos = yPos - 60
+
+    local smoothSlider =
+        CreateSlider("Smooth", "Trail Smoothness", yPos, 0.05, 0.50, 0.01, "How smoothly the trail follows cursor")
+    smoothSlider:SetValue(UltraCursorFXDB.smoothness or 0.18)
+    smoothSlider.valueText:SetText(string.format("%.2f", UltraCursorFXDB.smoothness or 0.18))
+    smoothSlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.smoothness = value
+        self.valueText:SetText(string.format("%.2f", value))
+    end)
+    yPos = yPos - 60
+
+    local pulseSlider = CreateSlider("Pulse", "Pulse Speed", yPos, 0.5, 5.0, 0.1, "Speed of the pulse animation")
+    pulseSlider:SetValue(UltraCursorFXDB.pulseSpeed or 2.5)
+    pulseSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.pulseSpeed or 2.5))
+    pulseSlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.pulseSpeed = value
+        self.valueText:SetText(string.format("%.1f", value))
+    end)
+    yPos = yPos - 70
+
+    -- PARTICLE SHAPE
+    yPos = CreateSection("Particle Shape", yPos)
+
+    local shapeLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    shapeLabel:SetPoint("TOPLEFT", 20, yPos)
+    shapeLabel:SetText("Shape:")
+
+    local shapes = {
+        { id = "star", name = "Star", tooltip = "Classic sparkly star" },
+        { id = "skull", name = "Skull", tooltip = "Spooky skull marker" },
+        { id = "spark", name = "Spark", tooltip = "Bright spark" },
+        { id = "dot", name = "Circle", tooltip = "Simple circle" },
+    }
+
+    for i, shape in ipairs(shapes) do
+        local btn = CreateFrame("Button", nil, content)
+        btn:SetSize(70, 24)
+        btn:SetPoint("TOPLEFT", 80 + (i - 1) * 75, yPos)
+        btn:SetNormalFontObject("GameFontNormal")
+        btn:SetHighlightFontObject("GameFontHighlight")
+        btn:SetText(shape.name)
+
+        local bg = btn:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints()
+        bg:SetColorTexture(0.2, 0.2, 0.2, 0.8)
+        btn.bg = bg
+
+        btn:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(shape.tooltip)
+            GameTooltip:Show()
+        end)
+        btn:SetScript("OnLeave", function()
+            GameTooltip:Hide()
+        end)
+
+        btn:SetScript("OnClick", function()
+            UltraCursorFXDB.particleShape = shape.id
+            BuildTrail()
+            -- Update button highlights
+            for _, s in ipairs(shapes) do
+                local b = _G["ShapeBtn" .. s.id]
+                if b and b.bg then
+                    b.bg:SetColorTexture(0.2, 0.2, 0.2, 0.8)
+                end
+            end
+            bg:SetColorTexture(0.2, 0.6, 0.2, 0.8)
+        end)
+
+        _G["ShapeBtn" .. shape.id] = btn
+
+        if UltraCursorFXDB.particleShape == shape.id then
+            bg:SetColorTexture(0.2, 0.6, 0.2, 0.8)
+        end
+    end
+    yPos = yPos - 40
+
+    -- COLOR SETTINGS
+    yPos = CreateSection("Color Settings", yPos)
+
+    local rainbowCB = CreateCheckbox("Rainbow", "Rainbow Mode", yPos, "Automatically cycle through rainbow colors")
+    rainbowCB:SetChecked(UltraCursorFXDB.rainbowMode)
+    rainbowCB:SetScript("OnClick", function(self)
+        UltraCursorFXDB.rainbowMode = self:GetChecked()
+    end)
+    yPos = yPos - 30
+
+    local rainbowSlider = CreateSlider("RainbowSpeed", "Rainbow Speed", yPos, 0.1, 5.0, 0.1, "Speed of color cycling")
+    rainbowSlider:SetValue(UltraCursorFXDB.rainbowSpeed or 1.0)
+    rainbowSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.rainbowSpeed or 1.0))
+    rainbowSlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.rainbowSpeed = value
+        self.valueText:SetText(string.format("%.1f", value))
+    end)
+    yPos = yPos - 60
+
+    local function ShowColorPicker(onChange)
+        local r, g, b = UltraCursorFXDB.color[1], UltraCursorFXDB.color[2], UltraCursorFXDB.color[3]
+
+        local info = {
+            r = r,
+            g = g,
+            b = b,
+            opacity = 1.0,
+            hasOpacity = false,
+            swatchFunc = function()
+                local nr, ng, nb = ColorPickerFrame:GetColorRGB()
+                UltraCursorFXDB.color = { nr, ng, nb }
+                UltraCursorFXDB.rainbowMode = false
+                rainbowCB:SetChecked(false)
+                BuildTrail()
+                if onChange then
+                    onChange(nr, ng, nb)
+                end
+            end,
+            cancelFunc = function()
+                UltraCursorFXDB.color = { r, g, b }
+                BuildTrail()
+                if onChange then
+                    onChange(r, g, b)
+                end
+            end,
+        }
+
+        ColorPickerFrame:SetupColorPickerAndShow(info)
+    end
+
+    local colorBtn = CreateColorPicker("Color", "Custom Color", yPos)
+    colorBtn.texture:SetColorTexture(unpack(UltraCursorFXDB.color))
+    colorBtn:SetScript("OnClick", function(self)
+        ShowColorPicker(function(r, g, b)
+            self.texture:SetColorTexture(r, g, b)
+        end)
+    end)
+    yPos = yPos - 40
+
+    local presets = {
+        { name = "Cyan", color = { 0.0, 1.0, 1.0 } },
+        { name = "Purple", color = { 0.8, 0.2, 1.0 } },
+        { name = "Green", color = { 0.0, 1.0, 0.0 } },
+        { name = "Red", color = { 1.0, 0.2, 0.2 } },
+        { name = "Gold", color = { 1.0, 0.84, 0.0 } },
+        { name = "White", color = { 1.0, 1.0, 1.0 } },
+    }
+
+    local presetLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    presetLabel:SetPoint("TOPLEFT", 20, yPos)
+    presetLabel:SetText("Presets:")
+
+    for i, preset in ipairs(presets) do
+        local btn = CreateFrame("Button", nil, content)
+        btn:SetSize(60, 22)
+        btn:SetPoint("TOPLEFT", 80 + (i - 1) * 65, yPos)
+        btn:SetNormalFontObject("GameFontNormal")
+        btn:SetHighlightFontObject("GameFontHighlight")
+        btn:SetText(preset.name)
+
+        local bg = btn:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints()
+        bg:SetColorTexture(0.2, 0.2, 0.2, 0.8)
+
+        btn:SetScript("OnClick", function()
+            UltraCursorFXDB.color = { unpack(preset.color) }
+            UltraCursorFXDB.rainbowMode = false
+            rainbowCB:SetChecked(false)
+            colorBtn.texture:SetColorTexture(unpack(preset.color))
+            BuildTrail()
+        end)
+    end
+    yPos = yPos - 40
+
+    -- CLICK EFFECTS
+    yPos = CreateSection("Click Effects", yPos)
+
+    local clickCB = CreateCheckbox("ClickFX", "Enable Click Effects", yPos, "Particle burst when clicking")
+    clickCB:SetChecked(UltraCursorFXDB.clickEffects)
+    clickCB:SetScript("OnClick", function(self)
+        UltraCursorFXDB.clickEffects = self:GetChecked()
+    end)
+    yPos = yPos - 30
+
+    local clickParticlesSlider =
+        CreateSlider("ClickParticles", "Click Particles", yPos, 4, 24, 1, "Number of particles per click")
+    clickParticlesSlider:SetValue(UltraCursorFXDB.clickParticles or 12)
+    clickParticlesSlider.valueText:SetText(UltraCursorFXDB.clickParticles or 12)
+    clickParticlesSlider:SetScript("OnValueChanged", function(self, value)
+        value = math.floor(value)
+        UltraCursorFXDB.clickParticles = value
+        self.valueText:SetText(value)
+    end)
+    yPos = yPos - 60
+
+    local clickSizeSlider =
+        CreateSlider("ClickSize", "Click Particle Size", yPos, 20, 100, 1, "Size of click particles")
+    clickSizeSlider:SetValue(UltraCursorFXDB.clickSize or 50)
+    clickSizeSlider.valueText:SetText(UltraCursorFXDB.clickSize or 50)
+    clickSizeSlider:SetScript("OnValueChanged", function(self, value)
+        value = math.floor(value)
+        UltraCursorFXDB.clickSize = value
+        self.valueText:SetText(value)
+    end)
+    yPos = yPos - 60
+
+    local clickDurationSlider =
+        CreateSlider("ClickDuration", "Click Effect Duration", yPos, 0.2, 2.0, 0.1, "How long click effects last")
+    clickDurationSlider:SetValue(UltraCursorFXDB.clickDuration or 0.6)
+    clickDurationSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.clickDuration or 0.6))
+    clickDurationSlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.clickDuration = value
+        self.valueText:SetText(string.format("%.1f", value))
+    end)
+    yPos = yPos - 70
+
+    -- COMET MODE
+    yPos = CreateSection("Comet Mode", yPos)
+
+    local cometCB = CreateCheckbox("Comet", "Enable Comet Mode", yPos, "Elongated trailing effect")
+    cometCB:SetChecked(UltraCursorFXDB.cometMode)
+    cometCB:SetScript("OnClick", function(self)
+        UltraCursorFXDB.cometMode = self:GetChecked()
+    end)
+    yPos = yPos - 30
+
+    local cometSlider =
+        CreateSlider("CometLength", "Comet Tail Length", yPos, 1.0, 5.0, 0.1, "Length multiplier for comet tail")
+    cometSlider:SetValue(UltraCursorFXDB.cometLength or 2.0)
+    cometSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.cometLength or 2.0))
+    cometSlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.cometLength = value
+        self.valueText:SetText(string.format("%.1f", value))
+    end)
+    yPos = yPos - 80
+
+    -- IMPORT/EXPORT
+    yPos = CreateSection("Import / Export", yPos)
+
+    local exportLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    exportLabel:SetPoint("TOPLEFT", 20, yPos)
+    exportLabel:SetText("Share your settings with others!")
+    yPos = yPos - 25
+
+    -- Export EditBox (declare first so button can reference it)
+    local exportEditBox = CreateFrame("EditBox", nil, content, "InputBoxTemplate")
+    exportEditBox:SetSize(400, 20)
+    exportEditBox:SetAutoFocus(false)
+    exportEditBox:SetScript("OnEscapePressed", function(self)
+        self:ClearFocus()
+    end)
+    exportEditBox:SetScript("OnEnterPressed", function(self)
+        self:ClearFocus()
+    end)
+    exportEditBox:SetScript("OnEditFocusGained", function(self)
+        self:HighlightText()
+    end)
+    exportEditBox:SetScript("OnEditFocusLost", function(self)
+        self:HighlightText(0, 0)
+    end)
+
+    -- Export Button
+    local exportBtn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    exportBtn:SetSize(100, 24)
+    exportBtn:SetPoint("TOPLEFT", 20, yPos)
+    exportBtn:SetText("Export")
+    exportBtn:SetScript("OnClick", function()
+        local exportString = ExportSettings()
+        exportEditBox:SetText(exportString)
+        exportEditBox:HighlightText()
+        exportEditBox:SetFocus()
+        print("|cFF00FFFFUltraCursorFX:|r Settings exported! Press Ctrl+C to copy.")
+    end)
+
+    -- Position export editbox next to button
+    exportEditBox:SetPoint("LEFT", exportBtn, "RIGHT", 10, 0)
+    yPos = yPos - 40
+
+    -- Import EditBox (declare first so button can reference it)
+    local importEditBox = CreateFrame("EditBox", nil, content, "InputBoxTemplate")
+    importEditBox:SetSize(400, 20)
+    importEditBox:SetAutoFocus(false)
+    importEditBox:SetScript("OnEscapePressed", function(self)
+        self:ClearFocus()
+    end)
+    importEditBox:SetScript("OnEnterPressed", function(self)
+        importBtn:Click()
+        self:ClearFocus()
+    end)
+
+    -- Import Button
+    local importBtn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    importBtn:SetSize(100, 24)
+    importBtn:SetPoint("TOPLEFT", 20, yPos)
+    importBtn:SetText("Import")
+    importBtn:SetScript("OnClick", function()
+        local importString = importEditBox:GetText()
+        local success, message = ImportSettings(importString)
+        if success then
+            BuildTrail() -- Rebuild the trail with imported settings
+            print("|cFF00FFFFUltraCursorFX:|r " .. message)
+            print("|cFFFFD700Tip:|r Reopen settings to see updated values.")
+        else
+            print("|cFFFF0000UltraCursorFX Error:|r " .. message)
+        end
+    end)
+
+    -- Position import editbox next to button
+    importEditBox:SetPoint("LEFT", importBtn, "RIGHT", 10, 0)
+    yPos = yPos - 30
+
+    local importNote = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    importNote:SetPoint("TOPLEFT", 20, yPos)
+    importNote:SetText("|cFFFFD700Tip:|r Paste a settings string and click Import, or press Enter.")
+    yPos = yPos - 50
+
+    -- KEYBINDINGS REMINDER
+    yPos = CreateSection("Quick Toggle", yPos)
+
+    local keybindNote = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    keybindNote:SetPoint("TOPLEFT", 20, yPos)
+    keybindNote:SetText("Set a hotkey to quickly toggle the cursor trail on/off!")
+    yPos = yPos - 25
+
+    local keybindInstructions = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    keybindInstructions:SetPoint("TOPLEFT", 20, yPos)
+    keybindInstructions:SetText("Go to |cFFFFD700ESC > Keybindings > Toggle Cursor Trail|r to assign your hotkey.")
+    yPos = yPos - 50
+
+    -- CREDITS
+    yPos = CreateSection("Credits", yPos)
+
+    local authorText = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    authorText:SetPoint("TOPLEFT", 20, yPos)
+    authorText:SetText("|cFFFFD700Author:|r Ryan Hein")
+    yPos = yPos - 25
+
+    local githubLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    githubLabel:SetPoint("TOPLEFT", 20, yPos)
+    githubLabel:SetText("|cFFFFD700GitHub:|r |cFF00FFFFhttps://github.com/Stackout/ultra-cursor-fx|r")
+    yPos = yPos - 40
+
+    -- Set content height for scrolling
+    content:SetHeight(math.abs(yPos) + 100)
+
+    -- Register with Interface Options
+    if Settings and Settings.RegisterCanvasLayoutCategory then
+        local category = Settings.RegisterCanvasLayoutCategory(settingsPanel, settingsPanel.name)
+        Settings.RegisterAddOnCategory(category)
+        settingsPanel.category = category -- Store the category object
+    elseif InterfaceOptions_AddCategory then
+        InterfaceOptions_AddCategory(settingsPanel)
+    end
+end
+
+-- ===============================
+-- Keybinding Functions
+-- ===============================
+function UltraCursorFX_Toggle()
+    UltraCursorFXDB.enabled = not UltraCursorFXDB.enabled
+    if UltraCursorFXDB.enabled then
+        f:SetScript("OnUpdate", OnUpdate)
+    else
+        f:SetScript("OnUpdate", nil)
+    end
+    print("UltraCursorFX:", UltraCursorFXDB.enabled and "Enabled" or "Disabled")
+end
+
+function UltraCursorFX_ToggleFlash()
+    UltraCursorFXDB.flashEnabled = not UltraCursorFXDB.flashEnabled
+    print("UltraCursorFX Flash:", UltraCursorFXDB.flashEnabled and "Enabled" or "Disabled")
+end
+
+-- ===============================
+-- Slash Commands
+-- ===============================
+SLASH_ULTRACURSORFX1 = "/ucfx"
+SlashCmdList["ULTRACURSORFX"] = function(msg)
+    local cmd = msg:match("%S+") or ""
+    cmd = cmd:lower()
+
+    if cmd == "off" then
+        UltraCursorFXDB.enabled = false
+        f:SetScript("OnUpdate", nil)
+        print("UltraCursorFX disabled")
+    elseif cmd == "on" then
+        UltraCursorFXDB.enabled = true
+        f:SetScript("OnUpdate", OnUpdate)
+        print("UltraCursorFX enabled")
+    elseif cmd == "flash" then
+        UltraCursorFXDB.flashEnabled = not UltraCursorFXDB.flashEnabled
+        print("Flash:", UltraCursorFXDB.flashEnabled)
+    elseif cmd == "rainbow" then
+        UltraCursorFXDB.rainbowMode = not UltraCursorFXDB.rainbowMode
+        print("Rainbow Mode:", UltraCursorFXDB.rainbowMode)
+    elseif cmd == "click" then
+        UltraCursorFXDB.clickEffects = not UltraCursorFXDB.clickEffects
+        print("Click Effects:", UltraCursorFXDB.clickEffects)
+    elseif cmd == "comet" then
+        UltraCursorFXDB.cometMode = not UltraCursorFXDB.cometMode
+        print("Comet Mode:", UltraCursorFXDB.cometMode)
+    elseif cmd == "export" then
+        local exportString = ExportSettings()
+        print("|cFF00FFFFUltraCursorFX Export String:|r")
+        print(exportString)
+        print("|cFFFFD700Copy the string above to share your settings!|r")
+    elseif cmd == "import" then
+        local importString = msg:sub(8) -- Remove "import " prefix
+        if importString and importString ~= "" then
+            local success, message = ImportSettings(importString)
+            if success then
+                BuildTrail() -- Rebuild the trail with imported settings
+                print("|cFF00FFFFUltraCursorFX:|r " .. message)
+            else
+                print("|cFFFF0000UltraCursorFX Error:|r " .. message)
+            end
+        else
+            print("|cFFFF0000UltraCursorFX:|r Usage: /ucfx import <import string>")
+        end
+    elseif cmd == "config" or cmd == "" then
+        if Settings and settingsPanel.category then
+            -- New API - use the category object
+            Settings.OpenToCategory(settingsPanel.category.ID)
+        elseif InterfaceOptionsFrame_OpenToCategory then
+            -- Old API
+            InterfaceOptionsFrame_OpenToCategory(settingsPanel)
+            InterfaceOptionsFrame_OpenToCategory(settingsPanel)
+        end
+    else
+        print("UltraCursorFX commands:")
+        print("/ucfx - Open settings")
+        print("/ucfx on | off | flash | rainbow | click | comet")
+        print("/ucfx export - Export settings to chat")
+        print("/ucfx import <string> - Import settings from string")
+    end
+end
+
+-- ===============================
+-- Init
+-- ===============================
+f:RegisterEvent("ADDON_LOADED")
+f:SetScript("OnEvent", function(self, event, addon)
+    if addon == "UltraCursorFX" then
+        self:UnregisterEvent("ADDON_LOADED")
+
+        -- Ensure all defaults exist
+        for k, v in pairs(defaults) do
+            if UltraCursorFXDB[k] == nil then
+                UltraCursorFXDB[k] = v
+            end
+        end
+
+        BuildTrail()
+        CreateSettingsPanel()
+
+        if UltraCursorFXDB.enabled then
+            self:SetScript("OnUpdate", OnUpdate)
+        end
+
+        print("|cFF00FFFFUltraCursorFX|r loaded! Type |cFFFFD700/ucfx|r for settings")
+    end
+end)

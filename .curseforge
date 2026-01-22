@@ -1,0 +1,53 @@
+# CurseForge Integration Setup
+
+## Setting up the GitHub Webhook
+
+1. **Generate CurseForge API Token**
+   - Go to https://www.curseforge.com/account/api-tokens
+   - Create a token named "GitHub Webhook"
+   - Copy the generated token
+
+2. **Get Your CurseForge Project ID**
+   - Go to your project page on CurseForge
+   - Find the Project ID in the "About This Project" section
+
+3. **Configure GitHub Webhook**
+   - Go to your GitHub repository settings
+   - Navigate to "Webhooks" → "Add webhook"
+   - Set Payload URL to:
+     ```
+     https://www.curseforge.com/api/projects/{projectID}/package?token={token}
+     ```
+   - Replace `{projectID}` with your CurseForge project ID
+   - Replace `{token}` with your API token from step 1
+   - Content type: `application/json`
+   - Select "Let me select individual events"
+   - Check only: "Releases"
+   - Click "Add webhook"
+
+## Release Process
+
+The automated release process works as follows:
+
+1. **Update version** in `UltraCursorFX.toc`
+2. **Commit and push** to `main` branch
+3. **GitHub Actions** automatically:
+   - Creates a git tag (e.g., `v0.1.0`)
+   - Packages the addon files
+   - Creates a GitHub release
+4. **CurseForge webhook** is triggered and:
+   - Downloads the release
+   - Processes `.pkgmeta` file
+   - Creates a CurseForge release
+
+## Release Types
+
+Tags are automatically categorized:
+- Tags with "alpha" → Alpha release
+- Tags with "beta" → Beta release
+- All other tags → Release version
+
+Examples:
+- `v0.1.0-alpha` → Alpha
+- `v0.1.0-beta` → Beta
+- `v0.1.0` → Release
