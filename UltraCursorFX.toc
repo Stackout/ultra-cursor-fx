@@ -1,0 +1,9 @@
+## Interface: 120000
+## Title: UltraCursorFX
+## Notes: Animated cursor trail effects with full customization
+## Author: Ryan "Stackout" Hein
+## Version: 0.1.0
+## SavedVariables: UltraCursorFXDB
+
+Localization.lua
+UltraCursorFX.lua
