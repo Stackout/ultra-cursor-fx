@@ -519,35 +519,49 @@ All tests run automatically on:
 
 #### Release Workflow
 
-**Automated CurseForge releases via webhook:**
+**Easy Release Management:**
 
-1. Make changes and commit to feature branch
-2. Tests run automatically on push
-3. Create PR to `main` - tests run again
-4. Merge PR (only allowed if tests pass)
-5. Push to `main` with version tag in commit message:
-   ```bash
-   git commit -m "Feature: awesome update [release:v1.2.3]"
-   git push
-   ```
-6. **Tests run on main branch**
-7. **IF tests pass**: Tag `v1.2.3` is automatically created
-8. Tag triggers release workflow - **tests run AGAIN**
-9. **IF tests pass**: GitHub Release is created with packaged addon
-10. **CurseForge webhook** picks up the tag and publishes automatically
+Use the provided release script for all version management:
 
-**Version Format:**
-- Stable releases: `v1.2.3`
-- Beta releases: `v1.2.3-beta`
-- Alpha releases: `v1.2.3-alpha`
-
-**Manual Tag Creation (if needed):**
 ```bash
-git tag -a v1.2.3 -m "Release v1.2.3"
-git push origin v1.2.3
+# Create a new minor version (new features)
+./release.sh minor
+
+# Create a patch version (bug fixes)
+./release.sh patch
+
+# Create alpha dev build for testing
+./release.sh alpha
+
+# Create beta pre-release
+./release.sh beta
 ```
 
-**Important:** Tags will NOT be created if any of the 63 tests fail. This ensures only quality-verified code reaches players.
+**📖 See [RELEASE.md](RELEASE.md) for complete release guide**
+
+**What Happens Automatically:**
+
+1. Script updates version files (README, CHANGELOG)
+2. Creates git commit and tag
+3. You push the tag to GitHub
+4. **GitHub Actions runs full test suite** (167 tests)
+5. **IF tests pass**: Creates GitHub Release with .zip package
+6. **CurseForge webhook** automatically receives and publishes release
+7. Quality-verified releases only! 🎯
+
+**Version Formats (CurseForge-compatible):**
+- Stable releases: `v0.3.0` → CurseForge: `release`
+- Beta releases: `v0.3.0-beta` → CurseForge: `beta`  
+- Alpha releases: `v0.2.0-a1b2c3d` → CurseForge: `alpha`
+
+**Quick Example:**
+```bash
+# New feature complete
+./release.sh minor   # Creates v0.3.0
+# Follow prompts, push tag
+# Tests run automatically
+# GitHub + CurseForge releases published if tests pass
+```
 
 #### Local Development Setup
 

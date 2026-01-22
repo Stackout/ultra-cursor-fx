@@ -1,3 +1,29 @@
+# ============================================================================
+# Release Workflow - Creates GitHub & CurseForge releases from git tags
+# ============================================================================
+# 
+# Triggered by: Pushing a tag matching v*
+#
+# Supported tag formats (CurseForge-compatible):
+#   v0.1.0          → release (stable)
+#   v0.1.0-beta     → beta
+#   v0.1.0-alpha    → alpha
+#   v0.1.0-a1b2c3d  → alpha (commit hash format)
+#   v0.1.0-rc1      → beta (release candidate)
+#
+# Process:
+#   1. Run full test suite (167 tests) - BLOCKS if fails
+#   2. Create release package (.zip)
+#   3. Create GitHub Release (with pre-release flag for alpha/beta)
+#   4. CurseForge webhook automatically picks up the release
+#
+# Usage:
+#   ./release.sh minor   # Creates tag v0.3.0
+#   git push origin v0.3.0       # Triggers this workflow
+#
+# See RELEASE.md for complete guide
+# ============================================================================
+
 name: Create Release
 
 on:
@@ -53,15 +79,23 @@ jobs:
         id: release_type
         run: |
           VERSION="${{ steps.get_version.outputs.version }}"
-          if [[ "$VERSION" == *"alpha"* ]]; then
+          # Check for alpha (includes commit hash patterns like v0.2.0-a1b2c3d)
+          if [[ "$VERSION" =~ -[a-z0-9]{7}$ ]] || [[ "$VERSION" == *"alpha"* ]]; then
             echo "prerelease=true" >> $GITHUB_OUTPUT
             echo "type=Alpha" >> $GITHUB_OUTPUT
+            echo "curseforge_type=alpha" >> $GITHUB_OUTPUT
           elif [[ "$VERSION" == *"beta"* ]]; then
             echo "prerelease=true" >> $GITHUB_OUTPUT
             echo "type=Beta" >> $GITHUB_OUTPUT
+            echo "curseforge_type=beta" >> $GITHUB_OUTPUT
+          elif [[ "$VERSION" == *"rc"* ]]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+            echo "type=Release Candidate" >> $GITHUB_OUTPUT
+            echo "curseforge_type=beta" >> $GITHUB_OUTPUT
           else
             echo "prerelease=false" >> $GITHUB_OUTPUT
             echo "type=Release" >> $GITHUB_OUTPUT
+            echo "curseforge_type=release" >> $GITHUB_OUTPUT
           fi
 
       - name: Update TOC version
@@ -125,3 +159,18 @@ jobs:
           files: release/UltraCursorFX-${{ steps.get_version.outputs.version }}.zip
           prerelease: ${{ steps.release_type.outputs.prerelease }}
           draft: false
+
+      - name: Post-release summary
+        run: |
+          echo "## 🎉 Release Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.get_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Type:** ${{ steps.release_type.outputs.type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** ${{ steps.get_version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Distribution" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ GitHub Release created" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ CurseForge webhook will auto-deploy" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Release Type Mapping" >> $GITHUB_STEP_SUMMARY
+          echo "- CurseForge will receive this as: **${{ steps.release_type.outputs.curseforge_type }}**" >> $GITHUB_STEP_SUMMARY
