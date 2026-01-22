@@ -102,6 +102,24 @@ function addon:CreateSettingsPanel()
         return yOffset - 30
     end
 
+    -- Helper to setup color swatch (solid or rainbow)
+    local function SetupColorSwatch(swatch, profile)
+        if not swatch then
+            return
+        end
+
+        if profile and profile.rainbowMode then
+            -- Rainbow mode: use a distinctive magenta/pink to indicate rainbow
+            swatch:SetColorTexture(1.0, 0.0, 1.0) -- Bright magenta
+        elseif profile and profile.color then
+            swatch:SetColorTexture(unpack(profile.color))
+        else
+            -- Default: use current color or cyan
+            local defaultColor = UltraCursorFXDB.color or { 0.0, 1.0, 1.0 }
+            swatch:SetColorTexture(unpack(defaultColor))
+        end
+    end
+
     local yPos = -100
 
     -- SITUATIONAL PROFILES
@@ -136,17 +154,18 @@ function addon:CreateSettingsPanel()
     activeProfileBg:SetAllPoints()
     activeProfileBg:SetColorTexture(0.1, 0.3, 0.1, 0.5)
 
-    local currentProfileName = UltraCursorFXDB.profiles[addon.currentZoneProfile]
-            and UltraCursorFXDB.profiles[addon.currentZoneProfile].name
-        or "World"
-    local currentProfileColor = UltraCursorFXDB.profiles[addon.currentZoneProfile]
-            and UltraCursorFXDB.profiles[addon.currentZoneProfile].color
-        or { 0.0, 1.0, 1.0 }
+    local currentProfile = UltraCursorFXDB.profiles[addon.currentZoneProfile]
+    local currentProfileName = currentProfile and currentProfile.name or "World"
 
     local activeColorSwatch = activeProfileFrame:CreateTexture(nil, "ARTWORK")
     activeColorSwatch:SetSize(20, 20)
     activeColorSwatch:SetPoint("LEFT", 8, 0)
-    activeColorSwatch:SetColorTexture(unpack(currentProfileColor))
+    SetupColorSwatch(activeColorSwatch, currentProfile)
+
+    -- Rainbow indicator for active profile
+    local activeRainbowIndicator = activeProfileFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    activeRainbowIndicator:SetPoint("CENTER", activeColorSwatch, "CENTER", 0, 0)
+    activeRainbowIndicator:SetText(currentProfile and currentProfile.rainbowMode and "|cFFFFFF00R|r" or "")
 
     local activeProfileLabel = activeProfileFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
     activeProfileLabel:SetPoint("LEFT", activeColorSwatch, "RIGHT", 10, 0)
@@ -157,6 +176,11 @@ function addon:CreateSettingsPanel()
     local profilesLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     profilesLabel:SetPoint("TOPLEFT", 20, yPos)
     profilesLabel:SetText("Profile Management:")
+    yPos = yPos - 20
+
+    local colorLegend = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    colorLegend:SetPoint("TOPLEFT", 20, yPos)
+    colorLegend:SetText("|cFF888888Color = cursor color  •  |cFFFF00FFR|r = rainbow mode|r")
     yPos = yPos - 25
 
     local profileButtons = {
@@ -179,13 +203,16 @@ function addon:CreateSettingsPanel()
         profileBg:SetAllPoints()
         profileBg:SetColorTexture(0.15, 0.15, 0.15, 0.6)
 
-        local profileColor = UltraCursorFXDB.profiles[profileInfo.key]
-                and UltraCursorFXDB.profiles[profileInfo.key].color
-            or { 0.0, 1.0, 1.0 }
         local colorSwatch = profileFrame:CreateTexture(nil, "ARTWORK")
         colorSwatch:SetSize(24, 24)
         colorSwatch:SetPoint("LEFT", 4, 0)
-        colorSwatch:SetColorTexture(unpack(profileColor))
+        SetupColorSwatch(colorSwatch, UltraCursorFXDB.profiles[profileInfo.key])
+
+        -- Rainbow indicator overlay
+        local rainbowIndicator = profileFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+        rainbowIndicator:SetPoint("CENTER", colorSwatch, "CENTER", 0, 0)
+        local profile = UltraCursorFXDB.profiles[profileInfo.key]
+        rainbowIndicator:SetText(profile and profile.rainbowMode and "|cFFFFFF00R|r" or "")
 
         local nameLabel = profileFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
         nameLabel:SetPoint("LEFT", colorSwatch, "RIGHT", 8, 4)
@@ -203,7 +230,13 @@ function addon:CreateSettingsPanel()
             addon:LoadFromProfile(profileInfo.key)
             addon.currentZoneProfile = profileInfo.key
             activeProfileLabel:SetText("Active: |cFFFFD700" .. profileInfo.name .. "|r")
-            activeColorSwatch:SetColorTexture(unpack(UltraCursorFXDB.color))
+            SetupColorSwatch(activeColorSwatch, UltraCursorFXDB.profiles[profileInfo.key])
+            activeRainbowIndicator:SetText(
+                UltraCursorFXDB.profiles[profileInfo.key]
+                        and UltraCursorFXDB.profiles[profileInfo.key].rainbowMode
+                        and "|cFFFFFF00R|r"
+                    or ""
+            )
             RefreshUI()
             print("|cFF00FFFFUltraCursorFX:|r Loaded " .. profileInfo.name .. " profile")
         end)
@@ -222,7 +255,23 @@ function addon:CreateSettingsPanel()
         saveBtn:SetText("Save")
         saveBtn:SetScript("OnClick", function()
             addon:SaveToProfile(profileInfo.key)
-            colorSwatch:SetColorTexture(unpack(UltraCursorFXDB.color))
+            SetupColorSwatch(colorSwatch, UltraCursorFXDB.profiles[profileInfo.key])
+            rainbowIndicator:SetText(
+                UltraCursorFXDB.profiles[profileInfo.key]
+                        and UltraCursorFXDB.profiles[profileInfo.key].rainbowMode
+                        and "|cFFFFFF00R|r"
+                    or ""
+            )
+            -- Update active swatch if this is the current profile
+            if addon.currentZoneProfile == profileInfo.key then
+                SetupColorSwatch(activeColorSwatch, UltraCursorFXDB.profiles[profileInfo.key])
+                activeRainbowIndicator:SetText(
+                    UltraCursorFXDB.profiles[profileInfo.key]
+                            and UltraCursorFXDB.profiles[profileInfo.key].rainbowMode
+                            and "|cFFFFFF00R|r"
+                        or ""
+                )
+            end
             print("|cFF00FFFFUltraCursorFX:|r Saved current settings to " .. profileInfo.name .. " profile")
         end)
         saveBtn:SetScript("OnEnter", function(self)
