@@ -46,7 +46,15 @@ function addon:CreateSettingsPanel()
     local function CreateCheckbox(name, label, yOffset, tooltip)
         local cb = CreateFrame("CheckButton", nil, content, "InterfaceOptionsCheckButtonTemplate")
         cb:SetPoint("TOPLEFT", 20, yOffset)
+        cb:SetSize(26, 26) -- Moderate checkbox size
         cb.Text:SetText(label)
+        -- Increase font size if GetFont is available (not in tests)
+        if cb.Text.GetFont then
+            local fontPath, _, fontFlags = cb.Text:GetFont()
+            if fontPath then
+                cb.Text:SetFont(fontPath, 12, fontFlags)
+            end
+        end
         cb.tooltipText = tooltip
         return cb
     end
@@ -99,7 +107,7 @@ function addon:CreateSettingsPanel()
         line:SetPoint("RIGHT", content, -40, 0)
         line:SetColorTexture(1, 0.82, 0, 0.3)
 
-        return yOffset - 30
+        return yOffset - 40 -- More spacing after section headers
     end
 
     -- Helper to setup color swatch (solid or rainbow)
@@ -203,7 +211,7 @@ function addon:CreateSettingsPanel()
     local situationalDesc = content:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
     situationalDesc:SetPoint("TOPLEFT", 20, yPos)
     situationalDesc:SetText("Auto-switch cursor effects in raids, dungeons, arenas & battlegrounds")
-    yPos = yPos - 25
+    yPos = yPos - 30
 
     local situationalCB = CreateCheckbox(
         "SituationalEnabled",
@@ -218,7 +226,7 @@ function addon:CreateSettingsPanel()
             addon:SwitchToZoneProfile()
         end
     end)
-    yPos = yPos - 35
+    yPos = yPos - 50
 
     -- Active Profile Indicator
     local activeProfileFrame = CreateFrame("Frame", nil, content)
@@ -382,7 +390,7 @@ function addon:CreateSettingsPanel()
             addon.frame:SetScript("OnUpdate", nil)
         end
     end)
-    yPos = yPos - 30
+    yPos = yPos - 40
     uiControls.enableCB = enableCB
 
     local flashCB = CreateCheckbox("Flash", "Enable Pulse Flash", yPos, "HDR flash effect synchronized with pulse")
@@ -390,7 +398,7 @@ function addon:CreateSettingsPanel()
     flashCB:SetScript("OnClick", function(self)
         UltraCursorFXDB.flashEnabled = self:GetChecked()
     end)
-    yPos = yPos - 40
+    yPos = yPos - 50
     uiControls.flashCB = flashCB
 
     -- TRAIL SETTINGS
@@ -541,7 +549,7 @@ function addon:CreateSettingsPanel()
     rainbowCB:SetScript("OnClick", function(self)
         UltraCursorFXDB.rainbowMode = self:GetChecked()
     end)
-    yPos = yPos - 30
+    yPos = yPos - 50
     uiControls.rainbowCB = rainbowCB
 
     local rainbowSlider = CreateSlider("RainbowSpeed", "Rainbow Speed", yPos, 0.1, 5.0, 0.1, "Speed of color cycling")
@@ -636,7 +644,7 @@ function addon:CreateSettingsPanel()
     clickCB:SetScript("OnClick", function(self)
         UltraCursorFXDB.clickEffects = self:GetChecked()
     end)
-    yPos = yPos - 30
+    yPos = yPos - 50
     uiControls.clickCB = clickCB
 
     local clickParticlesSlider =
@@ -682,7 +690,7 @@ function addon:CreateSettingsPanel()
     cometCB:SetScript("OnClick", function(self)
         UltraCursorFXDB.cometMode = self:GetChecked()
     end)
-    yPos = yPos - 30
+    yPos = yPos - 50
     uiControls.cometCB = cometCB
 
     local cometSlider =
