@@ -3,11 +3,38 @@ package-as: UltraCursorFX
 enable-nolib-creation: no
 
 ignore:
+  # Version control
   - .github
   - .git
   - .gitignore
-  - stylua.toml
+
+  # Documentation (keep CHANGELOG.md)
   - README.md
+  - DESCRIPTION.MD
+  - PROFILES_GUIDE.md
+  - MIGRATION_TESTS.md
+  - TESTING.md
+
+  # Development and testing
+  - spec
+  - scripts
+  - hack
+  - test.sh
+  - .busted
+  - .luacheckrc
+  - .luarocks
+  - .dockerignore
+  - Dockerfile
+  - docker-compose.yml
+  - stylua.toml
+
+  # Coverage and reports
+  - luacov.stats.out
+  - luacov.report.out
+
+  # Build artifacts and backups
+  - "*.zip"
+  - "*.old"
 
 manual-changelog:
   filename: CHANGELOG.md

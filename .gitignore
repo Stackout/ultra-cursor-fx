@@ -1,6 +1,11 @@
 # Test Coverage
 luacov*
 
+# Build artifacts
+*.zip
+*.old
+release/
+
 # Docker volumes
 .docker/
 
