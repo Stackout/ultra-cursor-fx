@@ -122,6 +122,81 @@ function addon:CreateSettingsPanel()
 
     local yPos = -100
 
+    -- IMPORT/EXPORT (Top placement for visibility)
+    yPos = CreateSection("Share & Import Settings", yPos)
+
+    local shareDesc = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    shareDesc:SetPoint("TOPLEFT", 20, yPos)
+    shareDesc:SetText("Share your cursor with friends or import someone else's configuration")
+    yPos = yPos - 25
+
+    -- Export row
+    local exportBtn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    exportBtn:SetSize(80, 24)
+    exportBtn:SetPoint("TOPLEFT", 20, yPos)
+    exportBtn:SetText("Export")
+
+    local exportEditBox = CreateFrame("EditBox", nil, content, "InputBoxTemplate")
+    exportEditBox:SetSize(440, 20)
+    exportEditBox:SetPoint("LEFT", exportBtn, "RIGHT", 8, 0)
+    exportEditBox:SetAutoFocus(false)
+    exportEditBox:SetScript("OnEscapePressed", function(self)
+        self:ClearFocus()
+    end)
+    exportEditBox:SetScript("OnEnterPressed", function(self)
+        self:ClearFocus()
+    end)
+    exportEditBox:SetScript("OnEditFocusGained", function(self)
+        self:HighlightText()
+    end)
+    exportEditBox:SetScript("OnEditFocusLost", function(self)
+        self:HighlightText(0, 0)
+    end)
+
+    exportBtn:SetScript("OnClick", function()
+        local exportString = addon:ExportSettings()
+        exportEditBox:SetText(exportString)
+        exportEditBox:HighlightText()
+        exportEditBox:SetFocus()
+        print("|cFF00FFFFUltraCursorFX:|r Settings exported! Press Ctrl+C to copy.")
+    end)
+    yPos = yPos - 35
+
+    -- Import row
+    local importBtn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    importBtn:SetSize(80, 24)
+    importBtn:SetPoint("TOPLEFT", 20, yPos)
+    importBtn:SetText("Import")
+
+    local importEditBox = CreateFrame("EditBox", nil, content, "InputBoxTemplate")
+    importEditBox:SetSize(440, 20)
+    importEditBox:SetPoint("LEFT", importBtn, "RIGHT", 8, 0)
+    importEditBox:SetAutoFocus(false)
+    importEditBox:SetScript("OnEscapePressed", function(self)
+        self:ClearFocus()
+    end)
+
+    importBtn:SetScript("OnClick", function()
+        local importString = importEditBox:GetText()
+        local success, message = addon:ImportSettings(importString)
+        if success then
+            addon:BuildTrail()
+            print("|cFF00FFFFUltraCursorFX:|r " .. message)
+            -- Refresh UI to show imported values
+            if settingsPanel.RefreshUI then
+                settingsPanel.RefreshUI()
+            end
+        else
+            print("|cFFFF0000UltraCursorFX Error:|r " .. message)
+        end
+    end)
+
+    importEditBox:SetScript("OnEnterPressed", function(self)
+        importBtn:Click()
+        self:ClearFocus()
+    end)
+    yPos = yPos - 40
+
     -- SITUATIONAL PROFILES
     yPos = CreateSection("Situational Profiles", yPos)
 
@@ -620,81 +695,6 @@ function addon:CreateSettingsPanel()
     end)
     yPos = yPos - 80
     uiControls.cometSlider = cometSlider
-
-    -- IMPORT/EXPORT
-    yPos = CreateSection("Import / Export", yPos)
-
-    local exportLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    exportLabel:SetPoint("TOPLEFT", 20, yPos)
-    exportLabel:SetText("Share your settings with others!")
-    yPos = yPos - 25
-
-    local exportEditBox = CreateFrame("EditBox", nil, content, "InputBoxTemplate")
-    exportEditBox:SetSize(400, 20)
-    exportEditBox:SetAutoFocus(false)
-    exportEditBox:SetScript("OnEscapePressed", function(self)
-        self:ClearFocus()
-    end)
-    exportEditBox:SetScript("OnEnterPressed", function(self)
-        self:ClearFocus()
-    end)
-    exportEditBox:SetScript("OnEditFocusGained", function(self)
-        self:HighlightText()
-    end)
-    exportEditBox:SetScript("OnEditFocusLost", function(self)
-        self:HighlightText(0, 0)
-    end)
-
-    local exportBtn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
-    exportBtn:SetSize(100, 24)
-    exportBtn:SetPoint("TOPLEFT", 20, yPos)
-    exportBtn:SetText("Export")
-    exportBtn:SetScript("OnClick", function()
-        local exportString = addon:ExportSettings()
-        exportEditBox:SetText(exportString)
-        exportEditBox:HighlightText()
-        exportEditBox:SetFocus()
-        print("|cFF00FFFFUltraCursorFX:|r Settings exported! Press Ctrl+C to copy.")
-    end)
-
-    exportEditBox:SetPoint("LEFT", exportBtn, "RIGHT", 10, 0)
-    yPos = yPos - 40
-
-    local importEditBox = CreateFrame("EditBox", nil, content, "InputBoxTemplate")
-    importEditBox:SetSize(400, 20)
-    importEditBox:SetAutoFocus(false)
-    importEditBox:SetScript("OnEscapePressed", function(self)
-        self:ClearFocus()
-    end)
-
-    local importBtn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
-    importBtn:SetSize(100, 24)
-    importBtn:SetPoint("TOPLEFT", 20, yPos)
-    importBtn:SetText("Import")
-    importBtn:SetScript("OnClick", function()
-        local importString = importEditBox:GetText()
-        local success, message = addon:ImportSettings(importString)
-        if success then
-            addon:BuildTrail()
-            print("|cFF00FFFFUltraCursorFX:|r " .. message)
-            print("|cFFFFD700Tip:|r Reopen settings to see updated values.")
-        else
-            print("|cFFFF0000UltraCursorFX Error:|r " .. message)
-        end
-    end)
-
-    importEditBox:SetScript("OnEnterPressed", function(self)
-        importBtn:Click()
-        self:ClearFocus()
-    end)
-
-    importEditBox:SetPoint("LEFT", importBtn, "RIGHT", 10, 0)
-    yPos = yPos - 30
-
-    local importNote = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-    importNote:SetPoint("TOPLEFT", 20, yPos)
-    importNote:SetText("|cFFFFD700Tip:|r Paste a settings string and click Import, or press Enter.")
-    yPos = yPos - 50
 
     -- KEYBINDINGS REMINDER
     yPos = CreateSection("Quick Toggle", yPos)
