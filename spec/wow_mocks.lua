@@ -217,6 +217,16 @@ _G.Settings = {
     OpenToCategory = function() end,
 }
 
+-- Timer API
+_G.C_Timer = {
+    After = function(delay, callback)
+        -- Execute immediately in tests
+        if callback then
+            callback()
+        end
+    end,
+}
+
 -- Interface Options (legacy)
 _G.InterfaceOptions_AddCategory = function() end
 _G.InterfaceOptionsFrame_OpenToCategory = function() end

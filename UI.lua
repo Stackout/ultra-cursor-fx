@@ -11,6 +11,36 @@ function addon:CreateSettingsPanel()
     -- Store UI control references for refreshing
     local uiControls = {}
     local RefreshUI -- Forward declaration
+    local SetupColorSwatch -- Forward declaration
+
+    -- Track which profile is currently being edited for auto-save
+    local currentEditingProfile = addon.currentZoneProfile or "world"
+    local isLoadingProfile = false -- Disable auto-save during profile load
+
+    -- Auto-save function - saves current settings to the active profile
+    local function AutoSaveToProfile()
+        if isLoadingProfile then
+            return -- Don't auto-save while loading a profile
+        end
+        if currentEditingProfile then
+            addon:SaveToProfile(currentEditingProfile)
+            -- Update UI indicators immediately
+            if uiControls.profileSwatches and uiControls.profileSwatches[currentEditingProfile] then
+                local swatchData = uiControls.profileSwatches[currentEditingProfile]
+                SetupColorSwatch(swatchData.swatch, UltraCursorFXDB.profiles[currentEditingProfile])
+                local profile = UltraCursorFXDB.profiles[currentEditingProfile]
+                swatchData.rainbowIndicator:SetText(profile and profile.rainbowMode and "|cFFFFFF00R|r" or "")
+            end
+            -- Update active indicator if this is the current zone profile
+            if addon.currentZoneProfile == currentEditingProfile and uiControls.activeColorSwatch then
+                SetupColorSwatch(uiControls.activeColorSwatch, UltraCursorFXDB.profiles[currentEditingProfile])
+                if uiControls.activeRainbowIndicator then
+                    local profile = UltraCursorFXDB.profiles[currentEditingProfile]
+                    uiControls.activeRainbowIndicator:SetText(profile and profile.rainbowMode and "|cFFFFFF00R|r" or "")
+                end
+            end
+        end
+    end
 
     -- Scrollable content
     local scroll = CreateFrame("ScrollFrame", nil, settingsPanel, "UIPanelScrollFrameTemplate")
@@ -111,7 +141,7 @@ function addon:CreateSettingsPanel()
     end
 
     -- Helper to setup color swatch (solid or rainbow)
-    local function SetupColorSwatch(swatch, profile)
+    SetupColorSwatch = function(swatch, profile)
         if not swatch then
             return
         end
@@ -244,27 +274,35 @@ function addon:CreateSettingsPanel()
     activeColorSwatch:SetSize(20, 20)
     activeColorSwatch:SetPoint("LEFT", 8, 0)
     SetupColorSwatch(activeColorSwatch, currentProfile)
+    uiControls.activeColorSwatch = activeColorSwatch
 
     -- Rainbow indicator for active profile
     local activeRainbowIndicator = activeProfileFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     activeRainbowIndicator:SetPoint("CENTER", activeColorSwatch, "CENTER", 0, 0)
     activeRainbowIndicator:SetText(currentProfile and currentProfile.rainbowMode and "|cFFFFFF00R|r" or "")
+    uiControls.activeRainbowIndicator = activeRainbowIndicator
 
     local activeProfileLabel = activeProfileFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
     activeProfileLabel:SetPoint("LEFT", activeColorSwatch, "RIGHT", 10, 0)
-    activeProfileLabel:SetText("Active: |cFFFFD700" .. currentProfileName .. "|r")
+    activeProfileLabel:SetText("Editing: |cFFFFD700" .. currentProfileName .. "|r |cFF888888(auto-saves)|r")
+    uiControls.activeProfileLabel = activeProfileLabel
     yPos = yPos - 45
 
     -- Profile Management Grid
     local profilesLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     profilesLabel:SetPoint("TOPLEFT", 20, yPos)
-    profilesLabel:SetText("Profile Management:")
+    profilesLabel:SetText("Profiles:")
     yPos = yPos - 20
 
     local colorLegend = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     colorLegend:SetPoint("TOPLEFT", 20, yPos)
-    colorLegend:SetText("|cFF888888Color = cursor color  •  |cFFFF00FFR|r = rainbow mode|r")
+    colorLegend:SetText(
+        "|cFF888888Click to switch • Changes auto-save • Color = cursor •  |cFFFF00FFR|r = rainbow|r"
+    )
     yPos = yPos - 25
+
+    -- Store profile swatches for updates
+    uiControls.profileSwatches = {}
 
     local profileButtons = {
         { key = "world", name = "World", desc = "Default / Open World" },
@@ -278,13 +316,25 @@ function addon:CreateSettingsPanel()
         local xOffset = 20
         local yOffset = yPos
 
-        local profileFrame = CreateFrame("Frame", nil, content)
-        profileFrame:SetSize(380, 32)
+        local profileFrame = CreateFrame("Button", nil, content)
+        profileFrame:SetSize(500, 32)
         profileFrame:SetPoint("TOPLEFT", xOffset, yOffset)
 
         local profileBg = profileFrame:CreateTexture(nil, "BACKGROUND")
         profileBg:SetAllPoints()
         profileBg:SetColorTexture(0.15, 0.15, 0.15, 0.6)
+
+        -- Highlight on hover
+        profileFrame:SetScript("OnEnter", function(self)
+            profileBg:SetColorTexture(0.2, 0.25, 0.2, 0.8)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText("Click to edit this profile\nChanges will auto-save")
+            GameTooltip:Show()
+        end)
+        profileFrame:SetScript("OnLeave", function(self)
+            profileBg:SetColorTexture(0.15, 0.15, 0.15, 0.6)
+            GameTooltip:Hide()
+        end)
 
         local colorSwatch = profileFrame:CreateTexture(nil, "ARTWORK")
         colorSwatch:SetSize(24, 24)
@@ -297,6 +347,12 @@ function addon:CreateSettingsPanel()
         local profile = UltraCursorFXDB.profiles[profileInfo.key]
         rainbowIndicator:SetText(profile and profile.rainbowMode and "|cFFFFFF00R|r" or "")
 
+        -- Store for updates
+        uiControls.profileSwatches[profileInfo.key] = {
+            swatch = colorSwatch,
+            rainbowIndicator = rainbowIndicator,
+        }
+
         local nameLabel = profileFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
         nameLabel:SetPoint("LEFT", colorSwatch, "RIGHT", 8, 4)
         nameLabel:SetText(profileInfo.name)
@@ -305,65 +361,23 @@ function addon:CreateSettingsPanel()
         descLabel:SetPoint("TOPLEFT", nameLabel, "BOTTOMLEFT", 0, -2)
         descLabel:SetText("|cFF888888" .. profileInfo.desc .. "|r")
 
-        local loadBtn = CreateFrame("Button", nil, profileFrame, "UIPanelButtonTemplate")
-        loadBtn:SetSize(50, 22)
-        loadBtn:SetPoint("RIGHT", -58, 0)
-        loadBtn:SetText("Load")
-        loadBtn:SetScript("OnClick", function()
+        -- Click entire frame to switch profiles
+        profileFrame:SetScript("OnClick", function()
+            isLoadingProfile = true
+            currentEditingProfile = profileInfo.key
             addon:LoadFromProfile(profileInfo.key)
-            addon.currentZoneProfile = profileInfo.key
-            activeProfileLabel:SetText("Active: |cFFFFD700" .. profileInfo.name .. "|r")
-            SetupColorSwatch(activeColorSwatch, UltraCursorFXDB.profiles[profileInfo.key])
-            activeRainbowIndicator:SetText(
+            uiControls.activeProfileLabel:SetText(
+                "Editing: |cFFFFD700" .. profileInfo.name .. "|r |cFF888888(auto-saves)|r"
+            )
+            SetupColorSwatch(uiControls.activeColorSwatch, UltraCursorFXDB.profiles[profileInfo.key])
+            uiControls.activeRainbowIndicator:SetText(
                 UltraCursorFXDB.profiles[profileInfo.key]
                         and UltraCursorFXDB.profiles[profileInfo.key].rainbowMode
                         and "|cFFFFFF00R|r"
                     or ""
             )
             RefreshUI()
-            print("|cFF00FFFFUltraCursorFX:|r Loaded " .. profileInfo.name .. " profile")
-        end)
-        loadBtn:SetScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText("Apply this profile's settings now")
-            GameTooltip:Show()
-        end)
-        loadBtn:SetScript("OnLeave", function()
-            GameTooltip:Hide()
-        end)
-
-        local saveBtn = CreateFrame("Button", nil, profileFrame, "UIPanelButtonTemplate")
-        saveBtn:SetSize(50, 22)
-        saveBtn:SetPoint("RIGHT", -4, 0)
-        saveBtn:SetText("Save")
-        saveBtn:SetScript("OnClick", function()
-            addon:SaveToProfile(profileInfo.key)
-            SetupColorSwatch(colorSwatch, UltraCursorFXDB.profiles[profileInfo.key])
-            rainbowIndicator:SetText(
-                UltraCursorFXDB.profiles[profileInfo.key]
-                        and UltraCursorFXDB.profiles[profileInfo.key].rainbowMode
-                        and "|cFFFFFF00R|r"
-                    or ""
-            )
-            -- Update active swatch if this is the current profile
-            if addon.currentZoneProfile == profileInfo.key then
-                SetupColorSwatch(activeColorSwatch, UltraCursorFXDB.profiles[profileInfo.key])
-                activeRainbowIndicator:SetText(
-                    UltraCursorFXDB.profiles[profileInfo.key]
-                            and UltraCursorFXDB.profiles[profileInfo.key].rainbowMode
-                            and "|cFFFFFF00R|r"
-                        or ""
-                )
-            end
-            print("|cFF00FFFFUltraCursorFX:|r Saved current settings to " .. profileInfo.name .. " profile")
-        end)
-        saveBtn:SetScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText("Save current settings to this profile")
-            GameTooltip:Show()
-        end)
-        saveBtn:SetScript("OnLeave", function()
-            GameTooltip:Hide()
+            isLoadingProfile = false
         end)
 
         yPos = yPos - 36
@@ -372,7 +386,7 @@ function addon:CreateSettingsPanel()
 
     local profileTip = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     profileTip:SetPoint("TOPLEFT", 20, yPos)
-    profileTip:SetText("|cFF88FF88Workflow:|r Adjust settings below > Click 'Save' to store > Click 'Load' to apply")
+    profileTip:SetText("|cFF88FF88Auto-save enabled:|r Changes are saved to the active profile immediately")
     yPos = yPos - 40
 
     -- BASIC SETTINGS
@@ -389,6 +403,7 @@ function addon:CreateSettingsPanel()
         else
             addon.frame:SetScript("OnUpdate", nil)
         end
+        AutoSaveToProfile()
     end)
     yPos = yPos - 40
     uiControls.enableCB = enableCB
@@ -397,6 +412,7 @@ function addon:CreateSettingsPanel()
     flashCB:SetChecked(UltraCursorFXDB.flashEnabled)
     flashCB:SetScript("OnClick", function(self)
         UltraCursorFXDB.flashEnabled = self:GetChecked()
+        AutoSaveToProfile()
     end)
     yPos = yPos - 50
     uiControls.flashCB = flashCB
@@ -425,6 +441,7 @@ function addon:CreateSettingsPanel()
         UltraCursorFXDB.points = value
         self.valueText:SetText(value .. " points")
         addon:BuildTrail()
+        AutoSaveToProfile()
     end)
     yPos = yPos - 60
     uiControls.pointsSlider = pointsSlider
@@ -438,6 +455,7 @@ function addon:CreateSettingsPanel()
         UltraCursorFXDB.size = value
         self.valueText:SetText(value .. "px")
         addon:BuildTrail()
+        AutoSaveToProfile()
     end)
     yPos = yPos - 60
     uiControls.sizeSlider = sizeSlider
@@ -451,6 +469,7 @@ function addon:CreateSettingsPanel()
         UltraCursorFXDB.glowSize = value
         self.valueText:SetText(value .. "px")
         addon:BuildTrail()
+        AutoSaveToProfile()
     end)
     yPos = yPos - 60
     uiControls.glowSlider = glowSlider
@@ -470,6 +489,7 @@ function addon:CreateSettingsPanel()
         UltraCursorFXDB.smoothness = value
         local desc = value < 0.15 and "(Snappy)" or value > 0.30 and "(Floaty)" or "(Balanced)"
         self.valueText:SetText(string.format("%.2f %s", value, desc))
+        AutoSaveToProfile()
     end)
     yPos = yPos - 60
     uiControls.smoothSlider = smoothSlider
@@ -481,6 +501,7 @@ function addon:CreateSettingsPanel()
         UltraCursorFXDB.pulseSpeed = value
         local desc = value < 1.5 and "(Slow)" or value > 3.5 and "(Fast)" or "(Medium)"
         self.valueText:SetText(string.format("%.1f %s", value, desc))
+        AutoSaveToProfile()
     end)
     yPos = yPos - 70
     uiControls.pulseSlider = pulseSlider
@@ -523,7 +544,7 @@ function addon:CreateSettingsPanel()
 
         btn:SetScript("OnClick", function()
             UltraCursorFXDB.particleShape = shape.id
-            addon:BuildTrail()
+            -- Update button highlights first
             for _, s in ipairs(shapes) do
                 local b = _G["ShapeBtn" .. s.id]
                 if b and b.bg then
@@ -531,6 +552,9 @@ function addon:CreateSettingsPanel()
                 end
             end
             bg:SetColorTexture(0.2, 0.6, 0.2, 0.8)
+            -- Then rebuild and save
+            addon:BuildTrail()
+            AutoSaveToProfile()
         end)
 
         _G["ShapeBtn" .. shape.id] = btn
@@ -548,6 +572,7 @@ function addon:CreateSettingsPanel()
     rainbowCB:SetChecked(UltraCursorFXDB.rainbowMode)
     rainbowCB:SetScript("OnClick", function(self)
         UltraCursorFXDB.rainbowMode = self:GetChecked()
+        AutoSaveToProfile()
     end)
     yPos = yPos - 50
     uiControls.rainbowCB = rainbowCB
@@ -558,6 +583,7 @@ function addon:CreateSettingsPanel()
     rainbowSlider:SetScript("OnValueChanged", function(self, value)
         UltraCursorFXDB.rainbowSpeed = value
         self.valueText:SetText(string.format("%.1f", value))
+        AutoSaveToProfile()
     end)
     yPos = yPos - 60
     uiControls.rainbowSlider = rainbowSlider
@@ -576,6 +602,7 @@ function addon:CreateSettingsPanel()
                 UltraCursorFXDB.rainbowMode = false
                 rainbowCB:SetChecked(false)
                 addon:BuildTrail()
+                AutoSaveToProfile()
                 if onChange then
                     onChange(nr, ng, nb)
                 end
@@ -583,6 +610,7 @@ function addon:CreateSettingsPanel()
             cancelFunc = function()
                 UltraCursorFXDB.color = { r, g, b }
                 addon:BuildTrail()
+                AutoSaveToProfile()
                 if onChange then
                     onChange(r, g, b)
                 end
@@ -632,6 +660,7 @@ function addon:CreateSettingsPanel()
             rainbowCB:SetChecked(false)
             colorBtn.texture:SetColorTexture(unpack(preset.color))
             addon:BuildTrail()
+            AutoSaveToProfile()
         end)
     end
     yPos = yPos - 40
@@ -643,6 +672,7 @@ function addon:CreateSettingsPanel()
     clickCB:SetChecked(UltraCursorFXDB.clickEffects)
     clickCB:SetScript("OnClick", function(self)
         UltraCursorFXDB.clickEffects = self:GetChecked()
+        AutoSaveToProfile()
     end)
     yPos = yPos - 50
     uiControls.clickCB = clickCB
@@ -655,6 +685,7 @@ function addon:CreateSettingsPanel()
         value = math.floor(value)
         UltraCursorFXDB.clickParticles = value
         self.valueText:SetText(value)
+        AutoSaveToProfile()
     end)
     yPos = yPos - 60
     uiControls.clickParticlesSlider = clickParticlesSlider
@@ -667,6 +698,7 @@ function addon:CreateSettingsPanel()
         value = math.floor(value)
         UltraCursorFXDB.clickSize = value
         self.valueText:SetText(value)
+        AutoSaveToProfile()
     end)
     yPos = yPos - 60
     uiControls.clickSizeSlider = clickSizeSlider
@@ -678,6 +710,7 @@ function addon:CreateSettingsPanel()
     clickDurationSlider:SetScript("OnValueChanged", function(self, value)
         UltraCursorFXDB.clickDuration = value
         self.valueText:SetText(string.format("%.1f", value))
+        AutoSaveToProfile()
     end)
     yPos = yPos - 70
     uiControls.clickDurationSlider = clickDurationSlider
@@ -689,6 +722,7 @@ function addon:CreateSettingsPanel()
     cometCB:SetChecked(UltraCursorFXDB.cometMode)
     cometCB:SetScript("OnClick", function(self)
         UltraCursorFXDB.cometMode = self:GetChecked()
+        AutoSaveToProfile()
     end)
     yPos = yPos - 50
     uiControls.cometCB = cometCB
@@ -700,6 +734,8 @@ function addon:CreateSettingsPanel()
     cometSlider:SetScript("OnValueChanged", function(self, value)
         UltraCursorFXDB.cometLength = value
         self.valueText:SetText(string.format("%.1f", value))
+        addon:BuildTrail()
+        AutoSaveToProfile()
     end)
     yPos = yPos - 80
     uiControls.cometSlider = cometSlider
@@ -774,6 +810,18 @@ function addon:CreateSettingsPanel()
 
         -- Update color button
         uiControls.colorBtn.texture:SetColorTexture(unpack(UltraCursorFXDB.color))
+
+        -- Update particle shape button highlights
+        for _, s in ipairs(shapes) do
+            local b = _G["ShapeBtn" .. s.id]
+            if b and b.bg then
+                if UltraCursorFXDB.particleShape == s.id then
+                    b.bg:SetColorTexture(0.2, 0.6, 0.2, 0.8)
+                else
+                    b.bg:SetColorTexture(0.2, 0.2, 0.2, 0.8)
+                end
+            end
+        end
     end
 
     -- Store refresh function for external use
