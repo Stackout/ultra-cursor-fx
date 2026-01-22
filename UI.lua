@@ -8,6 +8,10 @@ function addon:CreateSettingsPanel()
     local settingsPanel = CreateFrame("Frame", "UltraCursorFXPanel")
     settingsPanel.name = "UltraCursorFX"
 
+    -- Store UI control references for refreshing
+    local uiControls = {}
+    local RefreshUI -- Forward declaration
+
     -- Scrollable content
     local scroll = CreateFrame("ScrollFrame", nil, settingsPanel, "UIPanelScrollFrameTemplate")
     scroll:SetPoint("TOPLEFT", 3, -4)
@@ -199,7 +203,8 @@ function addon:CreateSettingsPanel()
             addon:LoadFromProfile(profileInfo.key)
             addon.currentZoneProfile = profileInfo.key
             activeProfileLabel:SetText("Active: |cFFFFD700" .. profileInfo.name .. "|r")
-            activeColorSwatch:SetColorTexture(unpack(profileColor))
+            activeColorSwatch:SetColorTexture(unpack(UltraCursorFXDB.color))
+            RefreshUI()
             print("|cFF00FFFFUltraCursorFX:|r Loaded " .. profileInfo.name .. " profile")
         end)
         loadBtn:SetScript("OnEnter", function(self)
@@ -254,6 +259,7 @@ function addon:CreateSettingsPanel()
         end
     end)
     yPos = yPos - 30
+    uiControls.enableCB = enableCB
 
     local flashCB = CreateCheckbox("Flash", "Enable Pulse Flash", yPos, "HDR flash effect synchronized with pulse")
     flashCB:SetChecked(UltraCursorFXDB.flashEnabled)
@@ -261,6 +267,7 @@ function addon:CreateSettingsPanel()
         UltraCursorFXDB.flashEnabled = self:GetChecked()
     end)
     yPos = yPos - 40
+    uiControls.flashCB = flashCB
 
     -- TRAIL SETTINGS
     yPos = CreateSection("Trail Settings", yPos)
@@ -288,6 +295,7 @@ function addon:CreateSettingsPanel()
         addon:BuildTrail()
     end)
     yPos = yPos - 60
+    uiControls.pointsSlider = pointsSlider
 
     local sizeSlider =
         CreateSlider("Size", "Particle Size", yPos, 10, 100, 1, "Bigger = more visible | Smaller = subtle")
@@ -300,6 +308,7 @@ function addon:CreateSettingsPanel()
         addon:BuildTrail()
     end)
     yPos = yPos - 60
+    uiControls.sizeSlider = sizeSlider
 
     local glowSlider =
         CreateSlider("GlowSize", "Glow Intensity", yPos, 10, 150, 1, "Larger = brighter glow around particles")
@@ -312,6 +321,7 @@ function addon:CreateSettingsPanel()
         addon:BuildTrail()
     end)
     yPos = yPos - 60
+    uiControls.glowSlider = glowSlider
 
     local smoothSlider = CreateSlider(
         "Smooth",
@@ -330,6 +340,7 @@ function addon:CreateSettingsPanel()
         self.valueText:SetText(string.format("%.2f %s", value, desc))
     end)
     yPos = yPos - 60
+    uiControls.smoothSlider = smoothSlider
 
     local pulseSlider = CreateSlider("Pulse", "Pulse Speed", yPos, 0.5, 5.0, 0.1, "How fast the trail pulses/breathes")
     pulseSlider:SetValue(UltraCursorFXDB.pulseSpeed or 2.5)
@@ -340,6 +351,7 @@ function addon:CreateSettingsPanel()
         self.valueText:SetText(string.format("%.1f %s", value, desc))
     end)
     yPos = yPos - 70
+    uiControls.pulseSlider = pulseSlider
 
     -- PARTICLE SHAPE
     yPos = CreateSection("Particle Shape", yPos)
@@ -406,6 +418,7 @@ function addon:CreateSettingsPanel()
         UltraCursorFXDB.rainbowMode = self:GetChecked()
     end)
     yPos = yPos - 30
+    uiControls.rainbowCB = rainbowCB
 
     local rainbowSlider = CreateSlider("RainbowSpeed", "Rainbow Speed", yPos, 0.1, 5.0, 0.1, "Speed of color cycling")
     rainbowSlider:SetValue(UltraCursorFXDB.rainbowSpeed or 1.0)
@@ -415,6 +428,7 @@ function addon:CreateSettingsPanel()
         self.valueText:SetText(string.format("%.1f", value))
     end)
     yPos = yPos - 60
+    uiControls.rainbowSlider = rainbowSlider
 
     local function ShowColorPicker(onChange)
         local r, g, b = UltraCursorFXDB.color[1], UltraCursorFXDB.color[2], UltraCursorFXDB.color[3]
@@ -453,6 +467,7 @@ function addon:CreateSettingsPanel()
         end)
     end)
     yPos = yPos - 40
+    uiControls.colorBtn = colorBtn
 
     local presets = {
         { name = "Cyan", color = { 0.0, 1.0, 1.0 } },
@@ -498,6 +513,7 @@ function addon:CreateSettingsPanel()
         UltraCursorFXDB.clickEffects = self:GetChecked()
     end)
     yPos = yPos - 30
+    uiControls.clickCB = clickCB
 
     local clickParticlesSlider =
         CreateSlider("ClickParticles", "Click Particles", yPos, 4, 24, 1, "Number of particles per click")
@@ -509,6 +525,7 @@ function addon:CreateSettingsPanel()
         self.valueText:SetText(value)
     end)
     yPos = yPos - 60
+    uiControls.clickParticlesSlider = clickParticlesSlider
 
     local clickSizeSlider =
         CreateSlider("ClickSize", "Click Particle Size", yPos, 20, 100, 1, "Size of click particles")
@@ -520,6 +537,7 @@ function addon:CreateSettingsPanel()
         self.valueText:SetText(value)
     end)
     yPos = yPos - 60
+    uiControls.clickSizeSlider = clickSizeSlider
 
     local clickDurationSlider =
         CreateSlider("ClickDuration", "Click Effect Duration", yPos, 0.2, 2.0, 0.1, "How long click effects last")
@@ -530,6 +548,7 @@ function addon:CreateSettingsPanel()
         self.valueText:SetText(string.format("%.1f", value))
     end)
     yPos = yPos - 70
+    uiControls.clickDurationSlider = clickDurationSlider
 
     -- COMET MODE
     yPos = CreateSection("Comet Mode", yPos)
@@ -540,6 +559,7 @@ function addon:CreateSettingsPanel()
         UltraCursorFXDB.cometMode = self:GetChecked()
     end)
     yPos = yPos - 30
+    uiControls.cometCB = cometCB
 
     local cometSlider =
         CreateSlider("CometLength", "Comet Tail Length", yPos, 1.0, 5.0, 0.1, "Length multiplier for comet tail")
@@ -550,6 +570,7 @@ function addon:CreateSettingsPanel()
         self.valueText:SetText(string.format("%.1f", value))
     end)
     yPos = yPos - 80
+    uiControls.cometSlider = cometSlider
 
     -- IMPORT/EXPORT
     yPos = CreateSection("Import / Export", yPos)
@@ -653,6 +674,53 @@ function addon:CreateSettingsPanel()
     yPos = yPos - 40
 
     content:SetHeight(math.abs(yPos) + 100)
+
+    -- Function to refresh UI controls from current database values
+    RefreshUI = function()
+        -- Update checkboxes
+        uiControls.enableCB:SetChecked(UltraCursorFXDB.enabled)
+        uiControls.flashCB:SetChecked(UltraCursorFXDB.flashEnabled)
+        uiControls.rainbowCB:SetChecked(UltraCursorFXDB.rainbowMode)
+        uiControls.clickCB:SetChecked(UltraCursorFXDB.clickEffects)
+        uiControls.cometCB:SetChecked(UltraCursorFXDB.cometMode)
+
+        -- Update sliders
+        uiControls.pointsSlider:SetValue(UltraCursorFXDB.points or 48)
+        uiControls.pointsSlider.valueText:SetText(UltraCursorFXDB.points or 48)
+
+        uiControls.sizeSlider:SetValue(UltraCursorFXDB.size or 34)
+        uiControls.sizeSlider.valueText:SetText(UltraCursorFXDB.size or 34)
+
+        uiControls.glowSlider:SetValue(UltraCursorFXDB.glowSize or 64)
+        uiControls.glowSlider.valueText:SetText(UltraCursorFXDB.glowSize or 64)
+
+        uiControls.smoothSlider:SetValue(UltraCursorFXDB.smoothness or 0.18)
+        uiControls.smoothSlider.valueText:SetText(string.format("%.2f", UltraCursorFXDB.smoothness or 0.18))
+
+        uiControls.pulseSlider:SetValue(UltraCursorFXDB.pulseSpeed or 2.5)
+        uiControls.pulseSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.pulseSpeed or 2.5))
+
+        uiControls.rainbowSlider:SetValue(UltraCursorFXDB.rainbowSpeed or 1.0)
+        uiControls.rainbowSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.rainbowSpeed or 1.0))
+
+        uiControls.clickParticlesSlider:SetValue(UltraCursorFXDB.clickParticles or 12)
+        uiControls.clickParticlesSlider.valueText:SetText(UltraCursorFXDB.clickParticles or 12)
+
+        uiControls.clickSizeSlider:SetValue(UltraCursorFXDB.clickSize or 50)
+        uiControls.clickSizeSlider.valueText:SetText(UltraCursorFXDB.clickSize or 50)
+
+        uiControls.clickDurationSlider:SetValue(UltraCursorFXDB.clickDuration or 0.6)
+        uiControls.clickDurationSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.clickDuration or 0.6))
+
+        uiControls.cometSlider:SetValue(UltraCursorFXDB.cometLength or 2.0)
+        uiControls.cometSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.cometLength or 2.0))
+
+        -- Update color button
+        uiControls.colorBtn.texture:SetColorTexture(unpack(UltraCursorFXDB.color))
+    end
+
+    -- Store refresh function for external use
+    settingsPanel.RefreshUI = RefreshUI
 
     -- Register with Interface Options
     if Settings and Settings.RegisterCanvasLayoutCategory then

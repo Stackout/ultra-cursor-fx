@@ -11,3 +11,6 @@ luacov*
 # OS
 .DS_Store
 Thumbs.db
+
+# Development hacks
+hack/
