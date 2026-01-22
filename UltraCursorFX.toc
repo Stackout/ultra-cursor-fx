@@ -8,4 +8,10 @@
 ## SavedVariables: UltraCursorFXDB
 
 Localization.lua
-UltraCursorFX.lua
+Core.lua
+Utils.lua
+Profiles.lua
+Effects.lua
+UI.lua
+Commands.lua
+Init.lua

@@ -1,0 +1,70 @@
+services:
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - /app/.luarocks  # Prevent luarocks from being overwritten
+    working_dir: /app
+    command: busted --verbose
+    environment:
+      - LUA_PATH=/app/?.lua;/app/?/init.lua;;
+      - LUA_CPATH=;;
+
+  # Run unit tests only
+  test-unit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - /app/.luarocks
+    working_dir: /app
+    command: busted spec/unit/ --verbose
+
+  # Run integration tests only
+  test-integration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - /app/.luarocks
+    working_dir: /app
+    command: busted spec/integration/ --verbose
+
+  # Run with coverage
+  test-coverage:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - /app/.luarocks
+    working_dir: /app
+    command: sh -c "busted --coverage && luacov && cat luacov.report.out"
+
+  # Run linting
+  lint:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - /app/.luarocks
+    working_dir: /app
+    command: luacheck .
+
+  # Interactive shell for debugging
+  shell:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - /app/.luarocks
+    working_dir: /app
+    command: sh
+    stdin_open: true
+    tty: true

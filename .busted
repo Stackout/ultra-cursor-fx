@@ -1,0 +1,19 @@
+return {
+  _all = {
+    coverage = true,
+    verbose = true,
+  },
+  default = {
+    ROOT = {"spec/"},
+    pattern = "_spec",
+    exclude = {},
+  },
+  unit = {
+    ROOT = {"spec/unit/"},
+    pattern = "_spec",
+  },
+  integration = {
+    ROOT = {"spec/integration/"},
+    pattern = "_spec",
+  }
+}

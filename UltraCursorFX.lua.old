@@ -29,6 +29,104 @@ local defaults = {
     -- Comet Mode
     cometMode = false,
     cometLength = 2.0,
+
+    -- Situational Profiles
+    situationalEnabled = false,
+    currentProfile = "world",
+}
+
+-- Profile defaults for different situations (will be initialized in ADDON_LOADED)
+local profileDefaults = {
+    world = {
+        name = "World",
+        color = { 0.0, 1.0, 1.0 },
+        points = 48,
+        size = 34,
+        glowSize = 64,
+        smoothness = 0.18,
+        pulseSpeed = 2.5,
+        rainbowMode = false,
+        rainbowSpeed = 1.0,
+        clickEffects = true,
+        clickParticles = 12,
+        clickSize = 50,
+        clickDuration = 0.6,
+        particleShape = "star",
+        cometMode = false,
+        cometLength = 2.0,
+    },
+    raid = {
+        name = "Raid",
+        color = { 1.0, 0.2, 0.2 },
+        points = 40,
+        size = 30,
+        glowSize = 50,
+        smoothness = 0.20,
+        pulseSpeed = 2.0,
+        rainbowMode = false,
+        rainbowSpeed = 1.0,
+        clickEffects = true,
+        clickParticles = 16,
+        clickSize = 60,
+        clickDuration = 0.5,
+        particleShape = "star",
+        cometMode = true,
+        cometLength = 2.5,
+    },
+    dungeon = {
+        name = "Dungeon",
+        color = { 0.8, 0.2, 1.0 },
+        points = 50,
+        size = 32,
+        glowSize = 60,
+        smoothness = 0.15,
+        pulseSpeed = 2.5,
+        rainbowMode = false,
+        rainbowSpeed = 1.0,
+        clickEffects = true,
+        clickParticles = 12,
+        clickSize = 55,
+        clickDuration = 0.6,
+        particleShape = "star",
+        cometMode = false,
+        cometLength = 2.0,
+    },
+    arena = {
+        name = "Arena",
+        color = { 1.0, 0.5, 0.0 },
+        points = 60,
+        size = 40,
+        glowSize = 70,
+        smoothness = 0.12,
+        pulseSpeed = 3.0,
+        rainbowMode = false,
+        rainbowSpeed = 1.0,
+        clickEffects = true,
+        clickParticles = 20,
+        clickSize = 70,
+        clickDuration = 0.4,
+        particleShape = "spark",
+        cometMode = true,
+        cometLength = 3.0,
+    },
+    battleground = {
+        name = "Battleground",
+        color = { 1.0, 0.84, 0.0 },
+        points = 55,
+        size = 36,
+        glowSize = 65,
+        smoothness = 0.15,
+        pulseSpeed = 2.8,
+        rainbowMode = false,
+        rainbowSpeed = 1.0,
+        clickEffects = true,
+        clickParticles = 18,
+        clickSize = 65,
+        clickDuration = 0.5,
+        particleShape = "star",
+        cometMode = false,
+        cometLength = 2.0,
+    },
 }
 
 for k, v in pairs(defaults) do
@@ -45,6 +143,10 @@ local points, glow = {}, {}
 local clickParticles = {}
 local f = CreateFrame("Frame")
 local rainbowHue = 0
+local currentZoneProfile = "world"
+
+-- Forward declarations for profile functions
+local GetCurrentZoneProfile, SaveToProfile, LoadFromProfile, SwitchToZoneProfile
 
 local particleTextures = {
     star = "Interface\\TARGETINGFRAME\\UI-RaidTargetingIcon_1",
@@ -150,7 +252,7 @@ local function SerializeValue(v)
         return v
     elseif t == "table" then
         local parts = {}
-        for _, val in ipairs(v) do
+        for i, val in ipairs(v) do
             table.insert(parts, tostring(val))
         end
         return table.concat(parts, ",")
@@ -298,6 +400,98 @@ local function BuildTrail()
         g:SetSize(UltraCursorFXDB.glowSize, UltraCursorFXDB.glowSize)
         g:SetVertexColor(unpack(UltraCursorFXDB.color))
         glow[i] = g
+    end
+end
+
+-- ===============================
+-- Situational Profile Functions
+-- ===============================
+
+-- Get current zone profile type
+GetCurrentZoneProfile = function()
+    local inInstance, instanceType = IsInInstance()
+    if not inInstance then
+        return "world"
+    end
+
+    if instanceType == "raid" then
+        return "raid"
+    elseif instanceType == "party" then
+        return "dungeon"
+    elseif instanceType == "arena" then
+        return "arena"
+    elseif instanceType == "pvp" then
+        return "battleground"
+    end
+
+    return "world"
+end
+
+-- Save current settings to a profile
+SaveToProfile = function(profileKey)
+    if not UltraCursorFXDB.profiles[profileKey] then
+        UltraCursorFXDB.profiles[profileKey] = {}
+    end
+
+    local profile = UltraCursorFXDB.profiles[profileKey]
+    profile.color = { unpack(UltraCursorFXDB.color) }
+    profile.points = UltraCursorFXDB.points
+    profile.size = UltraCursorFXDB.size
+    profile.glowSize = UltraCursorFXDB.glowSize
+    profile.smoothness = UltraCursorFXDB.smoothness
+    profile.pulseSpeed = UltraCursorFXDB.pulseSpeed
+    profile.rainbowMode = UltraCursorFXDB.rainbowMode
+    profile.rainbowSpeed = UltraCursorFXDB.rainbowSpeed
+    profile.clickEffects = UltraCursorFXDB.clickEffects
+    profile.clickParticles = UltraCursorFXDB.clickParticles
+    profile.clickSize = UltraCursorFXDB.clickSize
+    profile.clickDuration = UltraCursorFXDB.clickDuration
+    profile.particleShape = UltraCursorFXDB.particleShape
+    profile.cometMode = UltraCursorFXDB.cometMode
+    profile.cometLength = UltraCursorFXDB.cometLength
+end
+
+-- Load settings from a profile
+LoadFromProfile = function(profileKey)
+    local profile = UltraCursorFXDB.profiles[profileKey]
+    if not profile then
+        return false
+    end
+
+    UltraCursorFXDB.color = profile.color and { unpack(profile.color) } or { 0.0, 1.0, 1.0 }
+    UltraCursorFXDB.points = profile.points or 48
+    UltraCursorFXDB.size = profile.size or 34
+    UltraCursorFXDB.glowSize = profile.glowSize or 64
+    UltraCursorFXDB.smoothness = profile.smoothness or 0.18
+    UltraCursorFXDB.pulseSpeed = profile.pulseSpeed or 2.5
+    UltraCursorFXDB.rainbowMode = profile.rainbowMode or false
+    UltraCursorFXDB.rainbowSpeed = profile.rainbowSpeed or 1.0
+    UltraCursorFXDB.clickEffects = profile.clickEffects ~= nil and profile.clickEffects or true
+    UltraCursorFXDB.clickParticles = profile.clickParticles or 12
+    UltraCursorFXDB.clickSize = profile.clickSize or 50
+    UltraCursorFXDB.clickDuration = profile.clickDuration or 0.6
+    UltraCursorFXDB.particleShape = profile.particleShape or "star"
+    UltraCursorFXDB.cometMode = profile.cometMode or false
+    UltraCursorFXDB.cometLength = profile.cometLength or 2.0
+
+    BuildTrail()
+    return true
+end
+
+-- Switch to appropriate profile based on current zone
+SwitchToZoneProfile = function()
+    if not UltraCursorFXDB.situationalEnabled then
+        return
+    end
+
+    local newProfile = GetCurrentZoneProfile()
+    if newProfile ~= currentZoneProfile then
+        currentZoneProfile = newProfile
+        LoadFromProfile(newProfile)
+
+        local profileName = UltraCursorFXDB.profiles[newProfile] and UltraCursorFXDB.profiles[newProfile].name
+            or newProfile
+        print("|cFF00FFFFUltraCursorFX:|r Switched to " .. profileName .. " profile")
     end
 end
 
@@ -558,10 +752,157 @@ local function CreateSettingsPanel()
 
     local yPos = -100
 
+    -- SITUATIONAL PROFILES (MOVED TO TOP)
+    yPos = CreateSection("Situational Profiles", yPos)
+
+    local situationalDesc = content:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    situationalDesc:SetPoint("TOPLEFT", 20, yPos)
+    situationalDesc:SetText("Auto-switch cursor effects in raids, dungeons, arenas & battlegrounds")
+    yPos = yPos - 25
+
+    local situationalCB = CreateCheckbox(
+        "SituationalEnabled",
+        "Enable Situational Cursors",
+        yPos,
+        "Automatically apply different cursor effects based on your location"
+    )
+    situationalCB:SetChecked(UltraCursorFXDB.situationalEnabled)
+    situationalCB:SetScript("OnClick", function(self)
+        UltraCursorFXDB.situationalEnabled = self:GetChecked()
+        if UltraCursorFXDB.situationalEnabled then
+            SwitchToZoneProfile()
+        end
+    end)
+    yPos = yPos - 35
+
+    -- Active Profile Indicator
+    local activeProfileFrame = CreateFrame("Frame", nil, content)
+    activeProfileFrame:SetSize(400, 30)
+    activeProfileFrame:SetPoint("TOPLEFT", 20, yPos)
+
+    local activeProfileBg = activeProfileFrame:CreateTexture(nil, "BACKGROUND")
+    activeProfileBg:SetAllPoints()
+    activeProfileBg:SetColorTexture(0.1, 0.3, 0.1, 0.5)
+
+    local currentProfileName = UltraCursorFXDB.profiles[currentZoneProfile]
+            and UltraCursorFXDB.profiles[currentZoneProfile].name
+        or "World"
+    local currentProfileColor = UltraCursorFXDB.profiles[currentZoneProfile]
+            and UltraCursorFXDB.profiles[currentZoneProfile].color
+        or { 0.0, 1.0, 1.0 }
+
+    local activeColorSwatch = activeProfileFrame:CreateTexture(nil, "ARTWORK")
+    activeColorSwatch:SetSize(20, 20)
+    activeColorSwatch:SetPoint("LEFT", 8, 0)
+    activeColorSwatch:SetColorTexture(unpack(currentProfileColor))
+
+    local activeProfileLabel = activeProfileFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    activeProfileLabel:SetPoint("LEFT", activeColorSwatch, "RIGHT", 10, 0)
+    activeProfileLabel:SetText("Active: |cFFFFD700" .. currentProfileName .. "|r")
+    yPos = yPos - 45
+
+    -- Profile Management Grid
+    local profilesLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    profilesLabel:SetPoint("TOPLEFT", 20, yPos)
+    profilesLabel:SetText("Profile Management:")
+    yPos = yPos - 25
+
+    local profileButtons = {
+        { key = "world", name = "World", desc = "Default / Open World" },
+        { key = "raid", name = "Raid", desc = "Raid Instances" },
+        { key = "dungeon", name = "Dungeon", desc = "5-Man Dungeons" },
+        { key = "arena", name = "Arena", desc = "PvP Arenas" },
+        { key = "battleground", name = "Battleground", desc = "PvP Battlegrounds" },
+    }
+
+    for i, profileInfo in ipairs(profileButtons) do
+        local xOffset = 20
+        local yOffset = yPos
+
+        -- Profile container frame
+        local profileFrame = CreateFrame("Frame", nil, content)
+        profileFrame:SetSize(380, 32)
+        profileFrame:SetPoint("TOPLEFT", xOffset, yOffset)
+
+        local profileBg = profileFrame:CreateTexture(nil, "BACKGROUND")
+        profileBg:SetAllPoints()
+        profileBg:SetColorTexture(0.15, 0.15, 0.15, 0.6)
+
+        -- Color swatch preview
+        local profileColor = UltraCursorFXDB.profiles[profileInfo.key]
+                and UltraCursorFXDB.profiles[profileInfo.key].color
+            or { 0.0, 1.0, 1.0 }
+        local colorSwatch = profileFrame:CreateTexture(nil, "ARTWORK")
+        colorSwatch:SetSize(24, 24)
+        colorSwatch:SetPoint("LEFT", 4, 0)
+        colorSwatch:SetColorTexture(unpack(profileColor))
+
+        -- Profile name and description
+        local nameLabel = profileFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+        nameLabel:SetPoint("LEFT", colorSwatch, "RIGHT", 8, 4)
+        nameLabel:SetText(profileInfo.name)
+
+        local descLabel = profileFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+        descLabel:SetPoint("TOPLEFT", nameLabel, "BOTTOMLEFT", 0, -2)
+        descLabel:SetText("|cFF888888" .. profileInfo.desc .. "|r")
+
+        -- Load button
+        local loadBtn = CreateFrame("Button", nil, profileFrame, "UIPanelButtonTemplate")
+        loadBtn:SetSize(50, 22)
+        loadBtn:SetPoint("RIGHT", -58, 0)
+        loadBtn:SetText("Load")
+        loadBtn:SetScript("OnClick", function()
+            LoadFromProfile(profileInfo.key)
+            currentZoneProfile = profileInfo.key
+            -- Update active profile display
+            activeProfileLabel:SetText("Active: |cFFFFD700" .. profileInfo.name .. "|r")
+            activeColorSwatch:SetColorTexture(unpack(profileColor))
+            print("|cFF00FFFFUltraCursorFX:|r Loaded " .. profileInfo.name .. " profile")
+        end)
+        loadBtn:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText("Apply this profile's settings now")
+            GameTooltip:Show()
+        end)
+        loadBtn:SetScript("OnLeave", function()
+            GameTooltip:Hide()
+        end)
+
+        -- Save button
+        local saveBtn = CreateFrame("Button", nil, profileFrame, "UIPanelButtonTemplate")
+        saveBtn:SetSize(50, 22)
+        saveBtn:SetPoint("RIGHT", -4, 0)
+        saveBtn:SetText("Save")
+        saveBtn:SetScript("OnClick", function()
+            SaveToProfile(profileInfo.key)
+            -- Update color swatch
+            colorSwatch:SetColorTexture(unpack(UltraCursorFXDB.color))
+            print("|cFF00FFFFUltraCursorFX:|r Saved current settings to " .. profileInfo.name .. " profile")
+        end)
+        saveBtn:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText("Save current settings to this profile")
+            GameTooltip:Show()
+        end)
+        saveBtn:SetScript("OnLeave", function()
+            GameTooltip:Hide()
+        end)
+
+        yPos = yPos - 36
+    end
+    yPos = yPos - 10
+
+    local profileTip = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    profileTip:SetPoint("TOPLEFT", 20, yPos)
+    profileTip:SetText(
+        "|cFF88FF88Workflow:|r Adjust settings below → Click 'Save' to store → Click 'Load' to apply"
+    )
+    yPos = yPos - 40
+
     -- BASIC SETTINGS
     yPos = CreateSection("Basic Settings", yPos)
 
-    local enableCB = CreateCheckbox("Enable", "Enable Cursor Trail", yPos, "Toggle the cursor trail effect")
+    local enableCB = CreateCheckbox("Enable", "Enable Cursor Trail", yPos, "Toggle the cursor trail effect on/off")
     enableCB:SetChecked(UltraCursorFXDB.enabled)
     enableCB:SetScript("OnClick", function(self)
         UltraCursorFXDB.enabled = self:GetChecked()
@@ -573,7 +914,7 @@ local function CreateSettingsPanel()
     end)
     yPos = yPos - 30
 
-    local flashCB = CreateCheckbox("Flash", "Enable Pulse Flash", yPos, "Enable HDR flash effect on pulse")
+    local flashCB = CreateCheckbox("Flash", "Enable Pulse Flash", yPos, "HDR flash effect synchronized with pulse")
     flashCB:SetChecked(UltraCursorFXDB.flashEnabled)
     flashCB:SetScript("OnClick", function(self)
         UltraCursorFXDB.flashEnabled = self:GetChecked()
@@ -583,55 +924,79 @@ local function CreateSettingsPanel()
     -- TRAIL SETTINGS
     yPos = CreateSection("Trail Settings", yPos)
 
-    local pointsSlider = CreateSlider("Points", "Trail Points", yPos, 10, 100, 1, "Number of points in the trail")
+    local trailDesc = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    trailDesc:SetPoint("TOPLEFT", 20, yPos)
+    trailDesc:SetText("Adjust the appearance and behavior of your cursor trail")
+    yPos = yPos - 25
+
+    local pointsSlider = CreateSlider(
+        "Points",
+        "Trail Length (Points)",
+        yPos,
+        10,
+        100,
+        1,
+        "More points = longer trail | Fewer = shorter, snappier"
+    )
     pointsSlider:SetValue(UltraCursorFXDB.points or 48)
     pointsSlider.valueText:SetText(UltraCursorFXDB.points or 48)
     pointsSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
         UltraCursorFXDB.points = value
-        self.valueText:SetText(value)
+        self.valueText:SetText(value .. " points")
         BuildTrail()
     end)
     yPos = yPos - 60
 
-    local sizeSlider = CreateSlider("Size", "Particle Size", yPos, 10, 100, 1, "Size of trail particles")
+    local sizeSlider =
+        CreateSlider("Size", "Particle Size", yPos, 10, 100, 1, "Bigger = more visible | Smaller = subtle")
     sizeSlider:SetValue(UltraCursorFXDB.size or 34)
     sizeSlider.valueText:SetText(UltraCursorFXDB.size or 34)
     sizeSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
         UltraCursorFXDB.size = value
-        self.valueText:SetText(value)
+        self.valueText:SetText(value .. "px")
         BuildTrail()
     end)
     yPos = yPos - 60
 
-    local glowSlider = CreateSlider("GlowSize", "Glow Size", yPos, 10, 150, 1, "Size of particle glow")
+    local glowSlider =
+        CreateSlider("GlowSize", "Glow Intensity", yPos, 10, 150, 1, "Larger = brighter glow around particles")
     glowSlider:SetValue(UltraCursorFXDB.glowSize or 64)
     glowSlider.valueText:SetText(UltraCursorFXDB.glowSize or 64)
     glowSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
         UltraCursorFXDB.glowSize = value
-        self.valueText:SetText(value)
+        self.valueText:SetText(value .. "px")
         BuildTrail()
     end)
     yPos = yPos - 60
 
-    local smoothSlider =
-        CreateSlider("Smooth", "Trail Smoothness", yPos, 0.05, 0.50, 0.01, "How smoothly the trail follows cursor")
+    local smoothSlider = CreateSlider(
+        "Smooth",
+        "Smoothness",
+        yPos,
+        0.05,
+        0.50,
+        0.01,
+        "Higher = smoother, floaty | Lower = tight, responsive"
+    )
     smoothSlider:SetValue(UltraCursorFXDB.smoothness or 0.18)
     smoothSlider.valueText:SetText(string.format("%.2f", UltraCursorFXDB.smoothness or 0.18))
     smoothSlider:SetScript("OnValueChanged", function(self, value)
         UltraCursorFXDB.smoothness = value
-        self.valueText:SetText(string.format("%.2f", value))
+        local desc = value < 0.15 and "(Snappy)" or value > 0.30 and "(Floaty)" or "(Balanced)"
+        self.valueText:SetText(string.format("%.2f %s", value, desc))
     end)
     yPos = yPos - 60
 
-    local pulseSlider = CreateSlider("Pulse", "Pulse Speed", yPos, 0.5, 5.0, 0.1, "Speed of the pulse animation")
+    local pulseSlider = CreateSlider("Pulse", "Pulse Speed", yPos, 0.5, 5.0, 0.1, "How fast the trail pulses/breathes")
     pulseSlider:SetValue(UltraCursorFXDB.pulseSpeed or 2.5)
     pulseSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.pulseSpeed or 2.5))
     pulseSlider:SetScript("OnValueChanged", function(self, value)
         UltraCursorFXDB.pulseSpeed = value
-        self.valueText:SetText(string.format("%.1f", value))
+        local desc = value < 1.5 and "(Slow)" or value > 3.5 and "(Fast)" or "(Medium)"
+        self.valueText:SetText(string.format("%.1f %s", value, desc))
     end)
     yPos = yPos - 70
 
@@ -894,10 +1259,6 @@ local function CreateSettingsPanel()
     local importEditBox = CreateFrame("EditBox", nil, content, "InputBoxTemplate")
     importEditBox:SetSize(400, 20)
     importEditBox:SetAutoFocus(false)
-
-    -- Import Button (declared before editbox handlers that reference it)
-    local importBtn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
-    
     importEditBox:SetScript("OnEscapePressed", function(self)
         self:ClearFocus()
     end)
@@ -905,6 +1266,9 @@ local function CreateSettingsPanel()
         importBtn:Click()
         self:ClearFocus()
     end)
+
+    -- Import Button
+    local importBtn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
     importBtn:SetSize(100, 24)
     importBtn:SetPoint("TOPLEFT", 20, yPos)
     importBtn:SetText("Import")
@@ -1014,6 +1378,30 @@ SlashCmdList["ULTRACURSORFX"] = function(msg)
     elseif cmd == "comet" then
         UltraCursorFXDB.cometMode = not UltraCursorFXDB.cometMode
         print("Comet Mode:", UltraCursorFXDB.cometMode)
+    elseif cmd == "profiles" then
+        UltraCursorFXDB.situationalEnabled = not UltraCursorFXDB.situationalEnabled
+        print("Situational Profiles:", UltraCursorFXDB.situationalEnabled and "Enabled" or "Disabled")
+        if UltraCursorFXDB.situationalEnabled then
+            SwitchToZoneProfile()
+        end
+    elseif cmd == "save" then
+        local profile = msg:match("%S+%s+(%S+)")
+        if profile and UltraCursorFXDB.profiles[profile] then
+            SaveToProfile(profile)
+            local profileName = UltraCursorFXDB.profiles[profile].name or profile
+            print("|cFF00FFFFUltraCursorFX:|r Saved current settings to " .. profileName .. " profile")
+        else
+            print("|cFFFF0000UltraCursorFX:|r Usage: /ucfx save <world|raid|dungeon|arena|battleground>")
+        end
+    elseif cmd == "load" then
+        local profile = msg:match("%S+%s+(%S+)")
+        if profile and UltraCursorFXDB.profiles[profile] then
+            LoadFromProfile(profile)
+            local profileName = UltraCursorFXDB.profiles[profile].name or profile
+            print("|cFF00FFFFUltraCursorFX:|r Loaded " .. profileName .. " profile")
+        else
+            print("|cFFFF0000UltraCursorFX:|r Usage: /ucfx load <world|raid|dungeon|arena|battleground>")
+        end
     elseif cmd == "export" then
         local exportString = ExportSettings()
         print("|cFF00FFFFUltraCursorFX Export String:|r")
@@ -1045,6 +1433,10 @@ SlashCmdList["ULTRACURSORFX"] = function(msg)
         print("UltraCursorFX commands:")
         print("/ucfx - Open settings")
         print("/ucfx on | off | flash | rainbow | click | comet")
+        print("/ucfx profiles - Toggle situational profiles")
+        print("/ucfx save <profile> - Save current settings to profile")
+        print("/ucfx load <profile> - Load profile settings")
+        print("   Profiles: world, raid, dungeon, arena, battleground")
         print("/ucfx export - Export settings to chat")
         print("/ucfx import <string> - Import settings from string")
     end
@@ -1054,14 +1446,109 @@ end
 -- Init
 -- ===============================
 f:RegisterEvent("ADDON_LOADED")
+f:RegisterEvent("PLAYER_ENTERING_WORLD")
 f:SetScript("OnEvent", function(self, event, addon)
-    if addon == "UltraCursorFX" then
+    if event == "ADDON_LOADED" and addon == "UltraCursorFX" then
         self:UnregisterEvent("ADDON_LOADED")
 
         -- Ensure all defaults exist
         for k, v in pairs(defaults) do
             if UltraCursorFXDB[k] == nil then
                 UltraCursorFXDB[k] = v
+            end
+        end
+
+        -- Initialize profiles structure
+        UltraCursorFXDB.profiles = UltraCursorFXDB.profiles or {}
+
+        -- Migration: One-time migration of user settings to profiles
+        if UltraCursorFXDB.profilesMigrated == nil then
+            UltraCursorFXDB.profilesMigrated = false
+        end
+
+        if not UltraCursorFXDB.profilesMigrated then
+            -- Check if user has existing customized settings
+            local hasCustomSettings = false
+            local settingsToMigrate = {
+                "color",
+                "points",
+                "size",
+                "glowSize",
+                "smoothness",
+                "pulseSpeed",
+                "rainbowMode",
+                "rainbowSpeed",
+                "clickEffects",
+                "clickParticles",
+                "clickSize",
+                "clickDuration",
+                "particleShape",
+                "cometMode",
+                "cometLength",
+            }
+
+            -- Check if any user settings differ from defaults
+            for _, key in ipairs(settingsToMigrate) do
+                if UltraCursorFXDB[key] ~= nil then
+                    local dbValue = UltraCursorFXDB[key]
+                    local defaultValue = defaults[key]
+
+                    local isDifferent = false
+                    if type(dbValue) == "table" and type(defaultValue) == "table" then
+                        if #dbValue ~= #defaultValue then
+                            isDifferent = true
+                        else
+                            for i = 1, #dbValue do
+                                if dbValue[i] ~= defaultValue[i] then
+                                    isDifferent = true
+                                    break
+                                end
+                            end
+                        end
+                    elseif dbValue ~= defaultValue then
+                        isDifferent = true
+                    end
+
+                    if isDifferent then
+                        hasCustomSettings = true
+                        break
+                    end
+                end
+            end
+
+            -- If user has custom settings, migrate them to the world profile
+            if hasCustomSettings then
+                UltraCursorFXDB.profiles.world = UltraCursorFXDB.profiles.world or {}
+                local worldProfile = UltraCursorFXDB.profiles.world
+
+                for _, key in ipairs(settingsToMigrate) do
+                    if UltraCursorFXDB[key] ~= nil then
+                        if type(UltraCursorFXDB[key]) == "table" then
+                            worldProfile[key] = { unpack(UltraCursorFXDB[key]) }
+                        else
+                            worldProfile[key] = UltraCursorFXDB[key]
+                        end
+                    end
+                end
+
+                worldProfile.name = "World"
+                print("|cFF00FFFFUltraCursorFX:|r Migrated your custom settings to the World profile!")
+            end
+
+            UltraCursorFXDB.profilesMigrated = true
+        end
+
+        -- Initialize all profiles with defaults if they don't exist
+        for profileKey, profileData in pairs(profileDefaults) do
+            if not UltraCursorFXDB.profiles[profileKey] then
+                UltraCursorFXDB.profiles[profileKey] = {}
+                for k, v in pairs(profileData) do
+                    if type(v) == "table" then
+                        UltraCursorFXDB.profiles[profileKey][k] = { unpack(v) }
+                    else
+                        UltraCursorFXDB.profiles[profileKey][k] = v
+                    end
+                end
             end
         end
 
@@ -1073,5 +1560,8 @@ f:SetScript("OnEvent", function(self, event, addon)
         end
 
         print("|cFF00FFFFUltraCursorFX|r loaded! Type |cFFFFD700/ucfx|r for settings")
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        -- Auto-switch profiles when entering new zones
+        SwitchToZoneProfile()
     end
 end)
