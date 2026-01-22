@@ -1,0 +1,13 @@
+# Test Coverage
+luacov*
+
+# Docker volumes
+.docker/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

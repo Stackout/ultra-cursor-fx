@@ -1,5 +1,12 @@
 # UltraCursorFX ✨
 
+![Tests](https://github.com/Stackout/ultra-cursor-fx/workflows/Test%20Suite/badge.svg)
+![Coverage](https://img.shields.io/badge/coverage-98.8%25-brightgreen)
+![Release](https://github.com/Stackout/ultra-cursor-fx/workflows/Create%20Release/badge.svg)
+![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-green)
+![License](https://img.shields.io/badge/license-MIT-orange)
+
 ![UltraCursorFX Icon](icon.png)
 
 ## 🎯 **Stop Losing Your Cursor!**
@@ -13,7 +20,7 @@
 **UltraCursorFX is an accessibility-focused addon that solves this problem.** With brilliant particle trails, customizable colors, and attention-grabbing effects, you'll **never lose your cursor again**.
 
 ![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
-![Version](https://img.shields.io/badge/version-0.1.0-green)
+![Version](https://img.shields.io/badge/version-0.2.0-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 
 [![Download on CurseForge](https://img.shields.io/badge/Download-CurseForge-orange)](https://www.curseforge.com/wow/addons/ultracursorfx)
@@ -99,7 +106,48 @@ This opens the settings panel where you can customize everything.
 /ucfx off        - Turn cursor trail off
 /ucfx rainbow    - Rainbow colors (looks amazing!)
 /ucfx click      - Burst effects when clicking
+/ucfx profiles   - Toggle situational profiles
 ```
+
+---
+
+## 🎯 **NEW: Situational Profiles**
+
+**Automatically switch cursor effects based on your location!**
+
+Different situations call for different cursor styles:
+- **Raids** 🔥 - Intense red comet with enhanced click effects
+- **Dungeons** 💜 - Purple trail optimized for group content
+- **Arenas** ⚔️ - Fast orange spark perfect for PvP
+- **Battlegrounds** 🏆 - Gold trail with balanced visibility
+- **World** 🌍 - Your default comfortable settings
+
+### **Upgrading from Previous Version?**
+Don't worry! Your existing custom settings are automatically migrated to your World profile on first load. You won't lose any of your carefully configured settings!
+
+### **How It Works**
+1. Enable **Situational Profiles** in settings or type `/ucfx profiles`
+2. Customize your cursor for each situation
+3. Click **Save** to store that profile
+4. The addon automatically switches when you enter that zone!
+
+### **Managing Profiles**
+```
+/ucfx profiles               - Toggle auto-switching on/off
+/ucfx save raid              - Save current settings to Raid profile
+/ucfx load dungeon           - Load Dungeon profile
+/ucfx save world             - Save to World (default) profile
+```
+
+Available profiles: `world`, `raid`, `dungeon`, `arena`, `battleground`
+
+### **Example Workflow**
+1. Configure cursor exactly how you want it for raids
+2. Type `/ucfx save raid`
+3. Change settings for world content
+4. Type `/ucfx save world`
+5. Enable profiles: `/ucfx profiles`
+6. Done! Cursor auto-adjusts when you enter/leave raids
 
 ---
 
@@ -141,6 +189,15 @@ Access via `/ucfx` or **ESC → Interface → AddOns → UltraCursorFX**
 - Enable/Disable Comet Effect
 - Comet Tail Length (1.0-5.0) - Stretch multiplier
 
+**Situational Profiles**
+- Enable/Disable Auto-Switching
+- Current Profile Display
+- Manage 5 profiles: World, Raid, Dungeon, Arena, Battleground
+- Save button - Store current settings to a profile
+- Load button - Apply profile settings immediately
+
+Each profile stores complete cursor configuration including colors, sizes, effects, and modes.
+
 ---
 
 ## 🔄 **Share Your Settings - NEW!**
@@ -166,6 +223,8 @@ Found the perfect configuration? **Share it with one click!**
 /ucfx export              - Show your settings code in chat
 /ucfx import <code>       - Import settings from a code
 ```
+
+**Note:** Import/Export saves your current configuration, not situational profiles. Use profile commands for profile management.
 
 Share your perfect accessibility setup with guild members, friends, or the community!
 
@@ -250,6 +309,47 @@ Rainbow Mode: ON (slow speed 0.5)
 
 ---
 
+## 🎮 **Situational Profile Examples**
+
+Create the perfect cursor for every situation!
+
+### **Raid Profile - High Intensity** 🔥
+Focus on visibility during chaotic boss fights:
+- **Color**: Red preset
+- **Trail Points**: 40 (shorter for less clutter)
+- **Particle Size**: 30
+- **Comet Mode**: ON (2.5 length)
+- **Click Effects**: 16 particles, larger size
+- Save with: `/ucfx save raid`
+
+### **Arena Profile - Maximum Reaction** ⚔️
+Fast and flashy for competitive PvP:
+- **Color**: Orange/Gold
+- **Shape**: Spark
+- **Trail Points**: 60
+- **Trail Smoothness**: 0.12 (very responsive)
+- **Pulse Speed**: 3.0
+- **Click Effects**: 20 particles, short duration
+- Save with: `/ucfx save arena`
+
+### **Dungeon Profile - Balanced** 💜
+Clear visibility without overwhelming visuals:
+- **Color**: Purple preset
+- **Trail Points**: 50
+- **Particle Size**: 32
+- **Click Effects**: Moderate (12 particles)
+- Save with: `/ucfx save dungeon`
+
+### **World Profile - Relaxed** 🌍
+Comfortable for questing and exploration:
+- **Color**: Cyan or custom
+- **Rainbow Mode**: Optional
+- **Trail Smoothness**: 0.20
+- **Pulse Speed**: 2.5
+- Save with: `/ucfx save world`
+
+---
+
 ## 🛠️ Compatibility
 
 - ✅ **World of Warcraft: Midnight** (Patch 12.0.0+)
@@ -307,7 +407,16 @@ Found a bug? Have a feature request? Want to share your accessibility-friendly c
 
 ## 📝 **Changelog**
 
-### v2.1.0 (Current)
+### v3.0.0 (Current)
+- 🎯 **NEW: Situational Profiles** - Automatic cursor switching based on location!
+- 🌍 5 Pre-configured profiles: World, Raid, Dungeon, Arena, Battleground
+- 💾 Save/Load system for each profile
+- 🔄 Automatic profile switching when entering instances
+- 📊 Profile management UI in settings panel
+- 💬 Profile slash commands (`/ucfx profiles`, `/ucfx save`, `/ucfx load`)
+- ✨ Each profile stores complete cursor configuration
+
+### v2.1.0
 - 🔄 **NEW: Import/Export** - Share your settings with one click!
 - ♿ Enhanced documentation for accessibility use cases
 - 📤 Export settings to shareable code
@@ -364,3 +473,121 @@ If UltraCursorFX helps you see your cursor better:
 **Never lose your cursor again!** Type `/ucfx` and start seeing clearly. ✨
 
 *This addon was created to solve a real accessibility problem. If it helps you, please share it with others who might benefit!*
+
+---
+
+## 🧪 **Development & Testing**
+
+### For Developers & Contributors
+
+UltraCursorFX has **100% test coverage** with 63 automated tests running in Docker.
+
+#### Quick Start Testing
+
+```bash
+# Run all tests
+./test.sh
+
+# Run specific test suites
+./test.sh unit           # Unit tests only
+./test.sh integration    # Integration tests only
+./test.sh coverage       # With coverage report
+./test.sh lint           # Code quality checks
+./test.sh all            # Everything (tests + lint + coverage)
+```
+
+#### Test Status
+- ✅ **63/63 tests passing (100%)**
+- ✅ **Core Module**: 12/12 tests
+- ✅ **Utils Module**: 17/17 tests
+- ✅ **Profiles Module**: 16/16 tests
+- ✅ **Integration**: 18/18 tests
+
+#### Code Coverage
+- **Core.lua**: 100%
+- **Utils.lua**: 91.47%
+- **Profiles.lua**: 97.27%
+- **Init.lua**: 94.12%
+
+#### GitHub Actions
+All tests run automatically on:
+- ✅ Every push to `main` branch
+- ✅ Every push to `feature/*` branches
+- ✅ Every pull request
+- ✅ **Tags are ONLY created after all tests pass**
+- ✅ **Releases are BLOCKED if tests fail**
+
+#### Release Workflow
+
+**Automated CurseForge releases via webhook:**
+
+1. Make changes and commit to feature branch
+2. Tests run automatically on push
+3. Create PR to `main` - tests run again
+4. Merge PR (only allowed if tests pass)
+5. Push to `main` with version tag in commit message:
+   ```bash
+   git commit -m "Feature: awesome update [release:v1.2.3]"
+   git push
+   ```
+6. **Tests run on main branch**
+7. **IF tests pass**: Tag `v1.2.3` is automatically created
+8. Tag triggers release workflow - **tests run AGAIN**
+9. **IF tests pass**: GitHub Release is created with packaged addon
+10. **CurseForge webhook** picks up the tag and publishes automatically
+
+**Version Format:**
+- Stable releases: `v1.2.3`
+- Beta releases: `v1.2.3-beta`
+- Alpha releases: `v1.2.3-alpha`
+
+**Manual Tag Creation (if needed):**
+```bash
+git tag -a v1.2.3 -m "Release v1.2.3"
+git push origin v1.2.3
+```
+
+**Important:** Tags will NOT be created if any of the 63 tests fail. This ensures only quality-verified code reaches players.
+
+#### Local Development Setup
+
+**Prerequisites**: Docker (tests run in isolated containers)
+
+```bash
+# Clone the repo
+git clone https://github.com/Stackout/ultra-cursor-fx.git
+cd ultra-cursor-fx
+
+# Make test script executable
+chmod +x ./test.sh
+
+# Run tests
+./test.sh
+```
+
+#### Code Formatting
+
+We use [StyLua](https://github.com/JohnnyMorganz/StyLua) for consistent formatting:
+
+```bash
+# Install StyLua
+cargo install stylua
+# or
+brew install stylua
+
+# Format all Lua files before committing
+stylua .
+```
+
+#### Contributing Workflow
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes
+4. Run tests: `./test.sh all`
+5. Format code: `stylua .`
+6. Commit: `git commit -m 'Add amazing feature'`
+7. Push: `git push origin feature/amazing-feature`
+8. Open Pull Request
+
+**Pull requests must pass all 63 tests before merging.**

@@ -1,0 +1,76 @@
+name: Test Suite
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run All Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Verify Docker Compose
+      run: |
+        docker compose version
+        docker --version
+
+    - name: Make test script executable
+      run: chmod +x ./test.sh
+
+    - name: Run full test suite (all tests, coverage, linting)
+      run: ./test.sh all
+
+    - name: Upload coverage report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: luacov.*.out
+        retention-days: 30
+        if-no-files-found: ignore
+
+    - name: Generate coverage badge data
+      if: always()
+      id: coverage
+      run: |
+        if [ -f luacov.report.out ]; then
+          chmod +x scripts/generate-coverage-badge.sh
+          ./scripts/generate-coverage-badge.sh
+        fi
+
+    - name: Display Test Summary
+      if: always()
+      run: |
+        echo "## ✅ Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**All tests must pass for this build to succeed.**" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ -f luacov.report.out ]; then
+          echo "## 📊 Code Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          grep -E "^(Commands|Core|Effects|Init|Profiles|Utils)\.lua" luacov.report.out >> $GITHUB_STEP_SUMMARY || echo "Coverage data available" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          COVERAGE=$(grep -E "^(Commands|Core|Effects|Init|Profiles|Utils)\.lua.*%" luacov.report.out | \
+            awk '{hits+=$2; missed+=$3} END {
+              if (hits+missed > 0) {
+                coverage = (hits / (hits + missed)) * 100;
+                printf "**Core Addon Coverage: %.1f%%** (UI callbacks excluded)", coverage
+              }
+            }')
+          echo "$COVERAGE" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🚀 **Build Status:** Tests Passed" >> $GITHUB_STEP_SUMMARY

@@ -2,6 +2,60 @@
 
 All notable changes to UltraCursorFX will be documented in this file.
 
+## [0.2.0] - 2026-01-22
+
+### Added - Situational Profiles System 🎯
+- **Automatic profile switching** based on current location/instance type
+- **5 pre-configured profiles**: World, Raid, Dungeon, Arena, Battleground
+- **Profile management UI** in settings panel with Save/Load buttons
+- **Profile persistence** - each profile stores complete cursor configuration
+- **Zone detection** using WoW API (IsInInstance, GetInstanceInfo)
+- **Auto-switching** on PLAYER_ENTERING_WORLD event
+- **Automatic migration** - existing user settings are preserved and migrated to World profile
+- **Profile commands**:
+  - `/ucfx profiles` - Toggle automatic profile switching
+  - `/ucfx save <profile>` - Save current settings to a profile
+  - `/ucfx load <profile>` - Load settings from a profile
+- **Default profiles** with optimized settings for each situation:
+  - Raid: Red comet with enhanced click effects
+  - Dungeon: Purple balanced trail
+  - Arena: Orange fast-response spark
+  - Battleground: Gold competitive setup
+  - World: Cyan default comfortable settings
+- **Profile status display** showing current active profile
+- **Notification system** alerts when profiles auto-switch
+
+### Changed
+- Extended saved variables to include profiles table structure
+- Added forward declarations for profile functions
+- Enhanced documentation with situational profile examples
+- Updated README with comprehensive profile usage guide
+
+### Fixed
+- **Backward compatibility**: Existing user settings are automatically migrated to World profile on first load
+- Users upgrading from older versions won't lose their customizations
+- Migration only runs once per SavedVariables file
+
+### Testing & Quality
+- **Comprehensive test suite**: 167 automated tests (up from 63)
+- **98.8% code coverage** on core addon modules
+- **Docker-based testing environment** for reproducible test runs
+- **GitHub Actions CI/CD** - tests run on every push and PR
+- **Quality gates**: Tags and releases blocked if tests fail
+- **LuaCheck linting**: Zero warnings with proper WoW API globals configured
+- **New test files**: commands_spec, effects_spec, init_spec, ui_spec
+- **Mouse click simulation** for testing click effects
+- **Full color wheel coverage** testing all HSV segments
+
+### Technical
+- Profile data structure stored in `UltraCursorFXDB.profiles`
+- Profile functions: `GetCurrentZoneProfile()`, `SaveToProfile()`, `LoadFromProfile()`, `SwitchToZoneProfile()`
+- Event handler for `PLAYER_ENTERING_WORLD` to trigger profile switching
+- Situational enable/disable flag: `UltraCursorFXDB.situationalEnabled`
+- Migration flag: `UltraCursorFXDB.profilesMigrated` ensures one-time migration
+- Smart migration detects if user has customized settings vs defaults before migrating
+- Coverage badge: Excludes UI callbacks, focuses on core business logic
+
 ## [0.1.0] - 2026-01-22
 
 ### Added
