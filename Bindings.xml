@@ -1,0 +1,8 @@
+<Bindings>
+	<Binding name="ULTRACURSORFX_TOGGLE" category="UltraCursorFX">
+		UltraCursorFX_Toggle()
+	</Binding>
+	<Binding name="ULTRACURSORFX_FLASH" category="UltraCursorFX">
+		UltraCursorFX_ToggleFlash()
+	</Binding>
+</Bindings>

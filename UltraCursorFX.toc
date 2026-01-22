@@ -1,0 +1,11 @@
+## Interface: 120000
+## Title: UltraCursorFX
+## Notes: Animated cursor trail effects with full customization
+## Author: Ryan "Stackout" Hein
+## Version: @project-version@
+## X-Curse-Project-ID: 1440660
+## X-GitHub: https://github.com/Stackout/ultra-cursor-fx
+## SavedVariables: UltraCursorFXDB
+
+Localization.lua
+UltraCursorFX.lua

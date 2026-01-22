@@ -1,0 +1,14 @@
+package-as: UltraCursorFX
+
+enable-nolib-creation: no
+
+ignore:
+  - .github
+  - .git
+  - .gitignore
+  - stylua.toml
+  - README.md
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
