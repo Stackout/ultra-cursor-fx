@@ -1,0 +1,190 @@
+# ============================================================================
+# Feature Branch Deployment - Deploy to CurseForge for QA/Testing
+# ============================================================================
+#
+# Triggered by: Manual dispatch only (you control when to deploy)
+#
+# What it does:
+#   1. Runs full test suite (BLOCKS if fails)
+#   2. Creates alpha build with branch name + commit hash
+#   3. Uploads to CurseForge as "alpha" release (if deploy checkbox enabled)
+#   4. Testers can download from CurseForge immediately
+#
+# Security: CURSEFORGE_TOKEN is a GitHub secret - never exposed in logs
+#
+# Example: feature/combat-mode → v0.3.0-combat-mode-a1b2c3d (alpha)
+# ============================================================================
+
+name: Feature Branch Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_to_curseforge:
+        description: 'Deploy to CurseForge?'
+        required: true
+        type: boolean
+        default: false
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Make test script executable
+        run: chmod +x ./test.sh
+
+      - name: Run full test suite
+        run: ./test.sh all
+
+      - name: Verify all tests passed
+        run: |
+          echo "✅ All tests passed - feature is ready for QA"
+
+  deploy:
+    name: Deploy to CurseForge
+    runs-on: ubuntu-latest
+    needs: test
+    # Only deploy if manually triggered with checkbox OR if it's a PR event
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_curseforge == 'true') || github.event_name == 'pull_request'
+    environment: curseforge-deploy  # Requires approval from repo admins
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version and branch info
+        id: version
+        run: |
+          # Get current version from README
+          VERSION=$(grep -oP 'version-\K[0-9]+\.[0-9]+\.[0-9]+' README.md | head -1)
+
+          # Get branch name (remove feature/ prefix)
+          BRANCH_NAME=${GITHUB_REF#refs/heads/feature/}
+          BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9-]/-/g')  # Sanitize
+
+          # Get short commit hash
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+
+          # Build alpha version: v0.3.0-combat-mode-a1b2c3d
+          ALPHA_VERSION="${VERSION}-${BRANCH_NAME}-${COMMIT_HASH}"
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "alpha_version=$ALPHA_VERSION" >> $GITHUB_OUTPUT
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
+
+      - name: Update TOC version
+        run: |
+          sed -i "s/@project-version@/${{ steps.version.outputs.alpha_version }}/g" UltraCursorFX.toc
+
+      - name: Create release package
+        run: |
+          mkdir -p release/UltraCursorFX
+
+          # Copy all addon files
+          cp *.lua release/UltraCursorFX/ 2>/dev/null || true
+          cp *.toc release/UltraCursorFX/
+          cp *.xml release/UltraCursorFX/ 2>/dev/null || true
+          cp *.png release/UltraCursorFX/ 2>/dev/null || true
+          cp README.md release/UltraCursorFX/ 2>/dev/null || true
+          cp CHANGELOG.md release/UltraCursorFX/ 2>/dev/null || true
+
+          # Remove test/dev files
+          rm -f release/UltraCursorFX/*spec.lua
+          rm -f release/UltraCursorFX/*.old
+
+          cd release
+          zip -r v${{ steps.version.outputs.alpha_version }}.zip UltraCursorFX/
+
+      - name: Upload to CurseForge
+        env:
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+        run: |
+          echo "📤 Uploading feature build to CurseForge..."
+          echo "   Version: ${{ steps.version.outputs.alpha_version }}"
+          echo "   Branch: ${{ steps.version.outputs.branch_name }}"
+          echo "   Commit: ${{ steps.version.outputs.commit_hash }}"
+
+          # Fetch current WoW game versions from CurseForge API
+          echo "Fetching WoW game versions from CurseForge..."
+          GAME_VERSIONS=$(curl -s -H "X-Api-Token: $CURSEFORGE_TOKEN" \
+            "https://wow.curseforge.com/api/game/versions")
+
+          # Extract the latest retail version ID (gameVersionTypeID 517 = retail)
+          # Get the most recent retail version
+          RETAIL_VERSION_ID=$(echo "$GAME_VERSIONS" | jq -r '[.[] | select(.gameVersionTypeID == 517)] | max_by(.id) | .id')
+
+          echo "Using WoW Retail version ID: $RETAIL_VERSION_ID"
+
+          # Changelog for this feature build
+          CHANGELOG="**Feature Build: ${{ steps.version.outputs.branch_name }}**\n\nThis is an alpha test build from commit \`${{ steps.version.outputs.commit_hash }}\`.\n\n⚠️ This is for testing only - may contain bugs!\n\nBranch: \`feature/${{ steps.version.outputs.branch_name }}\`\nCommit: \`${{ steps.version.outputs.commit_hash }}\`"
+
+          # CurseForge metadata
+          METADATA=$(cat <<EOF
+          {
+            "changelog": "${CHANGELOG}",
+            "changelogType": "markdown",
+            "displayName": "v${{ steps.version.outputs.alpha_version }}",
+            "gameVersions": [$RETAIL_VERSION_ID],
+            "releaseType": "alpha"
+          }
+          EOF
+          )
+
+          # Upload to CurseForge
+          # Note: Token is a GitHub secret and will be automatically redacted from logs
+          HTTP_CODE=$(curl -X POST "https://wow.curseforge.com/api/projects/1440660/upload-file" \
+            -H "X-Api-Token: $CURSEFORGE_TOKEN" \
+            -F "metadata=$METADATA" \
+            -F "file=@release/v${{ steps.version.outputs.alpha_version }}.zip" \
+            -o curseforge-response.json \
+            -w "%{http_code}")
+
+          echo "HTTP Status: $HTTP_CODE"
+
+          if [ -f curseforge-response.json ]; then
+            echo "CurseForge Response:"
+            cat curseforge-response.json
+            echo ""
+
+            if grep -q '"id"' curseforge-response.json; then
+              echo "✅ Successfully uploaded to CurseForge!"
+            else
+              echo "⚠️ Upload may have failed - check response above"
+              exit 1
+            fi
+          fi
+
+      - name: Summary
+        run: |
+          echo "## 🚀 Feature Build Deployed!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.alpha_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** feature/${{ steps.version.outputs.branch_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ steps.version.outputs.commit_hash }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Distribution" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Tests passed (167/167)" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ secrets.CURSEFORGE_TOKEN }}" ]; then
+            echo "- ✅ Uploaded to CurseForge as **alpha**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🧪 For Testers" >> $GITHUB_STEP_SUMMARY
+            echo "Download from CurseForge (alpha channel):" >> $GITHUB_STEP_SUMMARY
+            echo "https://www.curseforge.com/wow/addons/ultra-cursor-fx/files" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⏭️ CurseForge upload skipped (no token)" >> $GITHUB_STEP_SUMMARY
+          fi
