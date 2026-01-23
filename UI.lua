@@ -396,13 +396,7 @@ function addon:CreateSettingsPanel()
     enableCB:SetChecked(UltraCursorFXDB.enabled)
     enableCB:SetScript("OnClick", function(self)
         UltraCursorFXDB.enabled = self:GetChecked()
-        if UltraCursorFXDB.enabled then
-            addon.frame:SetScript("OnUpdate", function(_, elapsed)
-                addon:OnUpdate(elapsed)
-            end)
-        else
-            addon.frame:SetScript("OnUpdate", nil)
-        end
+        addon:UpdateCursorState()
         AutoSaveToProfile()
     end)
     yPos = yPos - 40
@@ -414,8 +408,18 @@ function addon:CreateSettingsPanel()
         UltraCursorFXDB.flashEnabled = self:GetChecked()
         AutoSaveToProfile()
     end)
-    yPos = yPos - 50
+    yPos = yPos - 40
     uiControls.flashCB = flashCB
+
+    local combatCB = CreateCheckbox("CombatOnly", "Combat Only Mode", yPos, "Only show cursor trail during combat")
+    combatCB:SetChecked(UltraCursorFXDB.combatOnly)
+    combatCB:SetScript("OnClick", function(self)
+        UltraCursorFXDB.combatOnly = self:GetChecked()
+        addon:UpdateCursorState()
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 50
+    uiControls.combatCB = combatCB
 
     -- TRAIL SETTINGS
     yPos = CreateSection("Trail Settings", yPos)
@@ -773,6 +777,7 @@ function addon:CreateSettingsPanel()
         -- Update checkboxes
         uiControls.enableCB:SetChecked(UltraCursorFXDB.enabled)
         uiControls.flashCB:SetChecked(UltraCursorFXDB.flashEnabled)
+        uiControls.combatCB:SetChecked(UltraCursorFXDB.combatOnly)
         uiControls.rainbowCB:SetChecked(UltraCursorFXDB.rainbowMode)
         uiControls.clickCB:SetChecked(UltraCursorFXDB.clickEffects)
         uiControls.cometCB:SetChecked(UltraCursorFXDB.cometMode)

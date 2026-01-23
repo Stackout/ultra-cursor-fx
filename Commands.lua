@@ -14,13 +14,11 @@ SlashCmdList["ULTRACURSORFX"] = function(msg)
 
     if cmd == "off" then
         UltraCursorFXDB.enabled = false
-        addon.frame:SetScript("OnUpdate", nil)
+        addon:UpdateCursorState()
         print("UltraCursorFX disabled")
     elseif cmd == "on" then
         UltraCursorFXDB.enabled = true
-        addon.frame:SetScript("OnUpdate", function(self, elapsed)
-            addon:OnUpdate(elapsed)
-        end)
+        addon:UpdateCursorState()
         print("UltraCursorFX enabled")
     elseif cmd == "flash" then
         UltraCursorFXDB.flashEnabled = not UltraCursorFXDB.flashEnabled
@@ -34,6 +32,10 @@ SlashCmdList["ULTRACURSORFX"] = function(msg)
     elseif cmd == "comet" then
         UltraCursorFXDB.cometMode = not UltraCursorFXDB.cometMode
         print("Comet Mode:", UltraCursorFXDB.cometMode)
+    elseif cmd == "combat" then
+        UltraCursorFXDB.combatOnly = not UltraCursorFXDB.combatOnly
+        print("Combat Only Mode:", UltraCursorFXDB.combatOnly and "Enabled" or "Disabled")
+        addon:UpdateCursorState()
     elseif cmd == "profiles" then
         UltraCursorFXDB.situationalEnabled = not UltraCursorFXDB.situationalEnabled
         print("Situational Profiles:", UltraCursorFXDB.situationalEnabled and "Enabled" or "Disabled")
@@ -88,7 +90,7 @@ SlashCmdList["ULTRACURSORFX"] = function(msg)
     else
         print("UltraCursorFX commands:")
         print("/ucfx - Open settings")
-        print("/ucfx on | off | flash | rainbow | click | comet")
+        print("/ucfx on | off | flash | rainbow | click | comet | combat")
         print("/ucfx profiles - Toggle situational profiles")
         print("/ucfx save <profile> - Save current settings to profile")
         print("/ucfx load <profile> - Load profile settings")
