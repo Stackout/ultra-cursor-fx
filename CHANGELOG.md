@@ -2,6 +2,15 @@
 
 All notable changes to UltraCursorFX will be documented in this file.
 
+## [0.3.1]
+
+### Fixed
+- **CRITICAL: Memory leak in click effects** - Particles now use object pooling
+  - Previously, every click created new textures that were never properly released
+  - This caused memory to grow over time, leading to crashes or disconnects after extended play
+  - Now uses a particle pool (max 200 textures) for better performance and stability
+  - Should eliminate random crashes and logout issues
+
 ## [0.3.0]
 
 ### Added
