@@ -6,14 +6,21 @@
 UltraCursorFX = UltraCursorFX or {}
 local addon = UltraCursorFX
 
+-- Combat state tracking
+addon.inCombat = false
+
 -- ===============================
 -- Saved Variables / Defaults
 -- ===============================
 UltraCursorFXDB = UltraCursorFXDB or {}
 
+-- Forward declarations
+function addon:UpdateCursorState() end
+
 addon.defaults = {
     enabled = true,
     flashEnabled = true,
+    combatOnly = false,
     color = { 0.0, 1.0, 1.0 },
     points = 48,
     size = 34,
@@ -162,9 +169,42 @@ function addon:InitializeDefaults()
     -- Initialize profiles structure first
     UltraCursorFXDB.profiles = UltraCursorFXDB.profiles or {}
 
-    for k, v in pairs(self.defaults) do
+    -- Apply defaults for any missing values
+    for k, v in pairs(addon.defaults) do
         if UltraCursorFXDB[k] == nil then
             UltraCursorFXDB[k] = v
+        end
+    end
+end
+
+-- ===============================
+-- Combat State Management
+-- ===============================
+function addon:UpdateCursorState()
+    local shouldShow = UltraCursorFXDB.enabled
+    
+    -- If combat-only mode is enabled, only show in combat
+    if UltraCursorFXDB.combatOnly then
+        shouldShow = shouldShow and addon.inCombat
+    end
+    
+    if shouldShow then
+        -- Enable cursor trail
+        addon.frame:SetScript("OnUpdate", function(_, elapsed)
+            addon:OnUpdate(elapsed)
+        end)
+    else
+        -- Disable cursor trail
+        addon.frame:SetScript("OnUpdate", nil)
+        
+        -- Hide all particles when disabling
+        for i = 1, #addon.points do
+            if addon.points[i] then
+                addon.points[i]:Hide()
+            end
+            if addon.glow[i] then
+                addon.glow[i]:Hide()
+            end
         end
     end
 end
