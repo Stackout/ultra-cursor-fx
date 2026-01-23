@@ -49,6 +49,25 @@ end
 -- Click Effects
 -- ===============================
 local lastMouseState = { false, false }
+local clickParticlePool = {}
+local MAX_POOL_SIZE = 200
+
+local function GetClickParticle()
+    local p = table.remove(clickParticlePool)
+    if not p then
+        p = parent:CreateTexture(nil, "OVERLAY")
+        p:SetBlendMode("ADD")
+    end
+    return p
+end
+
+local function ReleaseClickParticle(p)
+    p:Hide()
+    p:ClearAllPoints()
+    if #clickParticlePool < MAX_POOL_SIZE then
+        table.insert(clickParticlePool, p)
+    end
+end
 
 local function CreateClickEffect(x, y)
     if not UltraCursorFXDB.clickEffects then
@@ -64,12 +83,12 @@ local function CreateClickEffect(x, y)
         local angle = (i / UltraCursorFXDB.clickParticles) * math.pi * 2
         local speed = 200 + math.random(0, 100)
 
-        local p = parent:CreateTexture(nil, "OVERLAY")
+        local p = GetClickParticle()
         p:SetTexture(texture)
-        p:SetBlendMode("ADD")
         p:SetSize(UltraCursorFXDB.clickSize, UltraCursorFXDB.clickSize)
         p:SetVertexColor(unpack(color))
         p:SetPoint("CENTER", parent, "BOTTOMLEFT", x, y)
+        p:Show()
 
         p.velocityX = math.cos(angle) * speed
         p.velocityY = math.sin(angle) * speed
@@ -86,7 +105,7 @@ local function UpdateClickParticles(elapsed)
         p.life = p.life + elapsed
 
         if p.life >= p.maxLife then
-            p:Hide()
+            ReleaseClickParticle(p)
             table.remove(clickParticles, i)
         else
             local progress = p.life / p.maxLife
