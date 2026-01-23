@@ -4,7 +4,7 @@
 ![Coverage](https://img.shields.io/badge/coverage-98.8%25-brightgreen)
 ![Release](https://github.com/Stackout/ultra-cursor-fx/workflows/Create%20Release/badge.svg)
 ![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
-![Version](https://img.shields.io/badge/version-0.2.0-green)
+![Version](https://img.shields.io/badge/version-0.3.0-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 
 ![UltraCursorFX Icon](icon.png)
@@ -20,7 +20,7 @@
 **UltraCursorFX is an accessibility-focused addon that solves this problem.** With brilliant particle trails, customizable colors, and attention-grabbing effects, you'll **never lose your cursor again**.
 
 ![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
-![Version](https://img.shields.io/badge/version-0.2.0-green)
+![Version](https://img.shields.io/badge/version-0.3.0-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 
 [![Download on CurseForge](https://img.shields.io/badge/Download-CurseForge-orange)](https://www.curseforge.com/wow/addons/ultracursorfx)

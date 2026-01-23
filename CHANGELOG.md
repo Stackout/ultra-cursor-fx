@@ -2,6 +2,46 @@
 
 All notable changes to UltraCursorFX will be documented in this file.
 
+## [0.3.0]
+
+### Added
+- **Combat Only Mode** - New toggle to only show cursor trail during combat
+  - Perfect for reducing visual clutter outside of combat
+  - `/ucfx combat` command to toggle
+  - UI checkbox in Basic Settings
+  - Automatically enables/disables trail when entering/leaving combat
+  - Works seamlessly with all other features and profiles
+- **Release automation script** (`release.sh`) for managing versions and tags
+  - Supports major/minor/patch version increments
+  - Supports alpha/beta/custom pre-releases
+  - Automatic version updates in README.md
+  - Enforces CHANGELOG.md updates before release
+  - CurseForge-compatible tag formats
+  - Interactive prompts with confirmation
+- **Comprehensive release documentation** (RELEASE.md)
+  - Complete guide for creating releases
+  - CurseForge webhook integration details
+  - Version format specifications
+  - Troubleshooting guide
+
+### Changed
+- **UI improvements**:
+  - Moved Import/Export settings to the top of settings panel for better accessibility
+  - Improved settings UI spacing and alignment for better readability
+- **Rainbow mode display**: Shows "R" indicator instead of the current color when rainbow mode is active
+- **GitHub Actions workflow**: Updated to support webhook-based CurseForge deployment instead of manual API upload
+
+### Fixed
+- **Profile UI bugs**:
+  - Profile UI now correctly loads settings after auto-saving
+  - Profile UI properly auto-reloads when loading profiles
+  - Fixed issue where profile settings weren't immediately visible after save
+
+### Development
+- Added automated release workflow with quality gates
+- Release package now excludes development files (test specs, old files)
+- Enhanced CI/CD pipeline for stable releases
+
 ## [0.2.0] - 2026-01-22
 
 ### Added - Situational Profiles System 🎯
