@@ -2,6 +2,27 @@
 
 All notable changes to UltraCursorFX will be documented in this file.
 
+## [0.4.0]
+
+### Added
+- **Combat Only Mode** - New toggle to only show cursor trail during combat
+  - Perfect for reducing visual clutter outside of combat
+  - `/ucfx combat` command to toggle
+  - UI checkbox in Basic Settings
+  - Automatically enables/disables trail when entering/leaving combat
+  - Works seamlessly with all other features and profiles
+
+### Changed
+- Refactored cursor state management with new `UpdateCursorState()` function
+  - Centralized logic for enabling/disabling cursor trail
+  - Improved handling of combat state transitions
+  - Better integration with existing features (profiles, commands)
+  
+### Fixed
+- Proper cleanup of trail particles when disabling addon or exiting combat
+  - All particles are now properly hidden when trail is disabled
+  - Prevents orphaned particles from remaining visible
+
 ## [0.3.1]
 
 ### Fixed
