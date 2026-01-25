@@ -2,6 +2,32 @@
 
 All notable changes to UltraCursorFX will be documented in this file.
 
+## [0.5.0]
+
+### Added
+- **Opacity & Fade Control** - Fine-tune trail visibility with new opacity and fade options
+  - **Global Opacity Slider** - Control overall trail visibility from 10% to 100%
+  - **Fade Mode Toggle** - Enable smooth gradual fading from head to tail for ethereal effects
+  - **Fade Strength Slider** - Adjust how aggressively particles fade along the trail (0-100%)
+  - **Combat Opacity Boost** - Automatically increase trail visibility by 30% during combat
+  - `/ucfx fade` command to toggle fade mode
+  - `/ucfx boost` command to toggle combat opacity boost
+  - UI controls in new "Opacity & Fade" section
+  - Works seamlessly with all existing features (rainbow, comet, profiles)
+  - Profile-aware settings for different situations
+
+### Changed
+- Extended all profile defaults to include opacity and fade settings
+  - Raid profile: Pre-configured with fade enabled and combat boost
+  - Arena profile: Aggressive fade for competitive visibility
+  - Other profiles optimized for their respective scenarios
+
+### Benefits
+- **Enhanced Accessibility**: Fine-tune visibility for specific vision needs
+- **Performance**: Reduce visual clutter with lower opacity while maintaining functionality
+- **Visual Customization**: Create beautiful ethereal effects with fade mode
+- **Combat Utility**: Never lose cursor during intense fights with automatic opacity boost
+
 ## [0.4.0]
 
 ### Added
