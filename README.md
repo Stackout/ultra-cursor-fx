@@ -62,6 +62,7 @@
 - **Trail Smoothness** - From snappy to super smooth
 - **Click Particle Settings** - Control burst size, duration, and particle count
 - **Comet Tail Length** - Adjust the stretch effect
+- **Opacity & Fade Control** ✨ *NEW* - Fine-tune visibility with global opacity, fade effects, and combat boost
 
 ### Quality of Life
 - **Keybinding Support** - Bind keys to toggle features instantly
@@ -551,7 +552,7 @@ Use the provided release script for all version management:
 
 **Version Formats (CurseForge-compatible):**
 - Stable releases: `v0.3.0` → CurseForge: `release`
-- Beta releases: `v0.3.0-beta` → CurseForge: `beta`  
+- Beta releases: `v0.3.0-beta` → CurseForge: `beta`
 - Alpha releases: `v0.2.0-a1b2c3d` → CurseForge: `alpha`
 
 **Quick Example:**

@@ -45,6 +45,12 @@ addon.defaults = {
     cometMode = false,
     cometLength = 2.0,
 
+    -- Opacity & Fade
+    opacity = 1.0,
+    fadeEnabled = false,
+    fadeStrength = 0.5,
+    combatOpacityBoost = false,
+
     -- Situational Profiles
     situationalEnabled = false,
     currentProfile = "world",
@@ -69,6 +75,10 @@ addon.profileDefaults = {
         particleShape = "star",
         cometMode = false,
         cometLength = 2.0,
+        opacity = 1.0,
+        fadeEnabled = false,
+        fadeStrength = 0.5,
+        combatOpacityBoost = false,
     },
     raid = {
         name = "Raid",
@@ -87,6 +97,10 @@ addon.profileDefaults = {
         particleShape = "star",
         cometMode = true,
         cometLength = 2.5,
+        opacity = 1.0,
+        fadeEnabled = true,
+        fadeStrength = 0.6,
+        combatOpacityBoost = true,
     },
     dungeon = {
         name = "Dungeon",
@@ -105,6 +119,10 @@ addon.profileDefaults = {
         particleShape = "star",
         cometMode = false,
         cometLength = 2.0,
+        opacity = 1.0,
+        fadeEnabled = false,
+        fadeStrength = 0.5,
+        combatOpacityBoost = false,
     },
     arena = {
         name = "Arena",
@@ -123,6 +141,10 @@ addon.profileDefaults = {
         particleShape = "spark",
         cometMode = true,
         cometLength = 3.0,
+        opacity = 1.0,
+        fadeEnabled = true,
+        fadeStrength = 0.7,
+        combatOpacityBoost = true,
     },
     battleground = {
         name = "Battleground",
@@ -141,6 +163,10 @@ addon.profileDefaults = {
         particleShape = "star",
         cometMode = false,
         cometLength = 2.0,
+        opacity = 1.0,
+        fadeEnabled = true,
+        fadeStrength = 0.5,
+        combatOpacityBoost = false,
     },
 }
 
@@ -182,12 +208,12 @@ end
 -- ===============================
 function addon:UpdateCursorState()
     local shouldShow = UltraCursorFXDB.enabled
-    
+
     -- If combat-only mode is enabled, only show in combat
     if UltraCursorFXDB.combatOnly then
         shouldShow = shouldShow and addon.inCombat
     end
-    
+
     if shouldShow then
         -- Enable cursor trail
         addon.frame:SetScript("OnUpdate", function(_, elapsed)
@@ -196,7 +222,7 @@ function addon:UpdateCursorState()
     else
         -- Disable cursor trail
         addon.frame:SetScript("OnUpdate", nil)
-        
+
         -- Hide all particles when disabling
         for i = 1, #addon.points do
             if addon.points[i] then

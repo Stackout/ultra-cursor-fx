@@ -744,6 +744,53 @@ function addon:CreateSettingsPanel()
     yPos = yPos - 80
     uiControls.cometSlider = cometSlider
 
+    -- OPACITY & FADE
+    yPos = CreateSection("Opacity & Fade", yPos)
+
+    local opacitySlider =
+        CreateSlider("Opacity", "Trail Opacity", yPos, 0.1, 1.0, 0.05, "Overall visibility of cursor trail")
+    opacitySlider:SetValue(UltraCursorFXDB.opacity or 1.0)
+    opacitySlider.valueText:SetText(string.format("%d%%", math.floor((UltraCursorFXDB.opacity or 1.0) * 100)))
+    opacitySlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.opacity = value
+        self.valueText:SetText(string.format("%d%%", math.floor(value * 100)))
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 60
+    uiControls.opacitySlider = opacitySlider
+
+    local fadeCB = CreateCheckbox("Fade", "Enable Fade Mode", yPos, "Gradually fade particles from head to tail")
+    fadeCB:SetChecked(UltraCursorFXDB.fadeEnabled)
+    fadeCB:SetScript("OnClick", function(self)
+        UltraCursorFXDB.fadeEnabled = self:GetChecked()
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 50
+    uiControls.fadeCB = fadeCB
+
+    local fadeStrengthSlider =
+        CreateSlider("FadeStrength", "Fade Strength", yPos, 0.0, 1.0, 0.05, "How quickly particles fade along trail")
+    fadeStrengthSlider:SetValue(UltraCursorFXDB.fadeStrength or 0.5)
+    fadeStrengthSlider.valueText:SetText(string.format("%.0f%%", (UltraCursorFXDB.fadeStrength or 0.5) * 100))
+    fadeStrengthSlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.fadeStrength = value
+        local desc = value < 0.3 and "(Subtle)" or value > 0.7 and "(Aggressive)" or "(Moderate)"
+        self.valueText:SetText(string.format("%.0f%% %s", value * 100, desc))
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 60
+    uiControls.fadeStrengthSlider = fadeStrengthSlider
+
+    local combatBoostCB =
+        CreateCheckbox("CombatBoost", "Combat Opacity Boost", yPos, "Increase trail visibility by 30% during combat")
+    combatBoostCB:SetChecked(UltraCursorFXDB.combatOpacityBoost)
+    combatBoostCB:SetScript("OnClick", function(self)
+        UltraCursorFXDB.combatOpacityBoost = self:GetChecked()
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 70
+    uiControls.combatBoostCB = combatBoostCB
+
     -- KEYBINDINGS REMINDER
     yPos = CreateSection("Quick Toggle", yPos)
 
@@ -781,6 +828,8 @@ function addon:CreateSettingsPanel()
         uiControls.rainbowCB:SetChecked(UltraCursorFXDB.rainbowMode)
         uiControls.clickCB:SetChecked(UltraCursorFXDB.clickEffects)
         uiControls.cometCB:SetChecked(UltraCursorFXDB.cometMode)
+        uiControls.fadeCB:SetChecked(UltraCursorFXDB.fadeEnabled)
+        uiControls.combatBoostCB:SetChecked(UltraCursorFXDB.combatOpacityBoost)
 
         -- Update sliders
         uiControls.pointsSlider:SetValue(UltraCursorFXDB.points or 48)
@@ -812,6 +861,16 @@ function addon:CreateSettingsPanel()
 
         uiControls.cometSlider:SetValue(UltraCursorFXDB.cometLength or 2.0)
         uiControls.cometSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.cometLength or 2.0))
+
+        uiControls.opacitySlider:SetValue(UltraCursorFXDB.opacity or 1.0)
+        uiControls.opacitySlider.valueText:SetText(
+            string.format("%d%%", math.floor((UltraCursorFXDB.opacity or 1.0) * 100))
+        )
+
+        uiControls.fadeStrengthSlider:SetValue(UltraCursorFXDB.fadeStrength or 0.5)
+        uiControls.fadeStrengthSlider.valueText:SetText(
+            string.format("%.0f%%", (UltraCursorFXDB.fadeStrength or 0.5) * 100)
+        )
 
         -- Update color button
         uiControls.colorBtn.texture:SetColorTexture(unpack(UltraCursorFXDB.color))

@@ -193,6 +193,12 @@ function addon:OnUpdate(elapsed)
     -- Comet Mode - adjust spacing between points
     local spacing = UltraCursorFXDB.cometMode and (1 / UltraCursorFXDB.cometLength) or 1
 
+    -- Calculate base opacity with combat boost
+    local baseOpacity = UltraCursorFXDB.opacity or 1.0
+    if UltraCursorFXDB.combatOpacityBoost and addon.inCombat then
+        baseOpacity = math.min(1.0, baseOpacity * 1.3) -- 30% boost in combat
+    end
+
     for i = 1, #points do
         local p = points[i]
         if i == 1 then
@@ -204,13 +210,22 @@ function addon:OnUpdate(elapsed)
             p.y = self.Lerp(p.y, prev.y, smoothness * spacing)
         end
 
-        local alpha = ((#points - i + 1) / #points) ^ (UltraCursorFXDB.cometMode and 2.5 or 1.5)
+        -- Calculate fade with optional fade mode
+        local fadeProgress = (1 - (i - 1) / #points)
+        local fadeAlpha
+        if UltraCursorFXDB.fadeEnabled then
+            local fadeStrength = UltraCursorFXDB.fadeStrength or 0.5
+            fadeAlpha = fadeProgress ^ (1 + fadeStrength * 2) -- Stronger fade = faster dropoff
+        else
+            fadeAlpha = ((#points - i + 1) / #points) ^ (UltraCursorFXDB.cometMode and 2.5 or 1.5)
+        end
+
         p:SetPoint("CENTER", parent, "BOTTOMLEFT", p.x, p.y)
-        p:SetAlpha(alpha * pulse)
+        p:SetAlpha(fadeAlpha * pulse * baseOpacity)
 
         local g = glow[i]
         g:SetPoint("CENTER", p)
-        g:SetAlpha(alpha * 0.75 * pulse)
+        g:SetAlpha(fadeAlpha * 0.75 * pulse * baseOpacity)
     end
 
     CheckMouseClicks()

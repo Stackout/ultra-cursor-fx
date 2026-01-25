@@ -10,7 +10,7 @@ local addon = UltraCursorFX
 addon.frame:RegisterEvent("ADDON_LOADED")
 addon.frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 addon.frame:RegisterEvent("PLAYER_REGEN_DISABLED") -- Entering combat
-addon.frame:RegisterEvent("PLAYER_REGEN_ENABLED")  -- Leaving combat
+addon.frame:RegisterEvent("PLAYER_REGEN_ENABLED") -- Leaving combat
 
 addon.frame:SetScript("OnEvent", function(self, event, addonName)
     if event == "ADDON_LOADED" and addonName == "UltraCursorFX" then
