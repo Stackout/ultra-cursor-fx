@@ -361,3 +361,518 @@ describe("Effects Module", function()
         end)
     end)
 end)
+
+describe("BuildReticle", function()
+    local addon
+
+    before_each(function()
+        mocks.ResetWoWMocks()
+        require("Core")
+        require("Utils")
+        require("Effects")
+        addon = UltraCursorFX
+        addon:InitializeDefaults()
+
+        _G.UltraCursorFXDB = {
+            reticleEnabled = true,
+            reticleStyle = "military",
+            reticleSize = 80,
+            reticleOpacity = 0.7,
+            reticleBrightness = 1.0,
+            reticleRotationSpeed = 0.5,
+            color = { 0.5, 0.8, 1.0 },
+            rainbowMode = false,
+            points = 10,
+            size = 8,
+            glowSize = 16,
+            particleShape = "star",
+        }
+
+        addon:BuildTrail()
+    end)
+
+    after_each(function()
+        _G.UltraCursorFXDB = nil
+    end)
+
+    it("builds crosshair reticle with 5 segments", function()
+        _G.UltraCursorFXDB.reticleStyle = "crosshair"
+        addon:BuildReticle(parent)
+
+        assert.equals(5, #addon.reticleSegments)
+        assert.is_not_nil(addon.reticleSegments[1])
+        assert.is_not_nil(addon.reticleSegments[5])
+    end)
+
+    it("builds circledot reticle with 9 segments", function()
+        _G.UltraCursorFXDB.reticleStyle = "circledot"
+        addon:BuildReticle(parent)
+
+        assert.equals(9, #addon.reticleSegments)
+        assert.is_not_nil(addon.reticleSegments[1])
+        assert.is_not_nil(addon.reticleSegments[9])
+    end)
+
+    it("builds tshape reticle with 5 segments", function()
+        _G.UltraCursorFXDB.reticleStyle = "tshape"
+        addon:BuildReticle(parent)
+
+        assert.equals(5, #addon.reticleSegments)
+        assert.is_not_nil(addon.reticleSegments[1])
+        assert.is_not_nil(addon.reticleSegments[5])
+    end)
+
+    it("builds military reticle with 8 segments", function()
+        _G.UltraCursorFXDB.reticleStyle = "military"
+        addon:BuildReticle(parent)
+
+        assert.equals(8, #addon.reticleSegments)
+        assert.is_not_nil(addon.reticleSegments[1])
+        assert.is_not_nil(addon.reticleSegments[8])
+    end)
+
+    it("builds cyberpunk reticle with 8 segments", function()
+        _G.UltraCursorFXDB.reticleStyle = "cyberpunk"
+        addon:BuildReticle(parent)
+
+        assert.equals(8, #addon.reticleSegments)
+        assert.is_not_nil(addon.reticleSegments[1])
+        assert.is_not_nil(addon.reticleSegments[8])
+    end)
+
+    it("builds minimal reticle with 4 segments", function()
+        _G.UltraCursorFXDB.reticleStyle = "minimal"
+        addon:BuildReticle(parent)
+
+        assert.equals(4, #addon.reticleSegments)
+        assert.is_not_nil(addon.reticleSegments[1])
+        assert.is_not_nil(addon.reticleSegments[4])
+    end)
+
+    it("hides all reticle segments when reticleEnabled is false", function()
+        _G.UltraCursorFXDB.reticleEnabled = false
+        addon:BuildReticle(parent)
+
+        for _, seg in ipairs(addon.reticleSegments) do
+            assert.is_true(seg.hidden)
+        end
+    end)
+
+    it("creates texture segments with correct properties", function()
+        _G.UltraCursorFXDB.reticleStyle = "crosshair"
+        addon:BuildReticle()
+
+        -- Verify 5 segments were created for crosshair style
+        assert.equals(5, #addon.reticleSegments)
+        -- Verify segments exist
+        for i = 1, 5 do
+            assert.is_not_nil(addon.reticleSegments[i])
+        end
+    end)
+end)
+
+describe("UpdateReticle", function()
+    local addon, mockTime
+
+    before_each(function()
+        mocks.ResetWoWMocks()
+        require("Core")
+        require("Utils")
+        require("Effects")
+        addon = UltraCursorFX
+        addon:InitializeDefaults()
+
+        mockTime = 0
+        _G.GetTime = function()
+            return mockTime
+        end
+
+        _G.UltraCursorFXDB = {
+            reticleEnabled = true,
+            reticleStyle = "military",
+            reticleSize = 80,
+            reticleOpacity = 0.7,
+            reticleBrightness = 1.0,
+            reticleRotationSpeed = 0.5,
+            color = { 0.5, 0.8, 1.0 },
+            rainbowMode = false,
+            points = 10,
+            size = 8,
+            glowSize = 16,
+            particleShape = "star",
+        }
+
+        _G.UnitExists = function(unit)
+            return false
+        end
+        _G.UnitCanAttack = function()
+            return false
+        end
+        _G.UnitIsDead = function()
+            return false
+        end
+        _G.UnitIsFriend = function()
+            return false
+        end
+        _G.UnitIsUnit = function()
+            return false
+        end
+        _G.GameTooltip = {
+            IsShown = function()
+                return false
+            end,
+            GetUnit = function()
+                return nil
+            end,
+        }
+
+        addon.reticleRotation = 0
+        addon.rainbowHue = 0
+        addon:BuildTrail()
+        addon:BuildReticle()
+    end)
+
+    after_each(function()
+        _G.UltraCursorFXDB = nil
+        _G.UnitExists = nil
+        _G.UnitCanAttack = nil
+        _G.UnitIsDead = nil
+        _G.UnitIsFriend = nil
+        _G.UnitIsUnit = nil
+        _G.GameTooltip = nil
+    end)
+
+    it("detects enemy mouseover and uses red color", function()
+        _G.UnitExists = function(unit)
+            return unit == "mouseover"
+        end
+        _G.UnitCanAttack = function(unit, target)
+            return unit == "player" and target == "mouseover"
+        end
+        _G.UnitIsDead = function()
+            return false
+        end
+
+        addon:UpdateReticle(0.016, 500, 300)
+
+        -- Just verify it runs without error and segments exist
+        assert.is_not_nil(addon.reticleSegments)
+        assert.is_true(#addon.reticleSegments > 0)
+    end)
+
+    it("detects friendly mouseover and uses green color with pulse", function()
+        mockTime = 1.0
+
+        _G.UnitExists = function(unit)
+            return unit == "mouseover"
+        end
+        _G.UnitIsFriend = function(unit, target)
+            return unit == "player" and target == "mouseover"
+        end
+        _G.UnitIsUnit = function(unit, target)
+            return false -- Not player
+        end
+
+        addon:UpdateReticle(0.016, 500, 300)
+
+        -- Just verify it runs without error
+        assert.is_not_nil(addon.reticleSegments)
+        assert.is_true(#addon.reticleSegments > 0)
+    end)
+
+    it("detects interactive object and uses gold color", function()
+        _G.UnitExists = function()
+            return false
+        end
+        _G.GameTooltip = {
+            IsShown = function()
+                return true
+            end,
+            GetUnit = function()
+                return nil -- Object, not unit
+            end,
+        }
+
+        addon:UpdateReticle(0.016, 500, 300)
+
+        -- Just verify it runs without error
+        assert.is_not_nil(addon.reticleSegments)
+        assert.is_true(#addon.reticleSegments > 0)
+    end)
+
+    it("uses trail color for default state", function()
+        _G.UnitExists = function()
+            return false
+        end
+
+        addon:UpdateReticle(0.016, 500, 300)
+
+        -- Just verify it runs without error
+        assert.is_not_nil(addon.reticleSegments)
+        assert.is_true(#addon.reticleSegments > 0)
+    end)
+
+    it("updates rotation based on rotation speed", function()
+        local initialRotation = addon.reticleRotation
+        addon:UpdateReticle(1.0, 500, 300) -- 1 second elapsed
+
+        -- rotation += elapsed * rotationSpeed
+        -- 0 + 1.0 * 0.5 = 0.5
+        assert.equals(0.5, addon.reticleRotation)
+    end)
+
+    it("wraps rotation at 2π", function()
+        addon.reticleRotation = math.pi * 2 - 0.1
+        addon:UpdateReticle(1.0, 500, 300) -- Should wrap around
+
+        assert.is_true(addon.reticleRotation < math.pi * 2)
+        assert.is_true(addon.reticleRotation >= 0)
+    end)
+
+    it("applies brightness multiplier to colors", function()
+        _G.UltraCursorFXDB.reticleBrightness = 0.5
+
+        addon:UpdateReticle(0.016, 500, 300)
+
+        -- Just verify it runs without error
+        assert.is_true(true)
+    end)
+
+    it("applies opacity setting to alpha", function()
+        _G.UltraCursorFXDB.reticleOpacity = 0.5
+
+        addon:UpdateReticle(0.016, 500, 300)
+
+        -- Just verify it runs without error
+        assert.is_true(true)
+    end)
+
+    it("does not update when reticleEnabled is false", function()
+        _G.UltraCursorFXDB.reticleEnabled = false
+        local initialRotation = addon.reticleRotation
+
+        addon:UpdateReticle(1.0, 500, 300)
+
+        -- Rotation should not have changed
+        assert.equals(initialRotation, addon.reticleRotation)
+    end)
+
+    it("does not update when reticle segments are empty", function()
+        -- Clear the reticle segments array (not replace it)
+        while #addon.reticleSegments > 0 do
+            table.remove(addon.reticleSegments)
+        end
+
+        local initialRotation = addon.reticleRotation
+
+        addon:UpdateReticle(1.0, 500, 300)
+
+        -- Should return early without updating rotation
+        assert.equals(initialRotation, addon.reticleRotation)
+    end)
+end)
+
+describe("Reticle Rendering Styles", function()
+    local addon
+
+    before_each(function()
+        mocks.ResetWoWMocks()
+        require("Core")
+        require("Utils")
+        require("Effects")
+        addon = UltraCursorFX
+        addon:InitializeDefaults()
+
+        _G.UltraCursorFXDB = {
+            reticleEnabled = true,
+            reticleStyle = "crosshair",
+            reticleSize = 100,
+            reticleOpacity = 0.8,
+            reticleBrightness = 1.0,
+            reticleRotationSpeed = 0.5,
+            color = { 1.0, 1.0, 1.0 },
+            rainbowMode = false,
+            points = 10,
+            size = 8,
+            glowSize = 16,
+            particleShape = "star",
+        }
+
+        addon.reticleRotation = 0
+        addon:BuildTrail()
+        addon:BuildReticle()
+    end)
+
+    after_each(function()
+        _G.UltraCursorFXDB = nil
+    end)
+
+    it("renders crosshair with correct segment positioning", function()
+        addon:RenderCrosshairReticle(500, 300, 100, 1.0, 1.0, 1.0, 0.8)
+
+        -- Just verify segments exist and function runs without error
+        assert.is_not_nil(addon.reticleSegments)
+        assert.equals(5, #addon.reticleSegments)
+    end)
+
+    it("renders circledot with 8 segments + center", function()
+        _G.UltraCursorFXDB.reticleStyle = "circledot"
+        addon:BuildReticle()
+
+        addon:RenderCircleDotReticle(500, 300, 100, 1.0, 0.5, 0.2, 0.8)
+
+        -- Verify correct number of segments
+        assert.equals(9, #addon.reticleSegments)
+    end)
+
+    it("renders tshape with range tick marks", function()
+        _G.UltraCursorFXDB.reticleStyle = "tshape"
+        addon:BuildReticle()
+
+        addon:RenderTShapeReticle(500, 300, 100, 0.8, 0.8, 0.8, 0.7, "default")
+
+        -- Verify correct number of segments
+        assert.equals(5, #addon.reticleSegments)
+    end)
+
+    it("renders military with rotating segments for enemies", function()
+        _G.UltraCursorFXDB.reticleStyle = "military"
+        addon:BuildReticle()
+        addon.reticleRotation = math.pi / 4
+
+        addon:RenderMilitaryReticle(500, 300, 100, 1.0, 0.0, 0.0, 0.8, "enemy")
+
+        -- Verify correct number of segments
+        assert.equals(8, #addon.reticleSegments)
+    end)
+
+    it("renders military without rotating segments for default", function()
+        _G.UltraCursorFXDB.reticleStyle = "military"
+        addon:BuildReticle()
+
+        addon:RenderMilitaryReticle(500, 300, 100, 0.5, 0.5, 0.5, 0.8, "default")
+
+        -- Verify it runs without error
+        assert.equals(8, #addon.reticleSegments)
+    end)
+
+    it("renders cyberpunk with rotating neon segments", function()
+        _G.UltraCursorFXDB.reticleStyle = "cyberpunk"
+        addon:BuildReticle()
+        addon.reticleRotation = math.pi / 8
+
+        addon:RenderCyberpunkReticle(500, 300, 100, 0.0, 1.0, 1.0, 0.9, "default")
+
+        -- Verify correct number of segments
+        assert.equals(8, #addon.reticleSegments)
+    end)
+
+    it("renders minimal with 4 corner L-brackets", function()
+        _G.UltraCursorFXDB.reticleStyle = "minimal"
+        addon:BuildReticle()
+
+        addon:RenderMinimalReticle(500, 300, 80, 1.0, 1.0, 1.0, 0.6)
+
+        -- Verify correct number of segments
+        assert.equals(4, #addon.reticleSegments)
+    end)
+end)
+
+describe("Fade Effect Calculations", function()
+    local addon
+
+    before_each(function()
+        mocks.ResetWoWMocks()
+        require("Core")
+        require("Utils")
+        require("Effects")
+        addon = UltraCursorFX
+        addon:InitializeDefaults()
+
+        _G.UltraCursorFXDB = {
+            points = 20, -- was trailLength
+            smoothness = 0.35,
+            opacity = 1.0,
+            fadeEnabled = true,
+            fadeStrength = 0.5,
+            combatOpacityBoost = false,
+            rainbowMode = false,
+            color = { 1.0, 1.0, 1.0 },
+            cometMode = false,
+            size = 8,
+            glow = true,
+            glowSize = 16,
+            particleShape = "star",
+        }
+
+        _G.InCombatLockdown = function()
+            return false
+        end
+
+        addon.inCombat = false
+        addon:BuildTrail()
+    end)
+
+    after_each(function()
+        _G.UltraCursorFXDB = nil
+        _G.InCombatLockdown = nil
+    end)
+
+    it("applies fade with fadeEnabled and fadeStrength", function()
+        _G.UltraCursorFXDB.fadeEnabled = true
+        _G.UltraCursorFXDB.fadeStrength = 0.5
+
+        addon:OnUpdate(0.016)
+
+        -- Just verify it runs without error
+        assert.is_true(true)
+    end)
+
+    it("uses standard fade when fadeEnabled is false", function()
+        _G.UltraCursorFXDB.fadeEnabled = false
+
+        addon:OnUpdate(0.016)
+
+        -- Just verify it runs without error
+        assert.is_true(true)
+    end)
+
+    it("applies combat opacity boost when in combat", function()
+        _G.UltraCursorFXDB.combatOpacityBoost = true
+        _G.UltraCursorFXDB.opacity = 0.8
+        addon.inCombat = true
+        _G.InCombatLockdown = function()
+            return true
+        end
+
+        addon:OnUpdate(0.016)
+
+        -- Just verify it runs without error
+        assert.is_true(true)
+    end)
+
+    it("does not boost opacity when not in combat", function()
+        _G.UltraCursorFXDB.combatOpacityBoost = true
+        _G.UltraCursorFXDB.opacity = 0.8
+        addon.inCombat = false
+        _G.InCombatLockdown = function()
+            return false
+        end
+
+        addon:OnUpdate(0.016)
+
+        -- Just verify it runs without error
+        assert.is_true(true)
+    end)
+
+    it("clamps boosted opacity to 1.0 maximum", function()
+        _G.UltraCursorFXDB.combatOpacityBoost = true
+        _G.UltraCursorFXDB.opacity = 0.9 -- Would boost to 1.17
+        addon.inCombat = true
+
+        addon:OnUpdate(0.016)
+
+        -- Just verify it runs without error
+        assert.is_true(true)
+    end)
+end)

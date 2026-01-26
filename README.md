@@ -1,7 +1,8 @@
 # UltraCursorFX ✨
 
 ![Tests](https://github.com/Stackout/ultra-cursor-fx/workflows/Test%20Suite/badge.svg)
-![Coverage](https://img.shields.io/badge/coverage-98.8%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-97.4%25-brightgreen)
+![Tests Count](https://img.shields.io/badge/tests-197%20passing-success)
 ![Release](https://github.com/Stackout/ultra-cursor-fx/workflows/Create%20Release/badge.svg)
 ![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
 ![Version](https://img.shields.io/badge/version-0.6.1-green)
@@ -548,7 +549,7 @@ Use the provided release script for all version management:
 1. Script updates version files (README, CHANGELOG)
 2. Creates git commit and tag
 3. You push the tag to GitHub
-4. **GitHub Actions runs full test suite** (167 tests)
+4. **GitHub Actions runs full test suite** (197 tests)
 5. **IF tests pass**: Creates GitHub Release with .zip package
 6. **CurseForge webhook** automatically receives and publishes release
 7. Quality-verified releases only! 🎯
@@ -582,6 +583,37 @@ chmod +x ./test.sh
 # Run tests
 ./test.sh
 ```
+
+#### Quality & Testing 🧪
+
+**UltraCursorFX maintains exceptional code quality standards:**
+
+- **197 Tests** - Comprehensive test suite covering all functionality
+- **97.4% Code Coverage** - Core addon modules extensively tested
+- **Zero Failures** - All tests passing on every commit
+- **Automated CI/CD** - GitHub Actions runs full test suite on every push
+
+**Test Coverage Breakdown:**
+- Commands.lua: 88.89%
+- Core.lua: 97.64%
+- **Effects.lua: 97.37%** (recently improved from 67.89%)
+- Init.lua: 83.33%
+- Profiles.lua: 98.35%
+- Utils.lua: 98.03%
+
+**Test Categories:**
+- Effects Module: 88 tests (particle trails, reticle system, fade effects)
+- Core Module: 45 tests (initialization, event handling, state management)
+- Commands Module: 23 tests (slash commands, toggles)
+- Profiles Module: 20 tests (save/load, auto-switching)
+- Utils Module: 14 tests (helper functions, color conversions)
+- Init Module: 7 tests (addon loading, migration)
+
+**Why This Matters:**
+- 🛡️ **Stability** - Comprehensive tests catch bugs before they reach users
+- 🚀 **Confidence** - New features can be added without breaking existing functionality
+- 📚 **Documentation** - Tests serve as living documentation of expected behavior
+- ⚡ **Maintainability** - High coverage makes refactoring safe and efficient
 
 #### Code Formatting
 

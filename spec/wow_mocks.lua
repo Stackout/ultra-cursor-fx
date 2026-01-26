@@ -63,25 +63,66 @@ local function CreateMockFrame(frameType, name, parent, template)
         -- Texture creation
         CreateTexture = function(self, name, layer)
             local texture = {
-                SetTexture = function() end,
-                SetBlendMode = function() end,
-                SetSize = function() end,
-                SetWidth = function() end,
-                SetHeight = function() end,
-                SetVertexColor = function() end,
-                SetPoint = function() end,
+                SetTexture = function(self, tex)
+                    self.texture = tex
+                end,
+                SetBlendMode = function(self, mode)
+                    self.blendMode = mode
+                end,
+                SetSize = function(self, width, height)
+                    self.width = width
+                    self.height = height or width
+                end,
+                SetWidth = function(self, width)
+                    self.width = width
+                end,
+                SetHeight = function(self, height)
+                    self.height = height
+                end,
+                SetVertexColor = function(self, r, g, b, a)
+                    self.r = r
+                    self.g = g
+                    self.b = b
+                    self.a = a or 1.0
+                end,
+                SetPoint = function(self, ...)
+                    self.points = self.points or {}
+                    table.insert(self.points, { ... })
+                end,
                 SetAllPoints = function() end,
-                ClearAllPoints = function() end,
+                ClearAllPoints = function(self)
+                    self.points = {}
+                end,
                 SetColorTexture = function() end,
-                SetAlpha = function() end,
-                SetRotation = function() end,
-                Hide = function() end,
-                Show = function() end,
+                SetAlpha = function(self, alpha)
+                    self.alpha = alpha
+                end,
+                SetRotation = function(self, rotation)
+                    self.rotation = rotation
+                end,
+                Hide = function(self)
+                    self.hidden = true
+                    self.visible = false
+                end,
+                Show = function(self)
+                    self.hidden = false
+                    self.visible = true
+                end,
                 GetCenter = function()
                     return 0, 0
                 end,
                 x = 0,
                 y = 0,
+                r = 1.0,
+                g = 1.0,
+                b = 1.0,
+                a = 1.0,
+                alpha = 1.0,
+                width = 0,
+                height = 0,
+                visible = true,
+                hidden = false,
+                drawLayer = layer,
             }
             table.insert(self._textures, texture)
             return texture
