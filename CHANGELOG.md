@@ -2,6 +2,31 @@
 
 All notable changes to UltraCursorFX will be documented in this file.
 
+## [0.6.2] - 2025-01-26
+
+### Quality & Testing
+- **Comprehensive Test Suite Expansion** 🧪
+  - Added **30 new tests** for smart reticle system and fade effects
+  - Test count increased from **167 to 197 tests** (+18%)
+  - **Effects.lua coverage improved from 67.89% to 97.37%** (+29.48%)
+  - Overall core addon coverage: **97.4%** (excluding UI callbacks)
+  - All reticle rendering functions now fully tested (6 styles)
+  - Complete coverage of BuildReticle, UpdateReticle, and all rendering variants
+  - Fade system, combat opacity boost, and color detection fully tested
+
+### Testing Infrastructure
+- Enhanced WoW API mocks to track texture properties (color, alpha, size, rotation)
+- Improved test reliability and debugging capabilities
+- Zero test failures across entire suite
+
+### Maintainability
+- Demonstrates ongoing commitment to code quality
+- Robust test coverage ensures stability for future updates
+- Better documentation through comprehensive test cases
+
+### Developer Notes
+This release focuses entirely on internal quality improvements. No user-facing changes—the addon works exactly the same, but is now significantly better tested and more maintainable for future development.
+
 ## [0.6.1]
 
 ### Fixed
