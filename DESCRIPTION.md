@@ -1,6 +1,6 @@
 # UltraCursorFX – High-Visibility Cursor Effects & Accessibility Addon
 
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support%20Development-orange?style=for-the-badge&logo=buy-me-a-coffee)](https://buymeacoffee.com/stackout)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support%20Development-orange?style=for-the-badge&logo=buy-me-a-coffee)](https://buymeacoffee.com/ryanhein)
 
 **Never lose your cursor again.** UltraCursorFX is an accessibility-focused addon that adds brilliant particle trails, glow effects, and customizable visual enhancements to make your mouse cursor impossible to lose during gameplay. Perfect for players with vision challenges, large monitors, or intense combat situations.
 
