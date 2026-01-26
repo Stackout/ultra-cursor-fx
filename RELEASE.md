@@ -114,7 +114,7 @@ CurseForge categorizes releases into three types:
 
 When you push a tag, GitHub Actions automatically:
 
-1. ✅ **Runs Full Test Suite** (197 tests)
+1. ✅ **Runs Full Test Suite** (227 tests)
    - Unit tests for all modules
    - Integration tests
    - Docker-based test environment

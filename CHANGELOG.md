@@ -6,18 +6,26 @@ All notable changes to UltraCursorFX will be documented in this file.
 
 ### Quality & Testing
 - **Comprehensive Test Suite Expansion** 🧪
-  - Added **30 new tests** for smart reticle system and fade effects
-  - Test count increased from **197 to 197 tests** (+18%)
+  - Added **60 new tests** for smart reticle system, fade effects, and memory management
+  - Test count increased from **167 to 227 tests** (+36%)
   - **Effects.lua coverage improved from 67.89% to 97.37%** (+29.48%)
   - Overall core addon coverage: **97.4%** (excluding UI callbacks)
   - All reticle rendering functions now fully tested (6 styles)
   - Complete coverage of BuildReticle, UpdateReticle, and all rendering variants
   - Fade system, combat opacity boost, and color detection fully tested
+  - **30 new cleanup/memory leak prevention tests** proving proper resource management
 
 ### Testing Infrastructure
 - Enhanced WoW API mocks to track texture properties (color, alpha, size, rotation)
 - Improved test reliability and debugging capabilities
 - Zero test failures across entire suite
+- **Memory Management Verification**:
+  - Texture cleanup on rebuild (no orphaned textures)
+  - Click particle pool enforcement (200 particle limit)
+  - Proper cleanup during combat state transitions
+  - Profile switching without accumulation
+  - Table memory management (wipe without references)
+  - Edge case handling (zero points, rapid toggles)
 
 ### Maintainability
 - Demonstrates ongoing commitment to code quality
@@ -37,7 +45,7 @@ This release focuses entirely on internal quality improvements. No user-facing c
   - Clean build: 0 warnings / 0 errors in 9 files
 
 ### Quality
-- All 197 tests still passing
+- All 227 tests still passing
 - Zero linter warnings achieved
 - Code quality maintained
 
@@ -89,7 +97,7 @@ This release focuses entirely on internal quality improvements. No user-facing c
 - 6 new default settings: `reticleEnabled`, `reticleStyle`, `reticleSize`, `reticleBrightness`, `reticleOpacity`, `reticleRotationSpeed`
 
 ### Testing & Quality
-- **All 197 tests passing** - Complete backwards compatibility
+- **All 227 tests passing** - Complete backwards compatibility
 - **Zero linter warnings** - Clean code style maintained
 - **New WoW API mocks**: Added `UnitExists`, `UnitCanAttack`, `UnitIsFriend`, `UnitIsDead`, `UnitIsUnit`, `GetTime`, `UIDropDownMenu` functions
 - **Enhanced test mocks**: Added `SetRotation()`, `SetWidth()`, `SetJustifyH()` support for UI elements
@@ -232,8 +240,8 @@ This release focuses entirely on internal quality improvements. No user-facing c
 - Migration only runs once per SavedVariables file
 
 ### Testing & Quality
-- **Comprehensive test suite**: 197 automated tests (up from 63)
-- **98.8% code coverage** on core addon modules
+- **Comprehensive test suite**: 227 automated tests (up from 63)
+- **97.4% code coverage** on core addon modules
 - **Docker-based testing environment** for reproducible test runs
 - **GitHub Actions CI/CD** - tests run on every push and PR
 - **Quality gates**: Tags and releases blocked if tests fail

@@ -2,7 +2,7 @@
 
 ![Tests](https://github.com/Stackout/ultra-cursor-fx/workflows/Test%20Suite/badge.svg)
 ![Coverage](https://img.shields.io/badge/coverage-97.4%25-brightgreen)
-![Tests Count](https://img.shields.io/badge/tests-197%20passing-success)
+![Tests Count](https://img.shields.io/badge/tests-227%20passing-success)
 ![Release](https://github.com/Stackout/ultra-cursor-fx/workflows/Create%20Release/badge.svg)
 ![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
 ![Version](https://img.shields.io/badge/version-0.6.2-green)
@@ -549,7 +549,7 @@ Use the provided release script for all version management:
 1. Script updates version files (README, CHANGELOG)
 2. Creates git commit and tag
 3. You push the tag to GitHub
-4. **GitHub Actions runs full test suite** (197 tests)
+4. **GitHub Actions runs full test suite** (227 tests)
 5. **IF tests pass**: Creates GitHub Release with .zip package
 6. **CurseForge webhook** automatically receives and publishes release
 7. Quality-verified releases only! 🎯
@@ -588,7 +588,7 @@ chmod +x ./test.sh
 
 **UltraCursorFX maintains exceptional code quality standards:**
 
-- **197 Tests** - Comprehensive test suite covering all functionality
+- **227 Tests** - Comprehensive test suite covering all functionality
 - **97.4% Code Coverage** - Core addon modules extensively tested
 - **Zero Failures** - All tests passing on every commit
 - **Automated CI/CD** - GitHub Actions runs full test suite on every push
@@ -602,7 +602,7 @@ chmod +x ./test.sh
 - Utils.lua: 98.03%
 
 **Test Categories:**
-- Effects Module: 88 tests (particle trails, reticle system, fade effects)
+- Effects Module: 118 tests (particle trails, reticle system, fade effects, memory management)
 - Core Module: 45 tests (initialization, event handling, state management)
 - Commands Module: 23 tests (slash commands, toggles)
 - Profiles Module: 20 tests (save/load, auto-switching)
@@ -640,4 +640,4 @@ stylua .
 7. Push: `git push origin feature/amazing-feature`
 8. Open Pull Request
 
-**Pull requests must pass all 63 tests before merging.**
+**Pull requests must pass all 227 tests before merging.**

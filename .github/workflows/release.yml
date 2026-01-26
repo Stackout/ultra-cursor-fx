@@ -140,8 +140,8 @@ jobs:
             **Release Type:** ${{ steps.release_type.outputs.type }}
 
             ### ✅ Quality Assurance
-            - All 197 automated tests passed
-            - Code coverage: 98.8% (core modules)
+            - All 227 automated tests passed
+            - Code coverage: 97.4% (core modules)
             - Linting: 0 warnings
             - Docker-verified build
 

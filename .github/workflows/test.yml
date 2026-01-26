@@ -67,7 +67,7 @@ jobs:
       run: |
         echo "## ✅ Test Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**197 tests passing** | **0 failures** | **0 errors**" >> $GITHUB_STEP_SUMMARY
+        echo "**227 tests passing** | **0 failures** | **0 errors**" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Test Breakdown" >> $GITHUB_STEP_SUMMARY
         echo "- Core Module Tests: 45" >> $GITHUB_STEP_SUMMARY
@@ -93,7 +93,7 @@ jobs:
           echo "$COVERAGE" >> $GITHUB_STEP_SUMMARY
           echo "### Recent Improvements" >> $GITHUB_STEP_SUMMARY
           echo "- Effects.lua: 67.89% → 97.37% (+29.48%)" >> $GITHUB_STEP_SUMMARY
-          echo "- Test count: 197 → 197 (+30 tests)" >> $GITHUB_STEP_SUMMARY
+          echo "- Test count: 167 → 227 (+60 tests)" >> $GITHUB_STEP_SUMMARY
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "🚀 **Build Status:** All Tests Passed" >> $GITHUB_STEP_SUMMARY
