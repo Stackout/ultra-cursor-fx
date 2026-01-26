@@ -791,6 +791,127 @@ function addon:CreateSettingsPanel()
     yPos = yPos - 70
     uiControls.combatBoostCB = combatBoostCB
 
+    -- RETICLE SYSTEM
+    yPos = CreateSection("Smart Reticle System", yPos)
+
+    local reticleEnabledCB = CreateCheckbox(
+        "ReticleEnabled",
+        "Enable Smart Reticle",
+        yPos,
+        "Dynamic crosshair that changes based on mouseover target"
+    )
+    reticleEnabledCB:SetChecked(UltraCursorFXDB.reticleEnabled)
+    reticleEnabledCB:SetScript("OnClick", function(self)
+        UltraCursorFXDB.reticleEnabled = self:GetChecked()
+        addon:BuildTrail() -- Rebuild reticle
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 50
+    uiControls.reticleEnabledCB = reticleEnabledCB
+
+    local reticleStyleLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    reticleStyleLabel:SetPoint("TOPLEFT", 20, yPos)
+    reticleStyleLabel:SetText("Reticle Style")
+    yPos = yPos - 25
+
+    local reticleStyleDD = CreateFrame("Frame", "UltraCursorFXReticleStyleDD", content, "UIDropDownMenuTemplate")
+    reticleStyleDD:SetPoint("TOPLEFT", 0, yPos)
+    UIDropDownMenu_SetWidth(reticleStyleDD, 150)
+
+    local reticleStyles = {
+        { text = "Crosshair (Classic +)", value = "crosshair" },
+        { text = "Circle Dot (Red Dot)", value = "circledot" },
+        { text = "T-Shape (Rangefinder)", value = "tshape" },
+        { text = "Military (Brackets)", value = "military" },
+        { text = "Cyberpunk (Neon Ring)", value = "cyberpunk" },
+        { text = "Minimal (Corners)", value = "minimal" },
+    }
+
+    UIDropDownMenu_Initialize(reticleStyleDD, function(self, level)
+        for _, style in ipairs(reticleStyles) do
+            local info = UIDropDownMenu_CreateInfo()
+            info.text = style.text
+            info.value = style.value
+            info.func = function()
+                UltraCursorFXDB.reticleStyle = style.value
+                UIDropDownMenu_SetText(reticleStyleDD, style.text)
+                addon:BuildTrail() -- Rebuild reticle with new style
+                AutoSaveToProfile()
+            end
+            info.checked = (UltraCursorFXDB.reticleStyle == style.value)
+            UIDropDownMenu_AddButton(info, level)
+        end
+    end)
+
+    local currentStyleText = "Crosshair (Classic +)"
+    for _, style in ipairs(reticleStyles) do
+        if style.value == UltraCursorFXDB.reticleStyle then
+            currentStyleText = style.text
+            break
+        end
+    end
+    UIDropDownMenu_SetText(reticleStyleDD, currentStyleText)
+    yPos = yPos - 50
+    uiControls.reticleStyleDD = reticleStyleDD
+
+    local reticleSizeSlider = CreateSlider("ReticleSize", "Reticle Size", yPos, 40, 150, 5, "Size of the reticle ring")
+    reticleSizeSlider:SetValue(UltraCursorFXDB.reticleSize or 80)
+    reticleSizeSlider.valueText:SetText(math.floor(UltraCursorFXDB.reticleSize or 80))
+    reticleSizeSlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.reticleSize = value
+        self.valueText:SetText(math.floor(value))
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 60
+    uiControls.reticleSizeSlider = reticleSizeSlider
+
+    local reticleBrightnessSlider =
+        CreateSlider("ReticleBrightness", "Brightness", yPos, 0.5, 2.0, 0.1, "Brightness multiplier for reticle glow")
+    reticleBrightnessSlider:SetValue(UltraCursorFXDB.reticleBrightness or 1.0)
+    reticleBrightnessSlider.valueText:SetText(string.format("%.1fx", UltraCursorFXDB.reticleBrightness or 1.0))
+    reticleBrightnessSlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.reticleBrightness = value
+        self.valueText:SetText(string.format("%.1fx", value))
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 60
+    uiControls.reticleBrightnessSlider = reticleBrightnessSlider
+
+    local reticleOpacitySlider =
+        CreateSlider("ReticleOpacity", "Reticle Opacity", yPos, 0.2, 1.0, 0.05, "Overall visibility of reticle")
+    reticleOpacitySlider:SetValue(UltraCursorFXDB.reticleOpacity or 0.7)
+    reticleOpacitySlider.valueText:SetText(
+        string.format("%d%%", math.floor((UltraCursorFXDB.reticleOpacity or 0.7) * 100))
+    )
+    reticleOpacitySlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.reticleOpacity = value
+        self.valueText:SetText(string.format("%d%%", math.floor(value * 100)))
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 60
+    uiControls.reticleOpacitySlider = reticleOpacitySlider
+
+    local reticleRotationSlider =
+        CreateSlider("ReticleRotation", "Rotation Speed", yPos, 0.0, 3.0, 0.1, "Speed of reticle rotation animation")
+    reticleRotationSlider:SetValue(UltraCursorFXDB.reticleRotationSpeed or 1.0)
+    reticleRotationSlider.valueText:SetText(string.format("%.1fx", UltraCursorFXDB.reticleRotationSpeed or 1.0))
+    reticleRotationSlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.reticleRotationSpeed = value
+        self.valueText:SetText(string.format("%.1fx", value))
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 60
+    uiControls.reticleRotationSlider = reticleRotationSlider
+
+    local reticleInfoText = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    reticleInfoText:SetPoint("TOPLEFT", 20, yPos)
+    reticleInfoText:SetWidth(600)
+    reticleInfoText:SetJustifyH("LEFT")
+    reticleInfoText:SetText(
+        "|cFFFFD700Colors adapt to targets:|r Red for enemies, Green for friendlies, Gold for objects/NPCs"
+    )
+    yPos = yPos - 50
+
     -- KEYBINDINGS REMINDER
     yPos = CreateSection("Quick Toggle", yPos)
 
@@ -871,6 +992,33 @@ function addon:CreateSettingsPanel()
         uiControls.fadeStrengthSlider.valueText:SetText(
             string.format("%.0f%%", (UltraCursorFXDB.fadeStrength or 0.5) * 100)
         )
+
+        -- Update reticle controls
+        if uiControls.reticleEnabledCB then
+            uiControls.reticleEnabledCB:SetChecked(UltraCursorFXDB.reticleEnabled)
+        end
+        if uiControls.reticleSizeSlider then
+            uiControls.reticleSizeSlider:SetValue(UltraCursorFXDB.reticleSize or 80)
+            uiControls.reticleSizeSlider.valueText:SetText(math.floor(UltraCursorFXDB.reticleSize or 80))
+        end
+        if uiControls.reticleBrightnessSlider then
+            uiControls.reticleBrightnessSlider:SetValue(UltraCursorFXDB.reticleBrightness or 1.0)
+            uiControls.reticleBrightnessSlider.valueText:SetText(
+                string.format("%.1fx", UltraCursorFXDB.reticleBrightness or 1.0)
+            )
+        end
+        if uiControls.reticleOpacitySlider then
+            uiControls.reticleOpacitySlider:SetValue(UltraCursorFXDB.reticleOpacity or 0.7)
+            uiControls.reticleOpacitySlider.valueText:SetText(
+                string.format("%d%%", math.floor((UltraCursorFXDB.reticleOpacity or 0.7) * 100))
+            )
+        end
+        if uiControls.reticleRotationSlider then
+            uiControls.reticleRotationSlider:SetValue(UltraCursorFXDB.reticleRotationSpeed or 1.0)
+            uiControls.reticleRotationSlider.valueText:SetText(
+                string.format("%.1fx", UltraCursorFXDB.reticleRotationSpeed or 1.0)
+            )
+        end
 
         -- Update color button
         uiControls.colorBtn.texture:SetColorTexture(unpack(UltraCursorFXDB.color))

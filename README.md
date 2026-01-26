@@ -48,6 +48,9 @@
 ## 🎨 Beyond Accessibility - Make It Your Own
 
 ### Core Effects
+- **Smart Reticle System** 🎯 *NEW!* - Dynamic crosshair that changes color based on targets
+  - 6 authentic styles: Crosshair, Circle Dot, T-Shape, Military, Cyberpunk, Minimal
+  - Red for enemies, green for friendlies, gold for objects
 - **Customizable Particle Trails** - Beautiful trailing effects that follow your cursor
 - **4 Particle Shapes** - Star ⭐, Skull 💀, Spark ✨, Circle ⚪
 - **Rainbow Mode** 🌈 - Automatically cycle through rainbow colors

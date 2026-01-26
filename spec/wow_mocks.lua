@@ -23,6 +23,7 @@ _G.UIParent = {
             ClearAllPoints = function() end,
             SetColorTexture = function() end,
             SetAlpha = function() end,
+            SetRotation = function() end,
             Hide = function() end,
             Show = function() end,
             GetCenter = function()
@@ -73,6 +74,7 @@ local function CreateMockFrame(frameType, name, parent, template)
                 ClearAllPoints = function() end,
                 SetColorTexture = function() end,
                 SetAlpha = function() end,
+                SetRotation = function() end,
                 Hide = function() end,
                 Show = function() end,
                 GetCenter = function()
@@ -90,6 +92,8 @@ local function CreateMockFrame(frameType, name, parent, template)
             return {
                 SetText = function() end,
                 SetPoint = function() end,
+                SetWidth = function() end,
+                SetJustifyH = function() end,
                 GetText = function()
                     return ""
                 end,
@@ -208,7 +212,38 @@ _G.GameTooltip = {
     SetText = function() end,
     Show = function() end,
     Hide = function() end,
+    IsShown = function()
+        return false
+    end,
+    GetUnit = function()
+        return nil
+    end,
 }
+
+-- Unit functions for reticle system
+_G.UnitExists = function(unit)
+    return false -- Default: no mouseover unit
+end
+
+_G.UnitCanAttack = function(unit, target)
+    return false
+end
+
+_G.UnitIsFriend = function(unit, target)
+    return false
+end
+
+_G.UnitIsDead = function(unit)
+    return false
+end
+
+_G.UnitIsUnit = function(unit1, unit2)
+    return unit1 == unit2
+end
+
+_G.GetTime = function()
+    return os.clock()
+end
 
 -- Settings API (modern)
 _G.Settings = {
@@ -232,6 +267,20 @@ _G.C_Timer = {
 -- Interface Options (legacy)
 _G.InterfaceOptions_AddCategory = function() end
 _G.InterfaceOptionsFrame_OpenToCategory = function() end
+
+-- UIDropDownMenu API (for reticle style dropdown)
+_G.UIDropDownMenu_SetWidth = function(frame, width) end
+_G.UIDropDownMenu_Initialize = function(frame, initFunc, level) end
+_G.UIDropDownMenu_CreateInfo = function()
+    return {
+        text = "",
+        value = nil,
+        func = nil,
+        checked = false,
+    }
+end
+_G.UIDropDownMenu_AddButton = function(info, level) end
+_G.UIDropDownMenu_SetText = function(frame, text) end
 
 -- Slash commands
 _G.SlashCmdList = {}

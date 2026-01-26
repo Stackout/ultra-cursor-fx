@@ -7,6 +7,10 @@
 ## Core Features
 
 - **Particle Trails** – Customizable trailing effects that follow your cursor
+- **Smart Reticle System** – Dynamic crosshair that changes color based on targets (NEW!)
+  - Red for enemies, green for friendlies, gold for objects/NPCs
+  - 6 authentic reticle styles: Crosshair, Circle Dot, T-Shape, Military, Cyberpunk, Minimal
+  - Target-aware animations (rotation for enemies, pulse for friendlies)
 - **Multiple Shapes** – Star, Skull, Spark, or Circle particles
 - **Rainbow Mode** – Automatic color cycling with adjustable speed
 - **Click Effects** – Explosive particle bursts when clicking
@@ -35,6 +39,22 @@
 - **Fade Mode** – Smooth gradual fading from head to tail for ethereal effects
 - **Fade Strength** – Adjust how quickly particles fade along the trail
 - **Combat Opacity Boost** – Auto-increase visibility by 30% during combat
+
+### Smart Reticle (NEW!)
+- **Target-Aware Colors** – Automatically changes reticle color:
+  - **Red** for attackable enemies (with fast rotation)
+  - **Green** for friendly players (with pulse effect)
+  - **Gold** for interactive objects/NPCs
+  - **Custom** matches your trail color when hovering nothing
+- **6 Authentic Reticle Styles**:
+  - **Crosshair** - Classic + shape with center dot (FPS standard)
+  - **Circle Dot** - Circle ring with center dot (Red Dot Sight style)
+  - **T-Shape** - Rangefinder reticle (sniper scope aesthetic)
+  - **Military** - Corner brackets with rotating segments
+  - **Cyberpunk** - Neon ring segments
+  - **Minimal** - Simple corner markers
+- **Full Customization** – Size (40-150), brightness (0.5-2.0x), opacity (20-100%), rotation speed
+- **Functional & Beautiful** – Enhances target acquisition in PvP/PvE while looking amazing
 
 ### Click & Comet Effects
 - **Click Effects** – Particle count, burst size, duration
@@ -73,6 +93,7 @@ Install and enable the addon – it works immediately with high-visibility defau
 /ucfx combat       # Toggle combat-only mode
 /ucfx fade         # Toggle fade mode
 /ucfx boost        # Toggle combat opacity boost
+/ucfx reticle      # Toggle smart reticle system
 ```
 
 ## Compatibility

@@ -42,6 +42,10 @@ SlashCmdList["ULTRACURSORFX"] = function(msg)
     elseif cmd == "boost" then
         UltraCursorFXDB.combatOpacityBoost = not UltraCursorFXDB.combatOpacityBoost
         print("Combat Opacity Boost:", UltraCursorFXDB.combatOpacityBoost and "Enabled" or "Disabled")
+    elseif cmd == "reticle" then
+        UltraCursorFXDB.reticleEnabled = not UltraCursorFXDB.reticleEnabled
+        addon:BuildTrail() -- Rebuild reticle
+        print("Smart Reticle:", UltraCursorFXDB.reticleEnabled and "Enabled" or "Disabled")
     elseif cmd == "profiles" then
         UltraCursorFXDB.situationalEnabled = not UltraCursorFXDB.situationalEnabled
         print("Situational Profiles:", UltraCursorFXDB.situationalEnabled and "Enabled" or "Disabled")
@@ -98,6 +102,7 @@ SlashCmdList["ULTRACURSORFX"] = function(msg)
         print("/ucfx - Open settings")
         print("/ucfx on | off | flash | rainbow | click | comet | combat")
         print("/ucfx fade - Toggle fade mode | boost - Toggle combat opacity boost")
+        print("/ucfx reticle - Toggle smart reticle system")
         print("/ucfx profiles - Toggle situational profiles")
         print("/ucfx save <profile> - Save current settings to profile")
         print("/ucfx load <profile> - Load profile settings")

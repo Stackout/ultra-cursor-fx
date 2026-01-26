@@ -51,6 +51,14 @@ addon.defaults = {
     fadeStrength = 0.5,
     combatOpacityBoost = false,
 
+    -- Reticle System
+    reticleEnabled = true,
+    reticleStyle = "crosshair", -- crosshair, circledot, tshape, military, cyberpunk, minimal
+    reticleSize = 80,
+    reticleBrightness = 1.0,
+    reticleOpacity = 0.7,
+    reticleRotationSpeed = 1.0,
+
     -- Situational Profiles
     situationalEnabled = false,
     currentProfile = "world",
@@ -79,6 +87,12 @@ addon.profileDefaults = {
         fadeEnabled = false,
         fadeStrength = 0.5,
         combatOpacityBoost = false,
+        reticleEnabled = true,
+        reticleStyle = "crosshair",
+        reticleSize = 80,
+        reticleBrightness = 1.0,
+        reticleOpacity = 0.7,
+        reticleRotationSpeed = 1.0,
     },
     raid = {
         name = "Raid",
@@ -101,6 +115,12 @@ addon.profileDefaults = {
         fadeEnabled = true,
         fadeStrength = 0.6,
         combatOpacityBoost = true,
+        reticleEnabled = true,
+        reticleStyle = "military",
+        reticleSize = 90,
+        reticleBrightness = 1.2,
+        reticleOpacity = 0.8,
+        reticleRotationSpeed = 1.5,
     },
     dungeon = {
         name = "Dungeon",
@@ -123,6 +143,12 @@ addon.profileDefaults = {
         fadeEnabled = false,
         fadeStrength = 0.5,
         combatOpacityBoost = false,
+        reticleEnabled = true,
+        reticleStyle = "circledot",
+        reticleSize = 75,
+        reticleBrightness = 1.0,
+        reticleOpacity = 0.7,
+        reticleRotationSpeed = 0.8,
     },
     arena = {
         name = "Arena",
@@ -145,6 +171,12 @@ addon.profileDefaults = {
         fadeEnabled = true,
         fadeStrength = 0.7,
         combatOpacityBoost = true,
+        reticleEnabled = true,
+        reticleStyle = "tshape",
+        reticleSize = 100,
+        reticleBrightness = 1.3,
+        reticleOpacity = 0.9,
+        reticleRotationSpeed = 2.0,
     },
     battleground = {
         name = "Battleground",
@@ -167,6 +199,12 @@ addon.profileDefaults = {
         fadeEnabled = true,
         fadeStrength = 0.5,
         combatOpacityBoost = false,
+        reticleEnabled = true,
+        reticleStyle = "military",
+        reticleSize = 85,
+        reticleBrightness = 1.1,
+        reticleOpacity = 0.75,
+        reticleRotationSpeed = 1.2,
     },
 }
 
@@ -177,9 +215,11 @@ addon.parent = UIParent
 addon.points = {}
 addon.glow = {}
 addon.clickParticles = {}
+addon.reticleSegments = {}
 addon.frame = CreateFrame("Frame")
 addon.rainbowHue = 0
 addon.currentZoneProfile = "world"
+addon.reticleRotation = 0
 
 addon.particleTextures = {
     star = "Interface\\TARGETINGFRAME\\UI-RaidTargetingIcon_1",
