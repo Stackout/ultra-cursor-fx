@@ -18,6 +18,19 @@ globals = {
     "GameTooltip",
     "wipe",
     "print",
+    -- Unit API (for reticle system)
+    "UnitExists",
+    "UnitCanAttack",
+    "UnitIsFriend",
+    "UnitIsDead",
+    "UnitIsUnit",
+    "GetTime",
+    -- UIDropDownMenu API (for reticle style dropdown)
+    "UIDropDownMenu_SetWidth",
+    "UIDropDownMenu_Initialize",
+    "UIDropDownMenu_CreateInfo",
+    "UIDropDownMenu_AddButton",
+    "UIDropDownMenu_SetText",
     -- Slash commands and keybinding globals
     "UltraCursorFX_Toggle",
     "UltraCursorFX_ToggleFlash",
