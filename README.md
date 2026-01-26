@@ -78,7 +78,7 @@
 ## 📦 **Simple Installation**
 
 ### CurseForge (Easiest)
-1. Download from [CurseForge](#) *(coming soon!)*
+1. Download from [CurseForge](https://www.curseforge.com/wow/addons/ultracursorfx)
 2. CurseForge app installs it automatically
 3. Launch WoW - you're done!
 
