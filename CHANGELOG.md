@@ -2,6 +2,66 @@
 
 All notable changes to UltraCursorFX will be documented in this file.
 
+## [0.6.0]
+
+### Added
+- **Smart Reticle System** 🎯 - Dynamic crosshair that changes color and appearance based on mouseover targets
+  - **Target-Aware Color System**:
+    - **Red reticle** for attackable enemies (with 2x faster rotation animation)
+    - **Green reticle** for friendly players (with smooth pulse animation)
+    - **Gold reticle** for interactive objects and NPCs
+    - **Custom color** matches your trail when hovering nothing (60% opacity to reduce clutter)
+  - **6 Authentic Reticle Styles**:
+    - **Crosshair** - Classic FPS + shape with center dot (default for World profile)
+    - **Circle Dot** - Red dot sight style with circle ring and bright center (default for Dungeon)
+    - **T-Shape** - Rangefinder/sniper scope aesthetic with tick marks (default for Arena)
+    - **Military** - Corner brackets with rotating segments (default for Raid/Battleground)
+    - **Cyberpunk** - 8-segment neon ring with alternating lengths
+    - **Minimal** - Simple corner L-brackets with minimal visual noise
+  - **Full Customization Controls**:
+    - Reticle size slider (40-150 pixels)
+    - Brightness multiplier (0.5x - 2.0x)
+    - Opacity control (20-100%)
+    - Rotation speed (0x - 3.0x for applicable styles)
+    - Style dropdown with live preview
+  - **Profile Integration** - Each situational profile has optimized reticle defaults
+  - **Slash Command**: `/ucfx reticle` to toggle reticle system on/off
+  - **Performance**: Minimal overhead, runs once per frame with simple conditionals
+  - **Accessibility**: Enhances target acquisition for players with vision challenges
+
+### Changed
+- Extended all profile defaults to include reticle settings
+  - World: Crosshair (size 80, classic feel)
+  - Raid: Military (size 90, brighter 1.2x, faster rotation 1.5x)
+  - Dungeon: Circle Dot (size 75, slower rotation 0.8x)
+  - Arena: T-Shape (size 100, brightest 1.3x, fastest rotation 2.0x for competitive edge)
+  - Battleground: Military (size 85, balanced settings)
+- Updated `BuildTrail()` to also build reticle segments
+- Enhanced UI with new "Smart Reticle System" section containing 6 controls + dropdown
+- Updated documentation with reticle feature showcase
+
+### Technical
+- New reticle rendering functions: `BuildReticle()`, `UpdateReticle()`, `RenderCrosshairReticle()`, `RenderCircleDotReticle()`, `RenderTShapeReticle()`, `RenderMilitaryReticle()`, `RenderCyberpunkReticle()`, `RenderMinimalReticle()`
+- Mouseover detection using WoW Unit API: `UnitExists()`, `UnitCanAttack()`, `UnitIsFriend()`, `UnitIsDead()`, `UnitIsUnit()`
+- Interactive object detection using `GameTooltip:IsShown()` and `GameTooltip:GetUnit()`
+- Reticle segments stored in `addon.reticleSegments` array
+- Rotation state tracked in `addon.reticleRotation` variable
+- Uses `SetRotation()` API for smooth segment animations
+- 6 new default settings: `reticleEnabled`, `reticleStyle`, `reticleSize`, `reticleBrightness`, `reticleOpacity`, `reticleRotationSpeed`
+
+### Testing & Quality
+- **All 167 tests passing** - Complete backwards compatibility
+- **Zero linter warnings** - Clean code style maintained
+- **New WoW API mocks**: Added `UnitExists`, `UnitCanAttack`, `UnitIsFriend`, `UnitIsDead`, `UnitIsUnit`, `GetTime`, `UIDropDownMenu` functions
+- **Enhanced test mocks**: Added `SetRotation()`, `SetWidth()`, `SetJustifyH()` support for UI elements
+- **~250 lines of new code** across Core.lua, Effects.lua, UI.lua, Commands.lua
+
+### Documentation
+- Created RETICLE_STYLES.md with ASCII art guide for all 6 styles
+- Updated README.md with Smart Reticle feature highlight
+- Updated DESCRIPTION.md with comprehensive reticle documentation
+- Created RETICLE_FEATURE.md with technical implementation details
+
 ## [0.5.0]
 
 ### Added
