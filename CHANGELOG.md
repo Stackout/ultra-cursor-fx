@@ -2,6 +2,20 @@
 
 All notable changes to UltraCursorFX will be documented in this file.
 
+## [0.6.1]
+
+### Fixed
+- **Luacheck linter warnings** - Added missing WoW API globals to .luacheckrc
+  - Added Unit API functions: `UnitExists`, `UnitCanAttack`, `UnitIsFriend`, `UnitIsDead`, `UnitIsUnit`, `GetTime`
+  - Added UIDropDownMenu API functions: `UIDropDownMenu_SetWidth`, `UIDropDownMenu_Initialize`, `UIDropDownMenu_CreateInfo`, `UIDropDownMenu_AddButton`, `UIDropDownMenu_SetText`
+  - Resolved all 12 linter warnings (6 in Effects.lua, 6 in UI.lua)
+  - Clean build: 0 warnings / 0 errors in 9 files
+
+### Quality
+- All 167 tests still passing
+- Zero linter warnings achieved
+- Code quality maintained
+
 ## [0.6.0]
 
 ### Added
