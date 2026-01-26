@@ -178,7 +178,7 @@ jobs:
           echo "**Commit:** ${{ steps.version.outputs.commit_hash }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Distribution" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Tests passed (167/167)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Tests passed (197/197)" >> $GITHUB_STEP_SUMMARY
           if [ -n "${{ secrets.CURSEFORGE_TOKEN }}" ]; then
             echo "- ✅ Uploaded to CurseForge as **alpha**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY

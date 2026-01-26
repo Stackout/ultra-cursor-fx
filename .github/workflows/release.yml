@@ -1,7 +1,7 @@
 # ============================================================================
 # Release Workflow - Creates GitHub & CurseForge releases from git tags
 # ============================================================================
-# 
+#
 # Triggered by: Pushing a tag matching v*
 #
 # Supported tag formats (CurseForge-compatible):
@@ -12,7 +12,7 @@
 #   v0.1.0-rc1      → beta (release candidate)
 #
 # Process:
-#   1. Run full test suite (167 tests) - BLOCKS if fails
+#   1. Run full test suite (197 tests) - BLOCKS if fails
 #   2. Create release package (.zip)
 #   3. Create GitHub Release (with pre-release flag for alpha/beta)
 #   4. CurseForge webhook automatically picks up the release
@@ -140,7 +140,7 @@ jobs:
             **Release Type:** ${{ steps.release_type.outputs.type }}
 
             ### ✅ Quality Assurance
-            - All 167 automated tests passed
+            - All 197 automated tests passed
             - Code coverage: 98.8% (core modules)
             - Linting: 0 warnings
             - Docker-verified build
