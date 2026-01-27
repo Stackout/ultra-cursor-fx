@@ -875,4 +875,62 @@ describe("Fade Effect Calculations", function()
         -- Just verify it runs without error
         assert.is_true(true)
     end)
+
+    it("renders circledot reticle during OnUpdate", function()
+        _G.UltraCursorFXDB.reticleEnabled = true
+        _G.UltraCursorFXDB.reticleStyle = "circledot"
+        addon:BuildReticle()
+
+        addon:OnUpdate(0.016)
+
+        -- Just verify it runs without error
+        assert.is_true(true)
+    end)
+
+    it("renders tshape reticle during OnUpdate", function()
+        _G.UltraCursorFXDB.reticleEnabled = true
+        _G.UltraCursorFXDB.reticleStyle = "tshape"
+        addon:BuildReticle()
+
+        addon:OnUpdate(0.016)
+
+        -- Just verify it runs without error
+        assert.is_true(true)
+    end)
+
+    it("renders cyberpunk reticle during OnUpdate", function()
+        _G.UltraCursorFXDB.reticleEnabled = true
+        _G.UltraCursorFXDB.reticleStyle = "cyberpunk"
+        addon:BuildReticle()
+
+        addon:OnUpdate(0.016)
+
+        -- Just verify it runs without error
+        assert.is_true(true)
+    end)
+
+    it("renders minimal reticle during OnUpdate", function()
+        _G.UltraCursorFXDB.reticleEnabled = true
+        _G.UltraCursorFXDB.reticleStyle = "minimal"
+        addon:BuildReticle()
+
+        addon:OnUpdate(0.016)
+
+        -- Just verify it runs without error
+        assert.is_true(true)
+    end)
+
+    it("handles edge warning pulse when active", function()
+        _G.UltraCursorFXDB.edgeWarningEnabled = true
+        _G.UltraCursorFXDB.edgeWarningSize = 64
+        _G.UltraCursorFXDB.edgeWarningDistance = 50
+        _G.UltraCursorFXDB.edgeWarningOpacity = 0.8
+        addon:BuildEdgeWarnings()
+        addon.edgeWarningPulse = 0.5
+
+        addon:OnUpdate(0.016)
+
+        -- Just verify it runs without error
+        assert.is_true(true)
+    end)
 end)

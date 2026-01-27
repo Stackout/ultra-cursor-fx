@@ -243,5 +243,29 @@ describe("Utils Module", function()
             assert.is_false(success)
             assert.is_not_nil(message:find("UCFX:"))
         end)
+
+        it("should handle corrupted base64 in import string", function()
+            local success, message = addon:ImportSettings("UCFX:!!!invalid!!!")
+            assert.is_false(success)
+            assert.is_string(message)
+        end)
+
+        it("should handle partial settings import", function()
+            -- Export minimal settings
+            _G.UltraCursorFXDB = {
+                enabled = true,
+                points = 50,
+                -- Missing most other settings
+            }
+            
+            local exported = addon:ExportSettings()
+            _G.UltraCursorFXDB = {}
+            
+            local success, message = addon:ImportSettings(exported)
+            
+            -- Should succeed and note may be from older version
+            assert.is_true(success)
+            assert.is_string(message)
+        end)
     end)
 end)

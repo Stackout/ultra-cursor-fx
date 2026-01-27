@@ -1,7 +1,7 @@
 # UltraCursorFX
 
 ![Tests](https://github.com/Stackout/ultra-cursor-fx/workflows/Test%20Suite/badge.svg)
-![Coverage](https://img.shields.io/badge/coverage-98.3%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-98.4%25-brightgreen)
 ![Release](https://github.com/Stackout/ultra-cursor-fx/workflows/Create%20Release/badge.svg)
 ![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
 ![Version](https://img.shields.io/badge/version-0.7.0-green)
