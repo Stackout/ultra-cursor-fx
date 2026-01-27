@@ -92,6 +92,41 @@ SlashCmdList["ULTRACURSORFX"] = function(msg)
         else
             print("|cFFFF0000UltraCursorFX:|r Usage: /ucfx import <import string>")
         end
+    elseif cmd == "spell" then
+        local subCmd, arg = msg:match("%S+%s+(%S+)%s*(%S*)")
+        if not subCmd then
+            print("|cFFFF0000UltraCursorFX:|r Spell Tracker Commands:")
+            print("  /ucfx spell toggle - Toggle spell tracker on/off")
+            print("  /ucfx spell add <spellID> - Add spell to tracker")
+            print("  /ucfx spell remove <spellID> - Remove spell from tracker")
+            print("  /ucfx spell list - List all tracked spells")
+            print("  /ucfx spell combat - Toggle combat-only mode")
+        elseif subCmd == "toggle" then
+            addon:ToggleSpellTracker()
+        elseif subCmd == "add" then
+            local spellID = tonumber(arg)
+            if spellID then
+                addon:AddTrackedSpell(spellID)
+            else
+                print("|cFFFF0000UltraCursorFX:|r Usage: /ucfx spell add <spellID>")
+                print("|cFFFFD700Tip:|r Shift-click a spell in your spellbook to link it in chat, then copy the ID")
+            end
+        elseif subCmd == "remove" then
+            local spellID = tonumber(arg)
+            if spellID then
+                addon:RemoveTrackedSpell(spellID)
+            else
+                print("|cFFFF0000UltraCursorFX:|r Usage: /ucfx spell remove <spellID>")
+            end
+        elseif subCmd == "list" then
+            addon:ListTrackedSpells()
+        elseif subCmd == "combat" then
+            UltraCursorFXDB.spellTrackerCombatOnly = not UltraCursorFXDB.spellTrackerCombatOnly
+            addon:RefreshSpellTracker()
+            print("|cff00ffffUltraCursorFX:|r Spell Tracker Combat-Only Mode: " .. (UltraCursorFXDB.spellTrackerCombatOnly and "|cff00ff00Enabled|r" or "|cffff0000Disabled|r"))
+        else
+            print("|cFFFF0000UltraCursorFX:|r Unknown spell command. Type /ucfx spell for help.")
+        end
     elseif cmd == "config" or cmd == "" then
         if addon.settingsPanel then
             if Settings and addon.settingsPanel.category then
@@ -108,6 +143,7 @@ SlashCmdList["ULTRACURSORFX"] = function(msg)
         print("/ucfx fade - Toggle fade mode | boost - Toggle combat opacity boost")
         print("/ucfx reticle - Toggle smart reticle system")
         print("/ucfx edge - Toggle screen edge warnings")
+        print("/ucfx spell - Spell tracker commands (add/remove/list spells)")
         print("/ucfx profiles - Toggle situational profiles")
         print("/ucfx save <profile> - Save current settings to profile")
         print("/ucfx load <profile> - Load profile settings")

@@ -25,6 +25,11 @@ addon.frame:SetScript("OnEvent", function(self, event, addonName)
         -- Build initial trail
         addon:BuildTrail()
 
+        -- Initialize spell tracker
+        if addon.InitSpellTracker then
+            addon:InitSpellTracker()
+        end
+
         -- Create settings panel (defined in UI.lua)
         if addon.CreateSettingsPanel then
             addon:CreateSettingsPanel()
@@ -47,5 +52,10 @@ addon.frame:SetScript("OnEvent", function(self, event, addonName)
         -- Leaving combat
         addon.inCombat = false
         addon:UpdateCursorState()
+    end
+
+    -- Handle spell tracker events
+    if addon.OnSpellTrackerEvent then
+        addon:OnSpellTrackerEvent(event, addonName)
     end
 end)

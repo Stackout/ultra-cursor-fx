@@ -57,7 +57,13 @@
 ## 🎨 Beyond Accessibility - Make It Your Own
 
 ### Core Effects
-- **Screen Edge Warnings** ⚠️ *NEW!* - Never lose your cursor off-screen
+- **Spell Tracker** 🩹 *NEW!* - Track ability cooldowns near your cursor
+  - Perfect for healers monitoring key spells (Holy Shock, Flash of Light, etc.)
+  - Shows cooldown spirals, charge counts, and ready indicators
+  - Color-coded charge states (green=full, yellow=partial, red=empty)
+  - Combat-only mode option
+  - Fully customizable positioning and size
+- **Screen Edge Warnings** ⚠️ - Never lose your cursor off-screen
   - Pulsing arrows appear when cursor approaches screen edges
   - Perfect for large/ultrawide monitors
   - Fully customizable distance, size, and opacity
@@ -81,6 +87,12 @@
 - **Opacity & Fade Control** ✨ *NEW* - Fine-tune visibility with global opacity, fade effects, and combat boost
 
 ### Quality of Life
+- **Spell Tracker Commands** 🩹 *NEW* - Track key abilities near cursor
+  - `/ucfx spell add <spellID>` - Add a spell to track
+  - `/ucfx spell remove <spellID>` - Remove a tracked spell
+  - `/ucfx spell list` - List all tracked spells
+  - `/ucfx spell toggle` - Enable/disable tracker
+  - `/ucfx spell combat` - Toggle combat-only mode
 - **Keybinding Support** - Bind keys to toggle features instantly
 - **Slash Commands** - Quick toggles via `/ucfx` commands
 - **Scrollable Settings Panel** - Clean, organized UI

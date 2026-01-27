@@ -511,6 +511,11 @@ function addon:OnUpdate(elapsed)
     end
     UpdateClickParticles(elapsed)
     addon:UpdateReticle(elapsed, cx, cy, edgeWarningActive)
+
+    -- Position spell tracker icons
+    if addon.PositionSpellIcons then
+        addon:PositionSpellIcons()
+    end
 end
 
 -- ===============================

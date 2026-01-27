@@ -12,6 +12,7 @@ Core.lua
 Utils.lua
 Profiles.lua
 Effects.lua
+SpellTracker.lua
 UI.lua
 Commands.lua
 Init.lua

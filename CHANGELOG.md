@@ -2,6 +2,44 @@
 
 All notable changes to UltraCursorFX will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **Spell Tracker System** 🩹 Track ability cooldowns near your cursor - perfect for healers!
+  - **Visual Cooldown Icons** - Shows spell icons with cooldown spirals next to cursor
+  - **Charge Tracking** - Displays current/max charges for multi-charge abilities
+  - **Ready Indicators** - Pulsing green glow when abilities are off cooldown
+  - **Combat-Only Mode** - Optionally show tracker only during combat
+  - **Smart Positioning** - Icons automatically position near cursor and follow movement
+  - **Color-Coded Charges**:
+    - Green: Full charges
+    - Yellow: Partial charges
+    - Red: No charges available
+  - **Profile Integration** - Enabled by default in Raid and Arena profiles
+  - **Slash Commands**:
+    - `/ucfx spell toggle` - Enable/disable spell tracker
+    - `/ucfx spell add <spellID>` - Add a spell to track
+    - `/ucfx spell remove <spellID>` - Remove a spell from tracker
+    - `/ucfx spell list` - List all tracked spells
+    - `/ucfx spell combat` - Toggle combat-only mode
+  - **Perfect for**:
+    - Healers tracking cooldowns (Holy Shock, Flash of Light, etc.)
+    - DPS monitoring burst windows
+    - Tanks watching defensive abilities
+    - PvP players tracking crucial cooldowns
+
+### Technical
+- New module: `SpellTracker.lua` with full cooldown/charge monitoring
+- Uses WoW's `C_Spell.GetSpellCooldown()` and `C_Spell.GetSpellCharges()` APIs
+- Real-time cooldown spiral display with `CooldownFrameTemplate`
+- Icon positioning integrated into main `OnUpdate()` loop
+- Automatic spell knowledge detection via `IsSpellKnown()` APIs
+- Smart icon visibility (hides unknown/unusable spells)
+- Charge caching system for performance (outside combat only)
+- Pulsing animation system for ready-state indicators
+- Border and visual enhancements for better cursor visibility
+- New settings: `spellTrackerEnabled`, `spellTrackerCombatOnly`, `trackedSpells`, `spellTrackerIconSize`, `spellTrackerSpacing`, `spellTrackerOffsetX`, `spellTrackerOffsetY`
+
 ## [0.7.0] - 2025-01-27
 
 ### Added

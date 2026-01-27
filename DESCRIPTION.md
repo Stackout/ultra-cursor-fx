@@ -6,11 +6,18 @@
 
 ## Core Features
 
+- **Spell Tracker** 🩹 *NEW!* – Track ability cooldowns near your cursor
+  - Perfect for healers monitoring key spells (Holy Shock, Flash of Light, Renew, etc.)
+  - Shows cooldown spirals, charge counts, and ready indicators with pulsing glow
+  - Color-coded charge states (green=full, yellow=partial, red=empty)
+  - Combat-only mode to reduce UI clutter outside of fights
+  - Add/remove spells via simple slash commands
 - **Particle Trails** – Customizable trailing effects that follow your cursor
-- **Smart Reticle System** – Dynamic crosshair that changes color based on targets (NEW!)
+- **Smart Reticle System** – Dynamic crosshair that changes color based on targets
   - Red for enemies, green for friendlies, gold for objects/NPCs
   - 6 authentic reticle styles: Crosshair, Circle Dot, T-Shape, Military, Cyberpunk, Minimal
   - Target-aware animations (rotation for enemies, pulse for friendlies)
+- **Screen Edge Warnings** – Pulsing arrows when cursor approaches screen edges
 - **Multiple Shapes** – Star, Skull, Spark, or Circle particles
 - **Rainbow Mode** – Automatic color cycling with adjustable speed
 - **Click Effects** – Explosive particle bursts when clicking
