@@ -2,6 +2,13 @@
 
 All notable changes to UltraCursorFX will be documented in this file.
 
+## [0.6.3] - 2026-01-26
+
+### Fixed
+- **Tooltip secret value comparison error** - Wrapped `GameTooltip:GetUnit()` in pcall to safely handle tainted/secret values when mousing over auras or protected game elements
+  - Prevents "attempt to compare a secret value" errors in reticle mouseover detection
+  - Maintains interactive object detection functionality for normal cases
+
 ## [0.6.2] - 2025-01-26
 
 ### Quality & Testing
