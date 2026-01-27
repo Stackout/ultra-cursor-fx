@@ -2,6 +2,57 @@
 
 All notable changes to UltraCursorFX will be documented in this file.
 
+## [0.7.0] - 2025-01-27
+
+### Added
+- **Screen Edge Warning System** Visual alerts when cursor approaches screen boundaries
+  - **Animated Warning Arrows** - Appear at top/bottom/left/right edges when cursor gets close
+  - **Pulsing Animation** - Smooth sin-wave pulse to grab attention without being jarring
+  - **Smart Detection** - Shows multiple arrows simultaneously when near corners
+  - **Full Customization**:
+    - Trigger Distance slider (20-150 pixels) - How close to edge before warning appears
+    - Arrow Size slider (32-128 pixels) - Scale warning arrows to your preference
+    - Opacity control (30-100%) - Adjust visibility to match your setup
+    - Master toggle - Enable/disable entire system
+  - **Profile-Specific Defaults**:
+    - World: 50px distance, medium sensitivity
+    - Raid: 40px distance, larger arrows (70px), more visible (90% opacity) for intense gameplay
+    - Dungeon: Balanced 50px distance
+    - Arena: Aggressive 30px distance, largest arrows (80px), fully visible for competitive edge
+    - Battleground: Balanced settings
+  - **Slash Command**: `/ucfx edge` to toggle edge warnings on/off
+  - **Perfect for**: Large monitor users, ultrawide displays, accessibility needs, VR players
+
+### Technical
+- New functions: `BuildEdgeWarnings()`, `UpdateEdgeWarnings()`
+- Warnings positioned dynamically based on cursor and screen dimensions
+- Uses `UIParent:GetWidth()` and `UIParent:GetHeight()` for accurate screen edge detection
+- Arrows rotated appropriately (up/down/left/right) using `SetRotation()`
+- Independent pulse timers for each edge prevent synchronization
+- 4 new settings: `edgeWarningEnabled`, `edgeWarningDistance`, `edgeWarningSize`, `edgeWarningOpacity`
+- Integrated into main `OnUpdate()` loop for real-time responsiveness
+
+### Testing & Quality
+- **30 new comprehensive tests** for edge warning system
+- Test count increased from **227 to 257 tests** (+13%)
+- Full coverage of:
+  - Edge detection logic (all 4 edges + corners)
+  - Arrow positioning and rotation
+  - Pulse animation timing
+  - Distance threshold behavior
+  - Profile-specific settings
+  - Integration with BuildTrail
+  - Edge cases (0,0 coordinates, max coordinates, threshold boundaries)
+- Enhanced WoW API mocks with `UIParent:GetWidth()` and `GetHeight()`
+- **All 257 tests passing**
+
+### UI/UX
+- New "Screen Edge Warnings" section in settings panel
+- 3 sliders + 1 checkbox for complete control
+- Helpful descriptions explain each setting
+- Auto-save to current profile on changes
+- Visual feedback in UI shows current values
+
 ## [0.6.3] - 2026-01-26
 
 ### Fixed

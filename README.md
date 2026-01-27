@@ -6,7 +6,7 @@
 ![Release](https://github.com/Stackout/ultra-cursor-fx/workflows/Create%20Release/badge.svg)
 ![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
 <<<<<<< HEAD
-![Version](https://img.shields.io/badge/version-0.6.3-green)
+![Version](https://img.shields.io/badge/version-0.7.0-green)
 =======
 ![Version](https://img.shields.io/badge/version-0.7.0-green)
 >>>>>>> 6e93833 (wip)
@@ -26,7 +26,7 @@
 
 ![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
 <<<<<<< HEAD
-![Version](https://img.shields.io/badge/version-0.6.3-green)
+![Version](https://img.shields.io/badge/version-0.7.0-green)
 =======
 ![Version](https://img.shields.io/badge/version-0.7.0-green)
 >>>>>>> 6e93833 (wip)
