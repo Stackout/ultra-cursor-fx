@@ -329,9 +329,16 @@ function addon:UpdateReticle(elapsed, cx, cy)
         elseif UnitIsFriend("player", mouseoverUnit) and not UnitIsUnit("player", mouseoverUnit) then
             unitType = "friendly"
         end
-    elseif GameTooltip:IsShown() and GameTooltip:GetUnit() == nil then
-        -- Interactive object (shows tooltip but no unit)
-        unitType = "object"
+    elseif GameTooltip:IsShown() then
+        -- Check if tooltip is showing but not a unit (interactive object)
+        -- Use pcall to safely handle potential secret/tainted values
+        local success, hasUnit = pcall(function()
+            local unit = GameTooltip:GetUnit()
+            return unit ~= nil
+        end)
+        if success and not hasUnit then
+            unitType = "object"
+        end
     end
 
     -- Set color based on unit type
