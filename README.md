@@ -1,17 +1,12 @@
 # UltraCursorFX ✨
 
 ![Tests](https://github.com/Stackout/ultra-cursor-fx/workflows/Test%20Suite/badge.svg)
-![Coverage](https://img.shields.io/badge/coverage-97.4%25-brightgreen)
-![Tests Count](https://img.shields.io/badge/tests-257%20passing-success)
 ![Release](https://github.com/Stackout/ultra-cursor-fx/workflows/Create%20Release/badge.svg)
 ![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
-<<<<<<< HEAD
 ![Version](https://img.shields.io/badge/version-0.7.0-green)
-=======
-![Version](https://img.shields.io/badge/version-0.7.0-green)
->>>>>>> 6e93833 (wip)
 ![License](https://img.shields.io/badge/license-MIT-orange)
-
+[![Download on CurseForge](https://img.shields.io/badge/Download-CurseForge-orange)](https://www.curseforge.com/wow/addons/ultracursorfx)
+[![GitHub Release](https://img.shields.io/github/v/release/Stackout/ultra-cursor-fx)](https://github.com/Stackout/ultra-cursor-fx/releases)
 ![UltraCursorFX Icon](icon.png)
 
 ## 🎯 **Stop Losing Your Cursor!**
@@ -23,17 +18,6 @@
 **You're not alone.** Many players—especially those with vision challenges, playing on large monitors, or in chaotic battle situations—struggle with the default cursor being nearly invisible.
 
 **UltraCursorFX is an accessibility-focused addon that solves this problem.** With brilliant particle trails, customizable colors, and attention-grabbing effects, you'll **never lose your cursor again**.
-
-![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
-<<<<<<< HEAD
-![Version](https://img.shields.io/badge/version-0.7.0-green)
-=======
-![Version](https://img.shields.io/badge/version-0.7.0-green)
->>>>>>> 6e93833 (wip)
-![License](https://img.shields.io/badge/license-MIT-orange)
-
-[![Download on CurseForge](https://img.shields.io/badge/Download-CurseForge-orange)](https://www.curseforge.com/wow/addons/ultracursorfx)
-[![GitHub Release](https://img.shields.io/github/v/release/Stackout/ultra-cursor-fx)](https://github.com/Stackout/ultra-cursor-fx/releases)
 
 ---
 
@@ -498,159 +482,38 @@ If UltraCursorFX helps you see your cursor better:
 
 ### For Developers & Contributors
 
-UltraCursorFX has **100% test coverage** with 63 automated tests running in Docker.
-
-#### Quick Start Testing
-
-```bash
-# Run all tests
-./test.sh
-
-# Run specific test suites
-./test.sh unit           # Unit tests only
-./test.sh integration    # Integration tests only
-./test.sh coverage       # With coverage report
-./test.sh lint           # Code quality checks
-./test.sh all            # Everything (tests + lint + coverage)
-```
-
-#### Test Status
-- ✅ **63/63 tests passing (100%)**
-- ✅ **Core Module**: 12/12 tests
-- ✅ **Utils Module**: 17/17 tests
-- ✅ **Profiles Module**: 16/16 tests
-- ✅ **Integration**: 18/18 tests
-
-#### Code Coverage
-- **Core.lua**: 100%
-- **Utils.lua**: 91.47%
-- **Profiles.lua**: 97.27%
-- **Init.lua**: 94.12%
-
-#### GitHub Actions
-All tests run automatically on:
-- ✅ Every push to `main` branch
-- ✅ Every push to `feature/*` branches
-- ✅ Every pull request
-- ✅ **Tags are ONLY created after all tests pass**
-- ✅ **Releases are BLOCKED if tests fail**
-
-#### Release Workflow
-
-**Easy Release Management:**
-
-Use the provided release script for all version management:
-
-```bash
-# Create a new minor version (new features)
-./release.sh minor
-
-# Create a patch version (bug fixes)
-./release.sh patch
-
-# Create alpha dev build for testing
-./release.sh alpha
-
-# Create beta pre-release
-./release.sh beta
-```
-
-**📖 See [RELEASE.md](RELEASE.md) for complete release guide**
-
-**What Happens Automatically:**
-
-1. Script updates version files (README, CHANGELOG)
-2. Creates git commit and tag
-3. You push the tag to GitHub
-4. **GitHub Actions runs full test suite** (227 tests)
-5. **IF tests pass**: Creates GitHub Release with .zip package
-6. **CurseForge webhook** automatically receives and publishes release
-7. Quality-verified releases only! 🎯
-
-**Version Formats (CurseForge-compatible):**
-- Stable releases: `v0.3.0` → CurseForge: `release`
-- Beta releases: `v0.3.0-beta` → CurseForge: `beta`
-- Alpha releases: `v0.2.0-a1b2c3d` → CurseForge: `alpha`
-
-**Quick Example:**
-```bash
-# New feature complete
-./release.sh minor   # Creates v0.3.0
-# Follow prompts, push tag
-# Tests run automatically
-# GitHub + CurseForge releases published if tests pass
-```
-
-#### Local Development Setup
-
-**Prerequisites**: Docker (tests run in isolated containers)
+#### Quick Start
 
 ```bash
 # Clone the repo
 git clone https://github.com/Stackout/ultra-cursor-fx.git
 cd ultra-cursor-fx
 
-# Make test script executable
-chmod +x ./test.sh
-
 # Run tests
 ./test.sh
-```
 
-#### Quality & Testing 🧪
-
-**UltraCursorFX maintains exceptional code quality standards:**
-
-- **227 Tests** - Comprehensive test suite covering all functionality
-- **97.4% Code Coverage** - Core addon modules extensively tested
-- **Zero Failures** - All tests passing on every commit
-- **Automated CI/CD** - GitHub Actions runs full test suite on every push
-
-**Test Coverage Breakdown:**
-- Commands.lua: 88.89%
-- Core.lua: 97.64%
-- **Effects.lua: 97.37%** (recently improved from 67.89%)
-- Init.lua: 83.33%
-- Profiles.lua: 98.35%
-- Utils.lua: 98.03%
-
-**Test Categories:**
-- Effects Module: 118 tests (particle trails, reticle system, fade effects, memory management)
-- Core Module: 45 tests (initialization, event handling, state management)
-- Commands Module: 23 tests (slash commands, toggles)
-- Profiles Module: 20 tests (save/load, auto-switching)
-- Utils Module: 14 tests (helper functions, color conversions)
-- Init Module: 7 tests (addon loading, migration)
-
-**Why This Matters:**
-- 🛡️ **Stability** - Comprehensive tests catch bugs before they reach users
-- 🚀 **Confidence** - New features can be added without breaking existing functionality
-- 📚 **Documentation** - Tests serve as living documentation of expected behavior
-- ⚡ **Maintainability** - High coverage makes refactoring safe and efficient
-
-#### Code Formatting
-
-We use [StyLua](https://github.com/JohnnyMorganz/StyLua) for consistent formatting:
-
-```bash
-# Install StyLua
-cargo install stylua
-# or
-brew install stylua
-
-# Format all Lua files before committing
+# Format code before committing
 stylua .
 ```
 
-#### Contributing Workflow
+#### Release Management
+
+Use the provided release script for version management:
+
+```bash
+./release.sh minor   # New features
+./release.sh patch   # Bug fixes
+./release.sh alpha   # Dev builds
+./release.sh beta    # Pre-releases
+```
+
+**📖 See [RELEASE.md](RELEASE.md) for complete release guide**
+
+#### Contributing
 
 1. Fork the repository
 2. Create feature branch: `git checkout -b feature/amazing-feature`
 3. Make your changes
-4. Run tests: `./test.sh all`
-5. Format code: `stylua .`
-6. Commit: `git commit -m 'Add amazing feature'`
-7. Push: `git push origin feature/amazing-feature`
-8. Open Pull Request
-
-**Pull requests must pass all 227 tests before merging.**
+4. Format code: `stylua .`
+5. Commit and push
+6. Open Pull Request

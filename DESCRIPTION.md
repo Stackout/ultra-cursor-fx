@@ -72,7 +72,7 @@ Especially useful for:
 
 ## Quality & Features
 
-- **227 automated tests** with **97.4% code coverage** ensuring reliability
+- **Comprehensive automated test suite** ensuring reliability
 - **Zero linter warnings** – clean, maintainable code
 - **Import/Export settings** – Share configurations with compact text codes
 - **Keybindings & slash commands** – `/ucfx` for settings, quick toggles for all features
