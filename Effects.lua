@@ -46,6 +46,9 @@ function addon:BuildTrail()
 
     -- Build reticle segments
     addon:BuildReticle()
+
+    -- Build edge warning arrows
+    addon:BuildEdgeWarnings()
 end
 
 -- ===============================
@@ -118,6 +121,192 @@ function addon:BuildReticle()
             reticleSegments[i] = seg
         end
     end
+end
+
+-- ===============================
+-- Edge Warning System
+-- ===============================
+local edgeWarnings = {}
+addon.edgeWarnings = edgeWarnings
+
+function addon:BuildEdgeWarnings()
+    -- Clear existing warnings
+    for _, edge in pairs(edgeWarnings) do
+        if edge.arrow then
+            edge.arrow:Hide()
+        end
+        if edge.glow then
+            edge.glow:Hide()
+        end
+    end
+    wipe(edgeWarnings)
+
+    if not UltraCursorFXDB.edgeWarningEnabled then
+        return
+    end
+
+    -- Create arrow textures for each edge
+    local edges = { "top", "bottom", "left", "right" }
+    for _, edgeName in ipairs(edges) do
+        local arrow = parent:CreateTexture(nil, "OVERLAY")
+        arrow:SetTexture("Interface\\Buttons\\UI-MicroStream-Yellow")
+        arrow:SetBlendMode("ADD")
+        arrow:SetSize(UltraCursorFXDB.edgeWarningSize, UltraCursorFXDB.edgeWarningSize)
+        arrow:Hide()
+
+        local glow = parent:CreateTexture(nil, "OVERLAY")
+        glow:SetTexture("Interface\\Buttons\\UI-MicroStream-Yellow")
+        glow:SetBlendMode("ADD")
+        glow:SetSize(UltraCursorFXDB.edgeWarningSize * 1.2, UltraCursorFXDB.edgeWarningSize * 1.2)
+        glow:Hide()
+
+        edgeWarnings[edgeName] = {
+            arrow = arrow,
+            glow = glow,
+            pulseTime = 0,
+        }
+    end
+end
+
+function addon:UpdateEdgeWarnings(elapsed, mouseX, mouseY)
+    if not UltraCursorFXDB.edgeWarningEnabled then
+        -- Hide all warnings
+        for _, edge in pairs(edgeWarnings) do
+            if edge.arrow then
+                edge.arrow:Hide()
+            end
+            if edge.glow then
+                edge.glow:Hide()
+            end
+        end
+        return false -- Not showing
+    end
+
+    local screenWidth = UIParent:GetWidth()
+    local screenHeight = UIParent:GetHeight()
+    local distance = UltraCursorFXDB.edgeWarningDistance or 50
+    local baseSize = UltraCursorFXDB.edgeWarningSize or 64
+    local opacity = UltraCursorFXDB.edgeWarningOpacity or 0.8
+    local pulseIntensity = UltraCursorFXDB.edgeWarningPulseIntensity or 0.5
+
+    -- Check each edge
+    local showTop = mouseY >= (screenHeight - distance)
+    local showBottom = mouseY <= distance
+    local showLeft = mouseX <= distance
+    local showRight = mouseX >= (screenWidth - distance)
+
+    -- Track if any edge is showing
+    local anyEdgeShowing = showTop or showBottom or showLeft or showRight
+
+    -- Top edge
+    if edgeWarnings.top then
+        edgeWarnings.top.pulseTime = (edgeWarnings.top.pulseTime or 0) + elapsed
+        -- Size pulsation: 1.0 + intensity * sin wave
+        local pulse = 1.0 + pulseIntensity * math.sin(edgeWarnings.top.pulseTime * 3)
+        local size = baseSize * pulse
+
+        if showTop then
+            edgeWarnings.top.arrow:SetSize(size, size)
+            edgeWarnings.top.arrow:ClearAllPoints()
+            edgeWarnings.top.arrow:SetPoint("CENTER", UIParent, "BOTTOMLEFT", mouseX, screenHeight - size / 2)
+            edgeWarnings.top.arrow:SetRotation(0) -- Point up
+            edgeWarnings.top.arrow:SetAlpha(opacity)
+            edgeWarnings.top.arrow:Show()
+
+            edgeWarnings.top.glow:SetSize(size * 1.2, size * 1.2)
+            edgeWarnings.top.glow:ClearAllPoints()
+            edgeWarnings.top.glow:SetPoint("CENTER", edgeWarnings.top.arrow, "CENTER")
+            edgeWarnings.top.glow:SetRotation(0)
+            edgeWarnings.top.glow:SetAlpha(opacity * 0.4)
+            edgeWarnings.top.glow:Show()
+        else
+            edgeWarnings.top.arrow:Hide()
+            edgeWarnings.top.glow:Hide()
+        end
+    end
+
+    -- Bottom edge
+    if edgeWarnings.bottom then
+        edgeWarnings.bottom.pulseTime = (edgeWarnings.bottom.pulseTime or 0) + elapsed
+        local pulse = 1.0 + pulseIntensity * math.sin(edgeWarnings.bottom.pulseTime * 3)
+        local size = baseSize * pulse
+
+        if showBottom then
+            edgeWarnings.bottom.arrow:SetSize(size, size)
+            edgeWarnings.bottom.arrow:ClearAllPoints()
+            edgeWarnings.bottom.arrow:SetPoint("CENTER", UIParent, "BOTTOMLEFT", mouseX, size / 2)
+            edgeWarnings.bottom.arrow:SetRotation(math.rad(180)) -- Point down
+            edgeWarnings.bottom.arrow:SetAlpha(opacity)
+            edgeWarnings.bottom.arrow:Show()
+
+            edgeWarnings.bottom.glow:SetSize(size * 1.2, size * 1.2)
+            edgeWarnings.bottom.glow:ClearAllPoints()
+            edgeWarnings.bottom.glow:SetPoint("CENTER", edgeWarnings.bottom.arrow, "CENTER")
+            edgeWarnings.bottom.glow:SetRotation(math.rad(180))
+            edgeWarnings.bottom.glow:SetAlpha(opacity * 0.4)
+            edgeWarnings.bottom.glow:Show()
+        else
+            edgeWarnings.bottom.arrow:Hide()
+            edgeWarnings.bottom.glow:Hide()
+        end
+    end
+
+    -- Left edge
+    if edgeWarnings.left then
+        edgeWarnings.left.pulseTime = (edgeWarnings.left.pulseTime or 0) + elapsed
+        local pulse = 1.0 + pulseIntensity * math.sin(edgeWarnings.left.pulseTime * 3)
+        local size = baseSize * pulse
+
+        if showLeft then
+            edgeWarnings.left.arrow:SetSize(size, size)
+            edgeWarnings.left.arrow:ClearAllPoints()
+            edgeWarnings.left.arrow:SetPoint("CENTER", UIParent, "BOTTOMLEFT", size / 2, mouseY)
+            edgeWarnings.left.arrow:SetRotation(math.rad(90)) -- Point right
+            edgeWarnings.left.arrow:SetAlpha(opacity)
+            edgeWarnings.left.arrow:Show()
+
+            edgeWarnings.left.glow:SetSize(size * 1.2, size * 1.2)
+            edgeWarnings.left.glow:ClearAllPoints()
+            edgeWarnings.left.glow:SetPoint("CENTER", edgeWarnings.left.arrow, "CENTER")
+            edgeWarnings.left.glow:SetRotation(math.rad(90))
+            edgeWarnings.left.glow:SetAlpha(opacity * 0.4)
+            edgeWarnings.left.glow:Show()
+        else
+            edgeWarnings.left.arrow:Hide()
+            edgeWarnings.left.glow:Hide()
+        end
+    end
+
+    -- Right edge
+    if edgeWarnings.right then
+        edgeWarnings.right.pulseTime = (edgeWarnings.right.pulseTime or 0) + elapsed
+        local pulse = 1.0 + pulseIntensity * math.sin(edgeWarnings.right.pulseTime * 3)
+        local size = baseSize * pulse
+
+        if showRight then
+            edgeWarnings.right.arrow:SetSize(size, size)
+            edgeWarnings.right.arrow:ClearAllPoints()
+            edgeWarnings.right.arrow:SetPoint("CENTER", UIParent, "BOTTOMLEFT", screenWidth - size / 2, mouseY)
+            edgeWarnings.right.arrow:SetRotation(math.rad(270)) -- Point left
+            edgeWarnings.right.arrow:SetAlpha(opacity)
+            edgeWarnings.right.arrow:Show()
+
+            edgeWarnings.right.glow:SetSize(size * 1.2, size * 1.2)
+            edgeWarnings.right.glow:ClearAllPoints()
+            edgeWarnings.right.glow:SetPoint("CENTER", edgeWarnings.right.arrow, "CENTER")
+            edgeWarnings.right.glow:SetRotation(math.rad(270))
+            edgeWarnings.right.glow:SetAlpha(opacity * 0.4)
+            edgeWarnings.right.glow:Show()
+        else
+            edgeWarnings.right.arrow:Hide()
+            edgeWarnings.right.glow:Hide()
+        end
+    end
+
+    -- Store the pulse value for reticle coordination
+    addon.edgeWarningPulse = 1.0 + pulseIntensity * math.sin((edgeWarnings.top and edgeWarnings.top.pulseTime or 0) * 3)
+
+    return anyEdgeShowing
 end
 
 -- ===============================
@@ -265,6 +454,9 @@ function addon:OnUpdate(elapsed)
     local scale = parent:GetEffectiveScale()
     cx, cy = cx / scale, cy / scale
 
+    -- Check edge warnings first to determine if we should hide particles
+    local edgeWarningActive = addon:UpdateEdgeWarnings(elapsed, cx, cy)
+
     -- Comet Mode - adjust spacing between points
     local spacing = UltraCursorFXDB.cometMode and (1 / UltraCursorFXDB.cometLength) or 1
 
@@ -296,22 +488,35 @@ function addon:OnUpdate(elapsed)
         end
 
         p:SetPoint("CENTER", parent, "BOTTOMLEFT", p.x, p.y)
-        p:SetAlpha(fadeAlpha * pulse * baseOpacity)
+
+        -- Hide particles when edge warnings are active
+        if edgeWarningActive then
+            p:SetAlpha(0)
+        else
+            p:SetAlpha(fadeAlpha * pulse * baseOpacity)
+        end
 
         local g = glow[i]
         g:SetPoint("CENTER", p)
-        g:SetAlpha(fadeAlpha * 0.75 * pulse * baseOpacity)
+        if edgeWarningActive then
+            g:SetAlpha(0)
+        else
+            g:SetAlpha(fadeAlpha * 0.75 * pulse * baseOpacity)
+        end
     end
 
-    CheckMouseClicks()
+    -- Only show click effects if edge warnings are not active
+    if not edgeWarningActive then
+        CheckMouseClicks()
+    end
     UpdateClickParticles(elapsed)
-    addon:UpdateReticle(elapsed, cx, cy)
+    addon:UpdateReticle(elapsed, cx, cy, edgeWarningActive)
 end
 
 -- ===============================
 -- Reticle Update & Mouseover Detection
 -- ===============================
-function addon:UpdateReticle(elapsed, cx, cy)
+function addon:UpdateReticle(elapsed, cx, cy, edgeWarningActive)
     if not UltraCursorFXDB.reticleEnabled or #reticleSegments == 0 then
         return
     end
@@ -363,33 +568,38 @@ function addon:UpdateReticle(elapsed, cx, cy)
         alpha = opacity * 0.6
     end
 
-    local size = UltraCursorFXDB.reticleSize or 80
+    local baseSize = UltraCursorFXDB.reticleSize or 80
     local style = UltraCursorFXDB.reticleStyle or "military"
 
-    -- Pulse effect for friendlies
+    -- Pulse effect for friendlies or edge warnings
     local pulse = 1.0
-    if unitType == "friendly" then
+    if edgeWarningActive then
+        -- Pulse with edge warnings (already calculated in UpdateEdgeWarnings)
+        pulse = addon.edgeWarningPulse or 1.0
+    elseif unitType == "friendly" then
         pulse = 0.7 + math.sin(GetTime() * 4) * 0.3
     end
 
+    local size = baseSize * pulse
+
     -- Render reticle based on style
     if style == "crosshair" then
-        addon:RenderCrosshairReticle(cx, cy, size, r, g, b, alpha * pulse)
+        addon:RenderCrosshairReticle(cx, cy, size, r, g, b, alpha * pulse, edgeWarningActive)
     elseif style == "circledot" then
-        addon:RenderCircleDotReticle(cx, cy, size, r, g, b, alpha * pulse)
+        addon:RenderCircleDotReticle(cx, cy, size, r, g, b, alpha * pulse, edgeWarningActive)
     elseif style == "tshape" then
-        addon:RenderTShapeReticle(cx, cy, size, r, g, b, alpha * pulse, unitType)
+        addon:RenderTShapeReticle(cx, cy, size, r, g, b, alpha * pulse, unitType, edgeWarningActive)
     elseif style == "military" then
-        addon:RenderMilitaryReticle(cx, cy, size, r, g, b, alpha * pulse, unitType)
+        addon:RenderMilitaryReticle(cx, cy, size, r, g, b, alpha * pulse, unitType, edgeWarningActive)
     elseif style == "cyberpunk" then
-        addon:RenderCyberpunkReticle(cx, cy, size, r, g, b, alpha * pulse, unitType)
+        addon:RenderCyberpunkReticle(cx, cy, size, r, g, b, alpha * pulse, unitType, edgeWarningActive)
     elseif style == "minimal" then
-        addon:RenderMinimalReticle(cx, cy, size, r, g, b, alpha * pulse)
+        addon:RenderMinimalReticle(cx, cy, size, r, g, b, alpha * pulse, edgeWarningActive)
     end
 end
 
 -- Crosshair Style: Classic + shape with center dot
-function addon:RenderCrosshairReticle(x, y, size, r, g, b, alpha)
+function addon:RenderCrosshairReticle(x, y, size, r, g, b, alpha, edgeWarningActive)
     -- Top line
     local seg = reticleSegments[1]
     if seg then
@@ -430,19 +640,23 @@ function addon:RenderCrosshairReticle(x, y, size, r, g, b, alpha)
         seg:Show()
     end
 
-    -- Center dot
+    -- Center dot (hide when edge warnings active)
     seg = reticleSegments[5]
     if seg then
-        seg:SetSize(size * 0.08, size * 0.08)
-        seg:SetPoint("CENTER", parent, "BOTTOMLEFT", x, y)
-        seg:SetVertexColor(r, g, b)
-        seg:SetAlpha(alpha * 1.2) -- Brighter center
-        seg:Show()
+        if edgeWarningActive == true then
+            seg:Hide()
+        else
+            seg:SetSize(size * 0.08, size * 0.08)
+            seg:SetPoint("CENTER", parent, "BOTTOMLEFT", x, y)
+            seg:SetVertexColor(r, g, b)
+            seg:SetAlpha(alpha * 1.2) -- Brighter center
+            seg:Show()
+        end
     end
 end
 
 -- Circle Dot Style: Circle ring with center dot (Red Dot Sight)
-function addon:RenderCircleDotReticle(x, y, size, r, g, b, alpha)
+function addon:RenderCircleDotReticle(x, y, size, r, g, b, alpha, edgeWarningActive)
     -- 8 segments forming a circle
     for i = 1, 8 do
         local seg = reticleSegments[i]
@@ -461,19 +675,23 @@ function addon:RenderCircleDotReticle(x, y, size, r, g, b, alpha)
         end
     end
 
-    -- Center dot
+    -- Center dot (hide when edge warnings active)
     local seg = reticleSegments[9]
     if seg then
-        seg:SetSize(size * 0.1, size * 0.1)
-        seg:SetPoint("CENTER", parent, "BOTTOMLEFT", x, y)
-        seg:SetVertexColor(r, g, b)
-        seg:SetAlpha(alpha * 1.3) -- Very bright center
-        seg:Show()
+        if edgeWarningActive == true then
+            seg:Hide()
+        else
+            seg:SetSize(size * 0.1, size * 0.1)
+            seg:SetPoint("CENTER", parent, "BOTTOMLEFT", x, y)
+            seg:SetVertexColor(r, g, b)
+            seg:SetAlpha(alpha * 1.3) -- Very bright center
+            seg:Show()
+        end
     end
 end
 
 -- T-Shape Style: Rangefinder reticle (sniper scope)
-function addon:RenderTShapeReticle(x, y, size, r, g, b, alpha, unitType)
+function addon:RenderTShapeReticle(x, y, size, r, g, b, alpha, unitType, edgeWarningActive)
     -- Horizontal top bar
     local seg = reticleSegments[1]
     if seg then
@@ -514,19 +732,23 @@ function addon:RenderTShapeReticle(x, y, size, r, g, b, alpha, unitType)
         seg:Show()
     end
 
-    -- Center reference dot
+    -- Center reference dot (hide when edge warnings active)
     seg = reticleSegments[5]
     if seg then
-        seg:SetSize(size * 0.06, size * 0.06)
-        seg:SetPoint("CENTER", parent, "BOTTOMLEFT", x, y - size * 0.1)
-        seg:SetVertexColor(r, g, b)
-        seg:SetAlpha(alpha * 1.1)
-        seg:Show()
+        if edgeWarningActive == true then
+            seg:Hide()
+        else
+            seg:SetSize(size * 0.06, size * 0.06)
+            seg:SetPoint("CENTER", parent, "BOTTOMLEFT", x, y - size * 0.1)
+            seg:SetVertexColor(r, g, b)
+            seg:SetAlpha(alpha * 1.1)
+            seg:Show()
+        end
     end
 end
 
 -- Military Style: 4 corner brackets + 4 rotating segments (sniper-style)
-function addon:RenderMilitaryReticle(x, y, size, r, g, b, alpha, unitType)
+function addon:RenderMilitaryReticle(x, y, size, r, g, b, alpha, unitType, edgeWarningActive)
     local rotation = addon.reticleRotation
     local rotSpeed = unitType == "enemy" and 2.0 or 1.0
 
@@ -571,7 +793,7 @@ function addon:RenderMilitaryReticle(x, y, size, r, g, b, alpha, unitType)
 end
 
 -- Cyberpunk Style: 8 glowing neon segments in a circle
-function addon:RenderCyberpunkReticle(x, y, size, r, g, b, alpha, unitType)
+function addon:RenderCyberpunkReticle(x, y, size, r, g, b, alpha, unitType, edgeWarningActive)
     local rotation = addon.reticleRotation
 
     for i = 1, 8 do
@@ -596,7 +818,7 @@ function addon:RenderCyberpunkReticle(x, y, size, r, g, b, alpha, unitType)
 end
 
 -- Minimal Style: Simple 4 corner L-brackets
-function addon:RenderMinimalReticle(x, y, size, r, g, b, alpha)
+function addon:RenderMinimalReticle(x, y, size, r, g, b, alpha, edgeWarningActive)
     for i = 1, 4 do
         local seg = reticleSegments[i]
         if seg then

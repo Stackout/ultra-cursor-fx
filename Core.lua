@@ -59,6 +59,13 @@ addon.defaults = {
     reticleOpacity = 0.7,
     reticleRotationSpeed = 1.0,
 
+    -- Edge Warning System
+    edgeWarningEnabled = false,
+    edgeWarningDistance = 50,
+    edgeWarningSize = 64,
+    edgeWarningOpacity = 0.8,
+    edgeWarningPulseIntensity = 0.5,
+
     -- Situational Profiles
     situationalEnabled = false,
     currentProfile = "world",
@@ -93,6 +100,10 @@ addon.profileDefaults = {
         reticleBrightness = 1.0,
         reticleOpacity = 0.7,
         reticleRotationSpeed = 1.0,
+        edgeWarningEnabled = false,
+        edgeWarningDistance = 50,
+        edgeWarningSize = 64,
+        edgeWarningOpacity = 0.8,
     },
     raid = {
         name = "Raid",
@@ -121,6 +132,11 @@ addon.profileDefaults = {
         reticleBrightness = 1.2,
         reticleOpacity = 0.8,
         reticleRotationSpeed = 1.5,
+        edgeWarningEnabled = false,
+        edgeWarningDistance = 40,
+        edgeWarningSize = 70,
+        edgeWarningOpacity = 0.9,
+        edgeWarningPulseIntensity = 0.6,
     },
     dungeon = {
         name = "Dungeon",
@@ -149,6 +165,11 @@ addon.profileDefaults = {
         reticleBrightness = 1.0,
         reticleOpacity = 0.7,
         reticleRotationSpeed = 0.8,
+        edgeWarningEnabled = false,
+        edgeWarningDistance = 50,
+        edgeWarningSize = 64,
+        edgeWarningOpacity = 0.8,
+        edgeWarningPulseIntensity = 0.5,
     },
     arena = {
         name = "Arena",
@@ -177,6 +198,11 @@ addon.profileDefaults = {
         reticleBrightness = 1.3,
         reticleOpacity = 0.9,
         reticleRotationSpeed = 2.0,
+        edgeWarningEnabled = false,
+        edgeWarningDistance = 30,
+        edgeWarningSize = 80,
+        edgeWarningOpacity = 1.0,
+        edgeWarningPulseIntensity = 0.7,
     },
     battleground = {
         name = "Battleground",
@@ -205,6 +231,11 @@ addon.profileDefaults = {
         reticleBrightness = 1.1,
         reticleOpacity = 0.75,
         reticleRotationSpeed = 1.2,
+        edgeWarningEnabled = false,
+        edgeWarningDistance = 50,
+        edgeWarningSize = 64,
+        edgeWarningOpacity = 0.8,
+        edgeWarningPulseIntensity = 0.5,
     },
 }
 

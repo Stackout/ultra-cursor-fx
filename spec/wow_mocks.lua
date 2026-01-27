@@ -9,6 +9,12 @@ _G.UIParent = {
     GetEffectiveScale = function()
         return 1.0
     end,
+    GetWidth = function()
+        return 1920
+    end,
+    GetHeight = function()
+        return 1080
+    end,
     SetAlpha = function() end,
     CreateTexture = function(self, name, layer)
         local texture = {
@@ -22,15 +28,28 @@ _G.UIParent = {
             SetAllPoints = function() end,
             ClearAllPoints = function() end,
             SetColorTexture = function() end,
-            SetAlpha = function() end,
-            SetRotation = function() end,
-            Hide = function() end,
-            Show = function() end,
+            SetAlpha = function(self, alpha)
+                self.alpha = alpha
+            end,
+            SetRotation = function(self, rotation)
+                self.rotation = rotation
+            end,
+            Hide = function(self)
+                self.hidden = true
+                self.visible = false
+            end,
+            Show = function(self)
+                self.hidden = false
+                self.visible = true
+            end,
             GetCenter = function()
                 return 0, 0
             end,
             x = 0,
             y = 0,
+            hidden = false,
+            visible = true,
+            alpha = 1.0,
         }
         return texture
     end,

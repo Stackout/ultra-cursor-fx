@@ -109,7 +109,7 @@ describe("Memory Management & Cleanup", function()
             -- The first 10 get hidden, then new textures created
             -- We can verify the array was wiped by checking the count
             assert.equals(10, #addon.points)
-            
+
             -- The textures in old array should not be in new array
             local foundOldInNew = false
             for i = 1, #addon.points do
@@ -215,7 +215,7 @@ describe("Memory Management & Cleanup", function()
 
             -- Verify new array has correct count
             assert.equals(4, #addon.reticleSegments)
-            
+
             -- Verify old segments are not in new array
             local foundOldInNew = false
             for i = 1, #addon.reticleSegments do

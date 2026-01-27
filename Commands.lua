@@ -46,6 +46,10 @@ SlashCmdList["ULTRACURSORFX"] = function(msg)
         UltraCursorFXDB.reticleEnabled = not UltraCursorFXDB.reticleEnabled
         addon:BuildTrail() -- Rebuild reticle
         print("Smart Reticle:", UltraCursorFXDB.reticleEnabled and "Enabled" or "Disabled")
+    elseif cmd == "edge" then
+        UltraCursorFXDB.edgeWarningEnabled = not UltraCursorFXDB.edgeWarningEnabled
+        addon:BuildTrail() -- Rebuild edge warnings
+        print("Screen Edge Warnings:", UltraCursorFXDB.edgeWarningEnabled and "Enabled" or "Disabled")
     elseif cmd == "profiles" then
         UltraCursorFXDB.situationalEnabled = not UltraCursorFXDB.situationalEnabled
         print("Situational Profiles:", UltraCursorFXDB.situationalEnabled and "Enabled" or "Disabled")
@@ -103,6 +107,7 @@ SlashCmdList["ULTRACURSORFX"] = function(msg)
         print("/ucfx on | off | flash | rainbow | click | comet | combat")
         print("/ucfx fade - Toggle fade mode | boost - Toggle combat opacity boost")
         print("/ucfx reticle - Toggle smart reticle system")
+        print("/ucfx edge - Toggle screen edge warnings")
         print("/ucfx profiles - Toggle situational profiles")
         print("/ucfx save <profile> - Save current settings to profile")
         print("/ucfx load <profile> - Load profile settings")

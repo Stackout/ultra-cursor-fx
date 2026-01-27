@@ -2,10 +2,14 @@
 
 ![Tests](https://github.com/Stackout/ultra-cursor-fx/workflows/Test%20Suite/badge.svg)
 ![Coverage](https://img.shields.io/badge/coverage-97.4%25-brightgreen)
-![Tests Count](https://img.shields.io/badge/tests-227%20passing-success)
+![Tests Count](https://img.shields.io/badge/tests-257%20passing-success)
 ![Release](https://github.com/Stackout/ultra-cursor-fx/workflows/Create%20Release/badge.svg)
 ![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
+<<<<<<< HEAD
 ![Version](https://img.shields.io/badge/version-0.6.3-green)
+=======
+![Version](https://img.shields.io/badge/version-0.7.0-green)
+>>>>>>> 6e93833 (wip)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 
 ![UltraCursorFX Icon](icon.png)
@@ -21,7 +25,11 @@
 **UltraCursorFX is an accessibility-focused addon that solves this problem.** With brilliant particle trails, customizable colors, and attention-grabbing effects, you'll **never lose your cursor again**.
 
 ![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
+<<<<<<< HEAD
 ![Version](https://img.shields.io/badge/version-0.6.3-green)
+=======
+![Version](https://img.shields.io/badge/version-0.7.0-green)
+>>>>>>> 6e93833 (wip)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 
 [![Download on CurseForge](https://img.shields.io/badge/Download-CurseForge-orange)](https://www.curseforge.com/wow/addons/ultracursorfx)
@@ -49,7 +57,11 @@
 ## 🎨 Beyond Accessibility - Make It Your Own
 
 ### Core Effects
-- **Smart Reticle System** 🎯 *NEW!* - Dynamic crosshair that changes color based on targets
+- **Screen Edge Warnings** ⚠️ *NEW!* - Never lose your cursor off-screen
+  - Pulsing arrows appear when cursor approaches screen edges
+  - Perfect for large/ultrawide monitors
+  - Fully customizable distance, size, and opacity
+- **Smart Reticle System** 🎯 - Dynamic crosshair that changes color based on targets
   - 6 authentic styles: Crosshair, Circle Dot, T-Shape, Military, Cyberpunk, Minimal
   - Red for enemies, green for friendlies, gold for objects
 - **Customizable Particle Trails** - Beautiful trailing effects that follow your cursor
@@ -111,6 +123,7 @@ This opens the settings panel where you can customize everything.
 /ucfx off        - Turn cursor trail off
 /ucfx rainbow    - Rainbow colors (looks amazing!)
 /ucfx click      - Burst effects when clicking
+/ucfx edge       - Toggle screen edge warnings
 /ucfx profiles   - Toggle situational profiles
 ```
 

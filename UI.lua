@@ -912,6 +912,106 @@ function addon:CreateSettingsPanel()
     )
     yPos = yPos - 50
 
+    -- EDGE WARNING SYSTEM
+    yPos = CreateSection("Screen Edge Warnings", yPos)
+
+    local edgeDesc = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    edgeDesc:SetPoint("TOPLEFT", 20, yPos)
+    edgeDesc:SetWidth(600)
+    edgeDesc:SetJustifyH("LEFT")
+    edgeDesc:SetText("Shows warning arrows when cursor approaches screen edges - perfect for large monitors!")
+    yPos = yPos - 35
+
+    local edgeEnabledCB = CreateCheckbox(
+        "EdgeWarningEnabled",
+        "Enable Edge Warnings",
+        yPos,
+        "Show arrows when cursor gets close to screen boundaries"
+    )
+    edgeEnabledCB:SetChecked(UltraCursorFXDB.edgeWarningEnabled)
+    edgeEnabledCB:SetScript("OnClick", function(self)
+        UltraCursorFXDB.edgeWarningEnabled = self:GetChecked()
+        addon:BuildTrail() -- Rebuild edge warnings
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 50
+    uiControls.edgeEnabledCB = edgeEnabledCB
+
+    local edgeDistanceSlider = CreateSlider(
+        "EdgeDistance",
+        "Trigger Distance",
+        yPos,
+        20,
+        150,
+        5,
+        "How close to edge (in pixels) before warning appears"
+    )
+    edgeDistanceSlider:SetValue(UltraCursorFXDB.edgeWarningDistance or 50)
+    edgeDistanceSlider.valueText:SetText(string.format("%dpx", math.floor(UltraCursorFXDB.edgeWarningDistance or 50)))
+    edgeDistanceSlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.edgeWarningDistance = value
+        self.valueText:SetText(string.format("%dpx", math.floor(value)))
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 60
+    uiControls.edgeDistanceSlider = edgeDistanceSlider
+
+    local edgeSizeSlider = CreateSlider("EdgeSize", "Arrow Size", yPos, 32, 128, 4, "Size of warning arrows")
+    edgeSizeSlider:SetValue(UltraCursorFXDB.edgeWarningSize or 64)
+    edgeSizeSlider.valueText:SetText(math.floor(UltraCursorFXDB.edgeWarningSize or 64))
+    edgeSizeSlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.edgeWarningSize = value
+        self.valueText:SetText(math.floor(value))
+        addon:BuildTrail() -- Rebuild arrows with new size
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 60
+    uiControls.edgeSizeSlider = edgeSizeSlider
+
+    local edgeOpacitySlider =
+        CreateSlider("EdgeOpacity", "Arrow Opacity", yPos, 0.3, 1.0, 0.05, "How visible the warning arrows are")
+    edgeOpacitySlider:SetValue(UltraCursorFXDB.edgeWarningOpacity or 0.8)
+    edgeOpacitySlider.valueText:SetText(
+        string.format("%d%%", math.floor((UltraCursorFXDB.edgeWarningOpacity or 0.8) * 100))
+    )
+    edgeOpacitySlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.edgeWarningOpacity = value
+        self.valueText:SetText(string.format("%d%%", math.floor(value * 100)))
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 60
+    uiControls.edgeOpacitySlider = edgeOpacitySlider
+
+    local edgePulseSlider = CreateSlider(
+        "EdgePulseIntensity",
+        "Pulse Intensity",
+        yPos,
+        0.0,
+        1.0,
+        0.05,
+        "How much the arrows and reticle grow and shrink near edges"
+    )
+    edgePulseSlider:SetValue(UltraCursorFXDB.edgeWarningPulseIntensity or 0.5)
+    edgePulseSlider.valueText:SetText(
+        string.format("%d%%", math.floor((UltraCursorFXDB.edgeWarningPulseIntensity or 0.5) * 100))
+    )
+    edgePulseSlider:SetScript("OnValueChanged", function(self, value)
+        UltraCursorFXDB.edgeWarningPulseIntensity = value
+        self.valueText:SetText(string.format("%d%%", math.floor(value * 100)))
+        AutoSaveToProfile()
+    end)
+    yPos = yPos - 60
+    uiControls.edgePulseSlider = edgePulseSlider
+
+    local edgeNote = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    edgeNote:SetPoint("TOPLEFT", 20, yPos)
+    edgeNote:SetWidth(600)
+    edgeNote:SetJustifyH("LEFT")
+    edgeNote:SetText(
+        "|cFF888888Edge warnings pulsate (grow/shrink) to grab attention. Click effects hidden near edges.|r"
+    )
+    yPos = yPos - 50
+
     -- KEYBINDINGS REMINDER
     yPos = CreateSection("Quick Toggle", yPos)
 
@@ -1017,6 +1117,33 @@ function addon:CreateSettingsPanel()
             uiControls.reticleRotationSlider:SetValue(UltraCursorFXDB.reticleRotationSpeed or 1.0)
             uiControls.reticleRotationSlider.valueText:SetText(
                 string.format("%.1fx", UltraCursorFXDB.reticleRotationSpeed or 1.0)
+            )
+        end
+
+        -- Update edge warning controls
+        if uiControls.edgeEnabledCB then
+            uiControls.edgeEnabledCB:SetChecked(UltraCursorFXDB.edgeWarningEnabled)
+        end
+        if uiControls.edgeDistanceSlider then
+            uiControls.edgeDistanceSlider:SetValue(UltraCursorFXDB.edgeWarningDistance or 50)
+            uiControls.edgeDistanceSlider.valueText:SetText(
+                string.format("%dpx", math.floor(UltraCursorFXDB.edgeWarningDistance or 50))
+            )
+        end
+        if uiControls.edgeSizeSlider then
+            uiControls.edgeSizeSlider:SetValue(UltraCursorFXDB.edgeWarningSize or 64)
+            uiControls.edgeSizeSlider.valueText:SetText(math.floor(UltraCursorFXDB.edgeWarningSize or 64))
+        end
+        if uiControls.edgeOpacitySlider then
+            uiControls.edgeOpacitySlider:SetValue(UltraCursorFXDB.edgeWarningOpacity or 0.8)
+            uiControls.edgeOpacitySlider.valueText:SetText(
+                string.format("%d%%", math.floor((UltraCursorFXDB.edgeWarningOpacity or 0.8) * 100))
+            )
+        end
+        if uiControls.edgePulseSlider then
+            uiControls.edgePulseSlider:SetValue(UltraCursorFXDB.edgeWarningPulseIntensity or 0.5)
+            uiControls.edgePulseSlider.valueText:SetText(
+                string.format("%d%%", math.floor((UltraCursorFXDB.edgeWarningPulseIntensity or 0.5) * 100))
             )
         end
 
