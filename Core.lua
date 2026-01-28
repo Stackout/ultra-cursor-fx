@@ -78,41 +78,41 @@ addon.defaults = {
     currentProfile = "world",
 }
 
--- Profile defaults for different situations
+-- Helper to create a profile by extending defaults with overrides
+local function createProfile(overrides)
+    local profile = {}
+    -- Copy relevant defaults (excluding global-only settings)
+    local profileKeys = {
+        "color", "points", "size", "glowSize", "smoothness", "pulseSpeed",
+        "rainbowMode", "rainbowSpeed", "clickEffects", "clickParticles",
+        "clickSize", "clickDuration", "particleShape", "cometMode", "cometLength",
+        "opacity", "fadeEnabled", "fadeStrength", "combatOpacityBoost",
+        "reticleEnabled", "reticleStyle", "reticleSize", "reticleBrightness",
+        "reticleOpacity", "reticleRotationSpeed", "edgeWarningEnabled",
+        "edgeWarningDistance", "edgeWarningSize", "edgeWarningOpacity",
+        "edgeWarningPulseIntensity",
+    }
+    for _, key in ipairs(profileKeys) do
+        local defaultVal = addon.defaults[key]
+        if type(defaultVal) == "table" then
+            profile[key] = { unpack(defaultVal) }
+        else
+            profile[key] = defaultVal
+        end
+    end
+    -- Apply overrides
+    for key, value in pairs(overrides) do
+        profile[key] = value
+    end
+    return profile
+end
+
+-- Profile defaults for different situations (only specify differences from defaults)
 addon.profileDefaults = {
-    world = {
+    world = createProfile({
         name = "World",
-        color = { 0.765, 0.0, 1.0 },
-        points = 39,
-        size = 40,
-        glowSize = 150,
-        smoothness = 0.5,
-        pulseSpeed = 3.0,
-        rainbowMode = true,
-        rainbowSpeed = 5.0,
-        clickEffects = true,
-        clickParticles = 9,
-        clickSize = 25,
-        clickDuration = 0.6,
-        particleShape = "star",
-        cometMode = false,
-        cometLength = 2.0,
-        opacity = 1.0,
-        fadeEnabled = false,
-        fadeStrength = 0.5,
-        combatOpacityBoost = false,
-        reticleEnabled = true,
-        reticleStyle = "crosshair",
-        reticleSize = 105,
-        reticleBrightness = 2.0,
-        reticleOpacity = 1.0,
-        reticleRotationSpeed = 1.6,
-        edgeWarningEnabled = true,
-        edgeWarningDistance = 50,
-        edgeWarningSize = 64,
-        edgeWarningOpacity = 0.8,
-    },
-    raid = {
+    }),
+    raid = createProfile({
         name = "Raid",
         color = { 1.0, 0.2, 0.2 },
         points = 35,
@@ -122,30 +122,25 @@ addon.profileDefaults = {
         pulseSpeed = 2.5,
         rainbowMode = false,
         rainbowSpeed = 3.0,
-        clickEffects = true,
         clickParticles = 12,
         clickSize = 30,
         clickDuration = 0.5,
-        particleShape = "star",
         cometMode = true,
         cometLength = 2.5,
-        opacity = 1.0,
         fadeEnabled = true,
         fadeStrength = 0.6,
         combatOpacityBoost = true,
-        reticleEnabled = true,
         reticleStyle = "military",
         reticleSize = 90,
         reticleBrightness = 1.5,
         reticleOpacity = 0.9,
         reticleRotationSpeed = 1.2,
-        edgeWarningEnabled = true,
         edgeWarningDistance = 40,
         edgeWarningSize = 70,
         edgeWarningOpacity = 0.9,
         edgeWarningPulseIntensity = 0.6,
-    },
-    dungeon = {
+    }),
+    dungeon = createProfile({
         name = "Dungeon",
         color = { 0.8, 0.2, 1.0 },
         points = 38,
@@ -155,30 +150,15 @@ addon.profileDefaults = {
         pulseSpeed = 2.8,
         rainbowMode = false,
         rainbowSpeed = 4.0,
-        clickEffects = true,
         clickParticles = 10,
         clickSize = 28,
-        clickDuration = 0.6,
-        particleShape = "star",
-        cometMode = false,
-        cometLength = 2.0,
-        opacity = 1.0,
-        fadeEnabled = false,
-        fadeStrength = 0.5,
-        combatOpacityBoost = false,
-        reticleEnabled = true,
         reticleStyle = "circledot",
         reticleSize = 100,
         reticleBrightness = 1.8,
         reticleOpacity = 0.9,
         reticleRotationSpeed = 1.4,
-        edgeWarningEnabled = true,
-        edgeWarningDistance = 50,
-        edgeWarningSize = 64,
-        edgeWarningOpacity = 0.8,
-        edgeWarningPulseIntensity = 0.5,
-    },
-    arena = {
+    }),
+    arena = createProfile({
         name = "Arena",
         color = { 1.0, 0.5, 0.0 },
         points = 45,
@@ -188,62 +168,44 @@ addon.profileDefaults = {
         pulseSpeed = 3.5,
         rainbowMode = false,
         rainbowSpeed = 4.0,
-        clickEffects = true,
         clickParticles = 15,
         clickSize = 35,
         clickDuration = 0.4,
         particleShape = "spark",
         cometMode = true,
         cometLength = 3.0,
-        opacity = 1.0,
         fadeEnabled = true,
         fadeStrength = 0.7,
         combatOpacityBoost = true,
-        reticleEnabled = true,
         reticleStyle = "tshape",
         reticleSize = 95,
         reticleBrightness = 1.8,
         reticleOpacity = 0.95,
         reticleRotationSpeed = 1.8,
-        edgeWarningEnabled = true,
         edgeWarningDistance = 30,
         edgeWarningSize = 80,
         edgeWarningOpacity = 1.0,
         edgeWarningPulseIntensity = 0.7,
-    },
-    battleground = {
+    }),
+    battleground = createProfile({
         name = "Battleground",
         color = { 1.0, 0.84, 0.0 },
         points = 40,
         size = 38,
         glowSize = 135,
         smoothness = 0.42,
-        pulseSpeed = 3.0,
         rainbowMode = false,
         rainbowSpeed = 4.0,
-        clickEffects = true,
         clickParticles = 12,
         clickSize = 32,
         clickDuration = 0.5,
-        particleShape = "star",
-        cometMode = false,
-        cometLength = 2.0,
-        opacity = 1.0,
         fadeEnabled = true,
-        fadeStrength = 0.5,
-        combatOpacityBoost = false,
-        reticleEnabled = true,
         reticleStyle = "military",
         reticleSize = 95,
         reticleBrightness = 1.6,
         reticleOpacity = 0.85,
         reticleRotationSpeed = 1.4,
-        edgeWarningEnabled = true,
-        edgeWarningDistance = 50,
-        edgeWarningSize = 64,
-        edgeWarningOpacity = 0.8,
-        edgeWarningPulseIntensity = 0.5,
-    },
+    }),
 }
 
 -- ===============================
