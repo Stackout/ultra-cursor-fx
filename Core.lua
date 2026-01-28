@@ -28,21 +28,21 @@ addon.defaults = {
     enabled = true,
     flashEnabled = true,
     combatOnly = false,
-    color = { 0.0, 1.0, 1.0 },
-    points = 48,
-    size = 34,
-    glowSize = 64,
-    smoothness = 0.18,
-    pulseSpeed = 2.5,
+    color = { 0.765, 0.0, 1.0 }, -- Purple/Magenta
+    points = 39,
+    size = 40,
+    glowSize = 150,
+    smoothness = 0.5,
+    pulseSpeed = 3.0,
 
     -- Rainbow Mode
-    rainbowMode = false,
-    rainbowSpeed = 1.0,
+    rainbowMode = true,
+    rainbowSpeed = 5.0,
 
     -- Click Effects
     clickEffects = true,
-    clickParticles = 12,
-    clickSize = 50,
+    clickParticles = 9,
+    clickSize = 25,
     clickDuration = 0.6,
 
     -- Particle Shape
@@ -61,13 +61,13 @@ addon.defaults = {
     -- Reticle System
     reticleEnabled = true,
     reticleStyle = "crosshair", -- crosshair, circledot, tshape, military, cyberpunk, minimal
-    reticleSize = 80,
-    reticleBrightness = 1.0,
-    reticleOpacity = 0.7,
-    reticleRotationSpeed = 1.0,
+    reticleSize = 105,
+    reticleBrightness = 2.0,
+    reticleOpacity = 1.0,
+    reticleRotationSpeed = 1.6,
 
     -- Edge Warning System
-    edgeWarningEnabled = false,
+    edgeWarningEnabled = true,
     edgeWarningDistance = 50,
     edgeWarningSize = 64,
     edgeWarningOpacity = 0.8,
@@ -82,17 +82,17 @@ addon.defaults = {
 addon.profileDefaults = {
     world = {
         name = "World",
-        color = { 0.0, 1.0, 1.0 },
-        points = 48,
-        size = 34,
-        glowSize = 64,
-        smoothness = 0.18,
-        pulseSpeed = 2.5,
-        rainbowMode = false,
-        rainbowSpeed = 1.0,
+        color = { 0.765, 0.0, 1.0 },
+        points = 39,
+        size = 40,
+        glowSize = 150,
+        smoothness = 0.5,
+        pulseSpeed = 3.0,
+        rainbowMode = true,
+        rainbowSpeed = 5.0,
         clickEffects = true,
-        clickParticles = 12,
-        clickSize = 50,
+        clickParticles = 9,
+        clickSize = 25,
         clickDuration = 0.6,
         particleShape = "star",
         cometMode = false,
@@ -103,11 +103,11 @@ addon.profileDefaults = {
         combatOpacityBoost = false,
         reticleEnabled = true,
         reticleStyle = "crosshair",
-        reticleSize = 80,
-        reticleBrightness = 1.0,
-        reticleOpacity = 0.7,
-        reticleRotationSpeed = 1.0,
-        edgeWarningEnabled = false,
+        reticleSize = 105,
+        reticleBrightness = 2.0,
+        reticleOpacity = 1.0,
+        reticleRotationSpeed = 1.6,
+        edgeWarningEnabled = true,
         edgeWarningDistance = 50,
         edgeWarningSize = 64,
         edgeWarningOpacity = 0.8,
@@ -115,16 +115,16 @@ addon.profileDefaults = {
     raid = {
         name = "Raid",
         color = { 1.0, 0.2, 0.2 },
-        points = 40,
-        size = 30,
-        glowSize = 50,
-        smoothness = 0.20,
-        pulseSpeed = 2.0,
+        points = 35,
+        size = 35,
+        glowSize = 120,
+        smoothness = 0.4,
+        pulseSpeed = 2.5,
         rainbowMode = false,
-        rainbowSpeed = 1.0,
+        rainbowSpeed = 3.0,
         clickEffects = true,
-        clickParticles = 16,
-        clickSize = 60,
+        clickParticles = 12,
+        clickSize = 30,
         clickDuration = 0.5,
         particleShape = "star",
         cometMode = true,
@@ -136,10 +136,10 @@ addon.profileDefaults = {
         reticleEnabled = true,
         reticleStyle = "military",
         reticleSize = 90,
-        reticleBrightness = 1.2,
-        reticleOpacity = 0.8,
-        reticleRotationSpeed = 1.5,
-        edgeWarningEnabled = false,
+        reticleBrightness = 1.5,
+        reticleOpacity = 0.9,
+        reticleRotationSpeed = 1.2,
+        edgeWarningEnabled = true,
         edgeWarningDistance = 40,
         edgeWarningSize = 70,
         edgeWarningOpacity = 0.9,
@@ -148,16 +148,16 @@ addon.profileDefaults = {
     dungeon = {
         name = "Dungeon",
         color = { 0.8, 0.2, 1.0 },
-        points = 50,
-        size = 32,
-        glowSize = 60,
-        smoothness = 0.15,
-        pulseSpeed = 2.5,
+        points = 38,
+        size = 38,
+        glowSize = 140,
+        smoothness = 0.45,
+        pulseSpeed = 2.8,
         rainbowMode = false,
-        rainbowSpeed = 1.0,
+        rainbowSpeed = 4.0,
         clickEffects = true,
-        clickParticles = 12,
-        clickSize = 55,
+        clickParticles = 10,
+        clickSize = 28,
         clickDuration = 0.6,
         particleShape = "star",
         cometMode = false,
@@ -168,11 +168,11 @@ addon.profileDefaults = {
         combatOpacityBoost = false,
         reticleEnabled = true,
         reticleStyle = "circledot",
-        reticleSize = 75,
-        reticleBrightness = 1.0,
-        reticleOpacity = 0.7,
-        reticleRotationSpeed = 0.8,
-        edgeWarningEnabled = false,
+        reticleSize = 100,
+        reticleBrightness = 1.8,
+        reticleOpacity = 0.9,
+        reticleRotationSpeed = 1.4,
+        edgeWarningEnabled = true,
         edgeWarningDistance = 50,
         edgeWarningSize = 64,
         edgeWarningOpacity = 0.8,
@@ -181,16 +181,16 @@ addon.profileDefaults = {
     arena = {
         name = "Arena",
         color = { 1.0, 0.5, 0.0 },
-        points = 60,
-        size = 40,
-        glowSize = 70,
-        smoothness = 0.12,
-        pulseSpeed = 3.0,
+        points = 45,
+        size = 42,
+        glowSize = 130,
+        smoothness = 0.35,
+        pulseSpeed = 3.5,
         rainbowMode = false,
-        rainbowSpeed = 1.0,
+        rainbowSpeed = 4.0,
         clickEffects = true,
-        clickParticles = 20,
-        clickSize = 70,
+        clickParticles = 15,
+        clickSize = 35,
         clickDuration = 0.4,
         particleShape = "spark",
         cometMode = true,
@@ -201,11 +201,11 @@ addon.profileDefaults = {
         combatOpacityBoost = true,
         reticleEnabled = true,
         reticleStyle = "tshape",
-        reticleSize = 100,
-        reticleBrightness = 1.3,
-        reticleOpacity = 0.9,
-        reticleRotationSpeed = 2.0,
-        edgeWarningEnabled = false,
+        reticleSize = 95,
+        reticleBrightness = 1.8,
+        reticleOpacity = 0.95,
+        reticleRotationSpeed = 1.8,
+        edgeWarningEnabled = true,
         edgeWarningDistance = 30,
         edgeWarningSize = 80,
         edgeWarningOpacity = 1.0,
@@ -214,16 +214,16 @@ addon.profileDefaults = {
     battleground = {
         name = "Battleground",
         color = { 1.0, 0.84, 0.0 },
-        points = 55,
-        size = 36,
-        glowSize = 65,
-        smoothness = 0.15,
-        pulseSpeed = 2.8,
+        points = 40,
+        size = 38,
+        glowSize = 135,
+        smoothness = 0.42,
+        pulseSpeed = 3.0,
         rainbowMode = false,
-        rainbowSpeed = 1.0,
+        rainbowSpeed = 4.0,
         clickEffects = true,
-        clickParticles = 18,
-        clickSize = 65,
+        clickParticles = 12,
+        clickSize = 32,
         clickDuration = 0.5,
         particleShape = "star",
         cometMode = false,
@@ -234,11 +234,11 @@ addon.profileDefaults = {
         combatOpacityBoost = false,
         reticleEnabled = true,
         reticleStyle = "military",
-        reticleSize = 85,
-        reticleBrightness = 1.1,
-        reticleOpacity = 0.75,
-        reticleRotationSpeed = 1.2,
-        edgeWarningEnabled = false,
+        reticleSize = 95,
+        reticleBrightness = 1.6,
+        reticleOpacity = 0.85,
+        reticleRotationSpeed = 1.4,
+        edgeWarningEnabled = true,
         edgeWarningDistance = 50,
         edgeWarningSize = 64,
         edgeWarningOpacity = 0.8,
@@ -351,6 +351,31 @@ function addon:SetSetting(key, value)
         UltraCursorFXDB.account = UltraCursorFXDB.account or {}
         UltraCursorFXDB.account[key] = value
     end
+end
+
+-- Reset all settings to defaults
+function addon:ResetSettings()
+    -- Reset all default settings
+    for key, value in pairs(self.defaults) do
+        if type(value) == "table" then
+            self:SetSetting(key, { unpack(value) })
+        else
+            self:SetSetting(key, value)
+        end
+    end
+
+    -- Rebuild visual elements
+    if self.BuildTrail then
+        self:BuildTrail()
+    end
+    if self.BuildReticle then
+        self:BuildReticle()
+    end
+    if self.UpdateCursorState then
+        self:UpdateCursorState()
+    end
+
+    return true
 end
 
 -- ===============================

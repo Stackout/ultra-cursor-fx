@@ -356,7 +356,7 @@ describe("Edge Warning System", function()
 
     describe("Defaults", function()
         it("should have edge warning defaults in main defaults", function()
-            assert.is_false(addon.defaults.edgeWarningEnabled)
+            assert.is_true(addon.defaults.edgeWarningEnabled)
             assert.equals(50, addon.defaults.edgeWarningDistance)
             assert.equals(64, addon.defaults.edgeWarningSize)
             assert.equals(0.8, addon.defaults.edgeWarningOpacity)
@@ -375,7 +375,7 @@ describe("Edge Warning System", function()
             _G.UltraCursorFXDB = {}
             addon:InitializeDefaults()
 
-            assert.is_false(addon:GetSetting("edgeWarningEnabled"))
+            assert.is_true(addon:GetSetting("edgeWarningEnabled"))
             assert.equals(50, addon:GetSetting("edgeWarningDistance"))
             assert.equals(64, addon:GetSetting("edgeWarningSize"))
             assert.equals(0.8, addon:GetSetting("edgeWarningOpacity"))

@@ -258,9 +258,6 @@ function addon:ImportSettings(importString)
         if self.BuildReticle then
             self:BuildReticle()
         end
-        if self.UpdateEdgeWarnings then
-            self:UpdateEdgeWarnings()
-        end
         if self.UpdateCursorState then
             self:UpdateCursorState()
         end

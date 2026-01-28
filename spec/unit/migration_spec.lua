@@ -192,10 +192,10 @@ describe("Profile Migration (User Data Safety)", function()
             assert.is_not_nil(UltraCursorFXDB.account)
             assert.is_not_nil(UltraCursorFXDB.characters)
 
-            -- Should have default values in account
+            -- Should have default values in account (updated to new defaults)
             assert.is_true(UltraCursorFXDB.account.enabled)
-            assert.are.same({ 0.0, 1.0, 1.0 }, UltraCursorFXDB.account.color)
-            assert.are.equal(48, UltraCursorFXDB.account.points)
+            assert.are.same({ 0.765, 0.0, 1.0 }, UltraCursorFXDB.account.color)
+            assert.are.equal(39, UltraCursorFXDB.account.points)
 
             -- Should create default profiles
             assert.is_not_nil(UltraCursorFXDB.account.profiles.world)
@@ -319,8 +319,8 @@ describe("Profile Migration (User Data Safety)", function()
             -- Should migrate the one custom setting
             assert.are.same({ 1.0, 0.0, 0.0 }, UltraCursorFXDB.account.color)
 
-            -- Should fill in defaults for missing settings
-            assert.are.equal(48, addon:GetSetting("points"))
+            -- Should fill in defaults for missing settings (updated to new defaults)
+            assert.are.equal(39, addon:GetSetting("points"))
             assert.is_true(addon:GetSetting("enabled"))
         end)
 

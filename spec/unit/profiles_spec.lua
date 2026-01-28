@@ -276,14 +276,14 @@ describe("Profiles Module", function()
 
         it("should not migrate if settings match defaults", function()
             _G.UltraCursorFXDB = {
-                color = { 0.0, 1.0, 1.0 },
-                points = 48,
+                color = { 0.765, 0.0, 1.0 },
+                points = 39,
             }
 
             addon:MigrateProfiles()
 
-            -- Should use profile defaults
-            assert.are.equal(48, _G.UltraCursorFXDB.account.profiles.world.points)
+            -- Should use profile defaults (updated to new defaults)
+            assert.are.equal(39, _G.UltraCursorFXDB.account.profiles.world.points)
         end)
 
         it("should only migrate once", function()

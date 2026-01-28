@@ -65,8 +65,8 @@ describe("Full Addon Integration", function()
             -- 3. Load different profile
             addon:LoadFromProfile("world")
 
-            -- 4. Verify world settings
-            assert.are.same({ 0.0, 1.0, 1.0 }, addon:GetSetting("color"))
+            -- 4. Verify world settings (updated to new default values)
+            assert.are.same({ 0.765, 0.0, 1.0 }, addon:GetSetting("color"))
 
             -- 5. Load back raid profile
             addon:LoadFromProfile("raid")
@@ -166,9 +166,9 @@ describe("Full Addon Integration", function()
             assert.are.equal("skull", UltraCursorFXDB.account.particleShape)
             assert.is_true(UltraCursorFXDB.account.cometMode)
 
-            -- Should create profiles with defaults
-            assert.are.equal(40, UltraCursorFXDB.account.profiles.raid.points)
-            assert.are.equal(50, UltraCursorFXDB.account.profiles.dungeon.points)
+            -- Should create profiles with new defaults
+            assert.are.equal(35, UltraCursorFXDB.account.profiles.raid.points)
+            assert.are.equal(38, UltraCursorFXDB.account.profiles.dungeon.points)
         end)
 
         it("should handle fresh install", function()
@@ -181,11 +181,11 @@ describe("Full Addon Integration", function()
             addon:InitializeDefaults()
             addon:MigrateProfiles()
 
-            -- All profiles should exist with defaults
+            -- All profiles should exist with new defaults
             assert.is_not_nil(_G.UltraCursorFXDB.account.profiles.world)
             assert.is_not_nil(UltraCursorFXDB.account.profiles.raid)
-            assert.are.equal(48, UltraCursorFXDB.account.profiles.world.points)
-            assert.are.equal(40, UltraCursorFXDB.account.profiles.raid.points)
+            assert.are.equal(39, UltraCursorFXDB.account.profiles.world.points)
+            assert.are.equal(35, UltraCursorFXDB.account.profiles.raid.points)
         end)
     end)
 

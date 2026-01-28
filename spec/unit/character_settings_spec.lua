@@ -125,10 +125,10 @@ describe("Character Settings (Account-Wide vs Character-Specific)", function()
             require("Core")
             addon = UltraCursorFX
 
-            -- Should get defaults
-            assert.are.same({ 0.0, 1.0, 1.0 }, addon:GetSetting("color"))
-            assert.are.equal(48, addon:GetSetting("points"))
-            assert.are.equal(34, addon:GetSetting("size"))
+            -- Should get defaults (updated to new default values)
+            assert.are.same({ 0.765, 0.0, 1.0 }, addon:GetSetting("color"))
+            assert.are.equal(39, addon:GetSetting("points"))
+            assert.are.equal(40, addon:GetSetting("size"))
         end)
     end)
 
@@ -496,8 +496,8 @@ describe("Character Settings (Account-Wide vs Character-Specific)", function()
             require("Core")
             addon = UltraCursorFX
 
-            -- Should fall back to defaults
-            assert.are.same({ 0.0, 1.0, 1.0 }, addon:GetSetting("color"))
+            -- Should fall back to defaults (updated to new default values)
+            assert.are.same({ 0.765, 0.0, 1.0 }, addon:GetSetting("color"))
         end)
 
         it("should NOT use flat structure - only account/character storage", function()
