@@ -14,7 +14,7 @@ jobs:
   test:
     name: Verify Quality Before Tagging
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
 
       - name: Verify all tests passed
         run: |
-          echo "✅ All 63 tests passed - code is ready for tagging"
+          echo "✅ All tests passed - code is ready for tagging"
 
   tag:
     name: Create Release Tag
@@ -38,18 +38,18 @@ jobs:
     needs: test  # BLOCKS tagging until tests pass
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Get version from commit message
         id: get_version
         run: |
           COMMIT_MSG=$(git log -1 --pretty=%B)
-          
+
           # Check if commit message contains version bump
           if echo "$COMMIT_MSG" | grep -qE '\[release:v[0-9]+\.[0-9]+\.[0-9]+(-[a-z]+)?\]'; then
             VERSION=$(echo "$COMMIT_MSG" | grep -oP '\[release:v\K[0-9]+\.[0-9]+\.[0-9]+(-[a-z]+)?(?=\])')
@@ -60,7 +60,7 @@ jobs:
             echo "should_tag=false" >> $GITHUB_OUTPUT
             echo "No release tag in commit message"
           fi
-      
+
       - name: Check if tag exists
         if: steps.get_version.outputs.should_tag == 'true'
         id: check_tag
@@ -72,7 +72,7 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
             echo "Tag v${{ steps.get_version.outputs.version }} does not exist"
           fi
-      
+
       - name: Create and push tag
         if: steps.get_version.outputs.should_tag == 'true' && steps.check_tag.outputs.exists == 'false'
         run: |

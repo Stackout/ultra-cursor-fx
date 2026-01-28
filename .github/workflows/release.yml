@@ -12,7 +12,7 @@
 #   v0.1.0-rc1      → beta (release candidate)
 #
 # Process:
-#   1. Run full test suite (197 tests) - BLOCKS if fails
+#   1. Run full test suite - BLOCKS if fails
 #   2. Create release package (.zip)
 #   3. Create GitHub Release (with pre-release flag for alpha/beta)
 #   4. CurseForge webhook automatically picks up the release
@@ -140,8 +140,7 @@ jobs:
             **Release Type:** ${{ steps.release_type.outputs.type }}
 
             ### ✅ Quality Assurance
-            - All 227 automated tests passed
-            - Code coverage: 97.4% (core modules)
+            - All automated tests passed
             - Linting: 0 warnings
             - Docker-verified build
 
