@@ -155,7 +155,7 @@ function addon:CreateSettingsPanel()
             swatch:SetColorTexture(unpack(profile.color))
         else
             -- Default: use current color or cyan
-            local defaultColor = UltraCursorFXDB.color or { 0.0, 1.0, 1.0 }
+            local defaultColor = addon:GetSetting("color") or { 0.0, 1.0, 1.0 }
             swatch:SetColorTexture(unpack(defaultColor))
         end
     end
@@ -358,10 +358,10 @@ function addon:CreateSettingsPanel()
         yPos,
         "Automatically apply different cursor effects based on your location"
     )
-    situationalCB:SetChecked(UltraCursorFXDB.situationalEnabled)
+    situationalCB:SetChecked(addon:GetSetting("situationalEnabled"))
     situationalCB:SetScript("OnClick", function(self)
-        UltraCursorFXDB.situationalEnabled = self:GetChecked()
-        if UltraCursorFXDB.situationalEnabled then
+        addon:SetSetting("situationalEnabled", self:GetChecked())
+        if addon:GetSetting("situationalEnabled") then
             addon:SwitchToZoneProfile()
         end
     end)
@@ -502,9 +502,9 @@ function addon:CreateSettingsPanel()
     yPos = CreateSection("Basic Settings", yPos)
 
     local enableCB = CreateCheckbox("Enable", "Enable Cursor Trail", yPos, "Toggle the cursor trail effect on/off")
-    enableCB:SetChecked(UltraCursorFXDB.enabled)
+    enableCB:SetChecked(addon:GetSetting("enabled"))
     enableCB:SetScript("OnClick", function(self)
-        UltraCursorFXDB.enabled = self:GetChecked()
+        addon:SetSetting("enabled", self:GetChecked())
         addon:UpdateCursorState()
         AutoSaveToProfile()
     end)
@@ -512,18 +512,18 @@ function addon:CreateSettingsPanel()
     uiControls.enableCB = enableCB
 
     local flashCB = CreateCheckbox("Flash", "Enable Pulse Flash", yPos, "HDR flash effect synchronized with pulse")
-    flashCB:SetChecked(UltraCursorFXDB.flashEnabled)
+    flashCB:SetChecked(addon:GetSetting("flashEnabled"))
     flashCB:SetScript("OnClick", function(self)
-        UltraCursorFXDB.flashEnabled = self:GetChecked()
+        addon:SetSetting("flashEnabled", self:GetChecked())
         AutoSaveToProfile()
     end)
     yPos = yPos - 40
     uiControls.flashCB = flashCB
 
     local combatCB = CreateCheckbox("CombatOnly", "Combat Only Mode", yPos, "Only show cursor trail during combat")
-    combatCB:SetChecked(UltraCursorFXDB.combatOnly)
+    combatCB:SetChecked(addon:GetSetting("combatOnly"))
     combatCB:SetScript("OnClick", function(self)
-        UltraCursorFXDB.combatOnly = self:GetChecked()
+        addon:SetSetting("combatOnly", self:GetChecked())
         addon:UpdateCursorState()
         AutoSaveToProfile()
     end)
@@ -547,11 +547,11 @@ function addon:CreateSettingsPanel()
         1,
         "More points = longer trail | Fewer = shorter, snappier"
     )
-    pointsSlider:SetValue(UltraCursorFXDB.points or 48)
-    pointsSlider.valueText:SetText(UltraCursorFXDB.points or 48)
+    pointsSlider:SetValue(addon:GetSetting("points") or 48)
+    pointsSlider.valueText:SetText(addon:GetSetting("points") or 48)
     pointsSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
-        UltraCursorFXDB.points = value
+        addon:SetSetting("points", value)
         self.valueText:SetText(value .. " points")
         addon:BuildTrail()
         AutoSaveToProfile()
@@ -561,11 +561,11 @@ function addon:CreateSettingsPanel()
 
     local sizeSlider =
         CreateSlider("Size", "Particle Size", yPos, 10, 100, 1, "Bigger = more visible | Smaller = subtle")
-    sizeSlider:SetValue(UltraCursorFXDB.size or 34)
-    sizeSlider.valueText:SetText(UltraCursorFXDB.size or 34)
+    sizeSlider:SetValue(addon:GetSetting("size") or 34)
+    sizeSlider.valueText:SetText(addon:GetSetting("size") or 34)
     sizeSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
-        UltraCursorFXDB.size = value
+        addon:SetSetting("size", value)
         self.valueText:SetText(value .. "px")
         addon:BuildTrail()
         AutoSaveToProfile()
@@ -575,11 +575,11 @@ function addon:CreateSettingsPanel()
 
     local glowSlider =
         CreateSlider("GlowSize", "Glow Intensity", yPos, 10, 150, 1, "Larger = brighter glow around particles")
-    glowSlider:SetValue(UltraCursorFXDB.glowSize or 64)
-    glowSlider.valueText:SetText(UltraCursorFXDB.glowSize or 64)
+    glowSlider:SetValue(addon:GetSetting("glowSize") or 64)
+    glowSlider.valueText:SetText(addon:GetSetting("glowSize") or 64)
     glowSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
-        UltraCursorFXDB.glowSize = value
+        addon:SetSetting("glowSize", value)
         self.valueText:SetText(value .. "px")
         addon:BuildTrail()
         AutoSaveToProfile()
@@ -596,10 +596,10 @@ function addon:CreateSettingsPanel()
         0.01,
         "Higher = smoother, floaty | Lower = tight, responsive"
     )
-    smoothSlider:SetValue(UltraCursorFXDB.smoothness or 0.18)
-    smoothSlider.valueText:SetText(string.format("%.2f", UltraCursorFXDB.smoothness or 0.18))
+    smoothSlider:SetValue(addon:GetSetting("smoothness") or 0.18)
+    smoothSlider.valueText:SetText(string.format("%.2f", addon:GetSetting("smoothness") or 0.18))
     smoothSlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.smoothness = value
+        addon:SetSetting("smoothness", value)
         local desc = value < 0.15 and "(Snappy)" or value > 0.30 and "(Floaty)" or "(Balanced)"
         self.valueText:SetText(string.format("%.2f %s", value, desc))
         AutoSaveToProfile()
@@ -608,10 +608,10 @@ function addon:CreateSettingsPanel()
     uiControls.smoothSlider = smoothSlider
 
     local pulseSlider = CreateSlider("Pulse", "Pulse Speed", yPos, 0.5, 5.0, 0.1, "How fast the trail pulses/breathes")
-    pulseSlider:SetValue(UltraCursorFXDB.pulseSpeed or 2.5)
-    pulseSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.pulseSpeed or 2.5))
+    pulseSlider:SetValue(addon:GetSetting("pulseSpeed") or 2.5)
+    pulseSlider.valueText:SetText(string.format("%.1f", addon:GetSetting("pulseSpeed") or 2.5))
     pulseSlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.pulseSpeed = value
+        addon:SetSetting("pulseSpeed", value)
         local desc = value < 1.5 and "(Slow)" or value > 3.5 and "(Fast)" or "(Medium)"
         self.valueText:SetText(string.format("%.1f %s", value, desc))
         AutoSaveToProfile()
@@ -656,7 +656,7 @@ function addon:CreateSettingsPanel()
         end)
 
         btn:SetScript("OnClick", function()
-            UltraCursorFXDB.particleShape = shape.id
+            addon:SetSetting("particleShape", shape.id)
             -- Update button highlights first
             for _, s in ipairs(shapes) do
                 local b = _G["ShapeBtn" .. s.id]
@@ -672,7 +672,7 @@ function addon:CreateSettingsPanel()
 
         _G["ShapeBtn" .. shape.id] = btn
 
-        if UltraCursorFXDB.particleShape == shape.id then
+        if addon:GetSetting("particleShape") == shape.id then
             bg:SetColorTexture(0.2, 0.6, 0.2, 0.8)
         end
     end
@@ -682,19 +682,19 @@ function addon:CreateSettingsPanel()
     yPos = CreateSection("Color Settings", yPos)
 
     local rainbowCB = CreateCheckbox("Rainbow", "Rainbow Mode", yPos, "Automatically cycle through rainbow colors")
-    rainbowCB:SetChecked(UltraCursorFXDB.rainbowMode)
+    rainbowCB:SetChecked(addon:GetSetting("rainbowMode"))
     rainbowCB:SetScript("OnClick", function(self)
-        UltraCursorFXDB.rainbowMode = self:GetChecked()
+        addon:SetSetting("rainbowMode", self:GetChecked())
         AutoSaveToProfile()
     end)
     yPos = yPos - 50
     uiControls.rainbowCB = rainbowCB
 
     local rainbowSlider = CreateSlider("RainbowSpeed", "Rainbow Speed", yPos, 0.1, 5.0, 0.1, "Speed of color cycling")
-    rainbowSlider:SetValue(UltraCursorFXDB.rainbowSpeed or 1.0)
-    rainbowSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.rainbowSpeed or 1.0))
+    rainbowSlider:SetValue(addon:GetSetting("rainbowSpeed") or 1.0)
+    rainbowSlider.valueText:SetText(string.format("%.1f", addon:GetSetting("rainbowSpeed") or 1.0))
     rainbowSlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.rainbowSpeed = value
+        addon:SetSetting("rainbowSpeed", value)
         self.valueText:SetText(string.format("%.1f", value))
         AutoSaveToProfile()
     end)
@@ -702,7 +702,7 @@ function addon:CreateSettingsPanel()
     uiControls.rainbowSlider = rainbowSlider
 
     local function ShowColorPicker(onChange)
-        local r, g, b = UltraCursorFXDB.color[1], UltraCursorFXDB.color[2], UltraCursorFXDB.color[3]
+        local r, g, b = addon:GetSetting("color")[1], addon:GetSetting("color")[2], addon:GetSetting("color")[3]
         local info = {
             r = r,
             g = g,
@@ -711,8 +711,8 @@ function addon:CreateSettingsPanel()
             hasOpacity = false,
             swatchFunc = function()
                 local nr, ng, nb = ColorPickerFrame:GetColorRGB()
-                UltraCursorFXDB.color = { nr, ng, nb }
-                UltraCursorFXDB.rainbowMode = false
+                addon:SetSetting("color", { nr, ng, nb })
+                addon:SetSetting("rainbowMode", false)
                 rainbowCB:SetChecked(false)
                 addon:BuildTrail()
                 AutoSaveToProfile()
@@ -721,7 +721,7 @@ function addon:CreateSettingsPanel()
                 end
             end,
             cancelFunc = function()
-                UltraCursorFXDB.color = { r, g, b }
+                addon:SetSetting("color", { r, g, b })
                 addon:BuildTrail()
                 AutoSaveToProfile()
                 if onChange then
@@ -733,7 +733,7 @@ function addon:CreateSettingsPanel()
     end
 
     local colorBtn = CreateColorPicker("Color", "Custom Color", yPos)
-    colorBtn.texture:SetColorTexture(unpack(UltraCursorFXDB.color))
+    colorBtn.texture:SetColorTexture(unpack(addon:GetSetting("color") or addon.defaults.color or { 0.0, 1.0, 1.0 }))
     colorBtn:SetScript("OnClick", function(self)
         ShowColorPicker(function(r, g, b)
             self.texture:SetColorTexture(r, g, b)
@@ -768,8 +768,8 @@ function addon:CreateSettingsPanel()
         bg:SetColorTexture(0.2, 0.2, 0.2, 0.8)
 
         btn:SetScript("OnClick", function()
-            UltraCursorFXDB.color = { unpack(preset.color) }
-            UltraCursorFXDB.rainbowMode = false
+            addon:SetSetting("color", { unpack(preset.color) })
+            addon:SetSetting("rainbowMode", false)
             rainbowCB:SetChecked(false)
             colorBtn.texture:SetColorTexture(unpack(preset.color))
             addon:BuildTrail()
@@ -782,9 +782,9 @@ function addon:CreateSettingsPanel()
     yPos = CreateSection("Click Effects", yPos)
 
     local clickCB = CreateCheckbox("ClickFX", "Enable Click Effects", yPos, "Particle burst when clicking")
-    clickCB:SetChecked(UltraCursorFXDB.clickEffects)
+    clickCB:SetChecked(addon:GetSetting("clickEffects"))
     clickCB:SetScript("OnClick", function(self)
-        UltraCursorFXDB.clickEffects = self:GetChecked()
+        addon:SetSetting("clickEffects", self:GetChecked())
         AutoSaveToProfile()
     end)
     yPos = yPos - 50
@@ -792,11 +792,11 @@ function addon:CreateSettingsPanel()
 
     local clickParticlesSlider =
         CreateSlider("ClickParticles", "Click Particles", yPos, 4, 24, 1, "Number of particles per click")
-    clickParticlesSlider:SetValue(UltraCursorFXDB.clickParticles or 12)
-    clickParticlesSlider.valueText:SetText(UltraCursorFXDB.clickParticles or 12)
+    clickParticlesSlider:SetValue(addon:GetSetting("clickParticles") or 12)
+    clickParticlesSlider.valueText:SetText(addon:GetSetting("clickParticles") or 12)
     clickParticlesSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
-        UltraCursorFXDB.clickParticles = value
+        addon:SetSetting("clickParticles", value)
         self.valueText:SetText(value)
         AutoSaveToProfile()
     end)
@@ -805,11 +805,11 @@ function addon:CreateSettingsPanel()
 
     local clickSizeSlider =
         CreateSlider("ClickSize", "Click Particle Size", yPos, 20, 100, 1, "Size of click particles")
-    clickSizeSlider:SetValue(UltraCursorFXDB.clickSize or 50)
-    clickSizeSlider.valueText:SetText(UltraCursorFXDB.clickSize or 50)
+    clickSizeSlider:SetValue(addon:GetSetting("clickSize") or 50)
+    clickSizeSlider.valueText:SetText(addon:GetSetting("clickSize") or 50)
     clickSizeSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
-        UltraCursorFXDB.clickSize = value
+        addon:SetSetting("clickSize", value)
         self.valueText:SetText(value)
         AutoSaveToProfile()
     end)
@@ -818,10 +818,10 @@ function addon:CreateSettingsPanel()
 
     local clickDurationSlider =
         CreateSlider("ClickDuration", "Click Effect Duration", yPos, 0.2, 2.0, 0.1, "How long click effects last")
-    clickDurationSlider:SetValue(UltraCursorFXDB.clickDuration or 0.6)
-    clickDurationSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.clickDuration or 0.6))
+    clickDurationSlider:SetValue(addon:GetSetting("clickDuration") or 0.6)
+    clickDurationSlider.valueText:SetText(string.format("%.1f", addon:GetSetting("clickDuration") or 0.6))
     clickDurationSlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.clickDuration = value
+        addon:SetSetting("clickDuration", value)
         self.valueText:SetText(string.format("%.1f", value))
         AutoSaveToProfile()
     end)
@@ -832,9 +832,9 @@ function addon:CreateSettingsPanel()
     yPos = CreateSection("Comet Mode", yPos)
 
     local cometCB = CreateCheckbox("Comet", "Enable Comet Mode", yPos, "Elongated trailing effect")
-    cometCB:SetChecked(UltraCursorFXDB.cometMode)
+    cometCB:SetChecked(addon:GetSetting("cometMode"))
     cometCB:SetScript("OnClick", function(self)
-        UltraCursorFXDB.cometMode = self:GetChecked()
+        addon:SetSetting("cometMode", self:GetChecked())
         AutoSaveToProfile()
     end)
     yPos = yPos - 50
@@ -842,10 +842,10 @@ function addon:CreateSettingsPanel()
 
     local cometSlider =
         CreateSlider("CometLength", "Comet Tail Length", yPos, 1.0, 5.0, 0.1, "Length multiplier for comet tail")
-    cometSlider:SetValue(UltraCursorFXDB.cometLength or 2.0)
-    cometSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.cometLength or 2.0))
+    cometSlider:SetValue(addon:GetSetting("cometLength") or 2.0)
+    cometSlider.valueText:SetText(string.format("%.1f", addon:GetSetting("cometLength") or 2.0))
     cometSlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.cometLength = value
+        addon:SetSetting("cometLength", value)
         self.valueText:SetText(string.format("%.1f", value))
         addon:BuildTrail()
         AutoSaveToProfile()
@@ -858,10 +858,10 @@ function addon:CreateSettingsPanel()
 
     local opacitySlider =
         CreateSlider("Opacity", "Trail Opacity", yPos, 0.1, 1.0, 0.05, "Overall visibility of cursor trail")
-    opacitySlider:SetValue(UltraCursorFXDB.opacity or 1.0)
-    opacitySlider.valueText:SetText(string.format("%d%%", math.floor((UltraCursorFXDB.opacity or 1.0) * 100)))
+    opacitySlider:SetValue(addon:GetSetting("opacity") or 1.0)
+    opacitySlider.valueText:SetText(string.format("%d%%", math.floor((addon:GetSetting("opacity") or 1.0) * 100)))
     opacitySlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.opacity = value
+        addon:SetSetting("opacity", value)
         self.valueText:SetText(string.format("%d%%", math.floor(value * 100)))
         AutoSaveToProfile()
     end)
@@ -869,9 +869,9 @@ function addon:CreateSettingsPanel()
     uiControls.opacitySlider = opacitySlider
 
     local fadeCB = CreateCheckbox("Fade", "Enable Fade Mode", yPos, "Gradually fade particles from head to tail")
-    fadeCB:SetChecked(UltraCursorFXDB.fadeEnabled)
+    fadeCB:SetChecked(addon:GetSetting("fadeEnabled"))
     fadeCB:SetScript("OnClick", function(self)
-        UltraCursorFXDB.fadeEnabled = self:GetChecked()
+        addon:SetSetting("fadeEnabled", self:GetChecked())
         AutoSaveToProfile()
     end)
     yPos = yPos - 50
@@ -879,10 +879,10 @@ function addon:CreateSettingsPanel()
 
     local fadeStrengthSlider =
         CreateSlider("FadeStrength", "Fade Strength", yPos, 0.0, 1.0, 0.05, "How quickly particles fade along trail")
-    fadeStrengthSlider:SetValue(UltraCursorFXDB.fadeStrength or 0.5)
-    fadeStrengthSlider.valueText:SetText(string.format("%.0f%%", (UltraCursorFXDB.fadeStrength or 0.5) * 100))
+    fadeStrengthSlider:SetValue(addon:GetSetting("fadeStrength") or 0.5)
+    fadeStrengthSlider.valueText:SetText(string.format("%.0f%%", (addon:GetSetting("fadeStrength") or 0.5) * 100))
     fadeStrengthSlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.fadeStrength = value
+        addon:SetSetting("fadeStrength", value)
         local desc = value < 0.3 and "(Subtle)" or value > 0.7 and "(Aggressive)" or "(Moderate)"
         self.valueText:SetText(string.format("%.0f%% %s", value * 100, desc))
         AutoSaveToProfile()
@@ -892,9 +892,9 @@ function addon:CreateSettingsPanel()
 
     local combatBoostCB =
         CreateCheckbox("CombatBoost", "Combat Opacity Boost", yPos, "Increase trail visibility by 30% during combat")
-    combatBoostCB:SetChecked(UltraCursorFXDB.combatOpacityBoost)
+    combatBoostCB:SetChecked(addon:GetSetting("combatOpacityBoost"))
     combatBoostCB:SetScript("OnClick", function(self)
-        UltraCursorFXDB.combatOpacityBoost = self:GetChecked()
+        addon:SetSetting("combatOpacityBoost", self:GetChecked())
         AutoSaveToProfile()
     end)
     yPos = yPos - 70
@@ -909,9 +909,9 @@ function addon:CreateSettingsPanel()
         yPos,
         "Dynamic crosshair that changes based on mouseover target"
     )
-    reticleEnabledCB:SetChecked(UltraCursorFXDB.reticleEnabled)
+    reticleEnabledCB:SetChecked(addon:GetSetting("reticleEnabled"))
     reticleEnabledCB:SetScript("OnClick", function(self)
-        UltraCursorFXDB.reticleEnabled = self:GetChecked()
+        addon:SetSetting("reticleEnabled", self:GetChecked())
         addon:BuildTrail() -- Rebuild reticle
         AutoSaveToProfile()
     end)
@@ -942,19 +942,19 @@ function addon:CreateSettingsPanel()
             info.text = style.text
             info.value = style.value
             info.func = function()
-                UltraCursorFXDB.reticleStyle = style.value
+                addon:SetSetting("reticleStyle", style.value)
                 UIDropDownMenu_SetText(reticleStyleDD, style.text)
                 addon:BuildTrail() -- Rebuild reticle with new style
                 AutoSaveToProfile()
             end
-            info.checked = (UltraCursorFXDB.reticleStyle == style.value)
+            info.checked = (addon:GetSetting("reticleStyle") == style.value)
             UIDropDownMenu_AddButton(info, level)
         end
     end)
 
     local currentStyleText = "Crosshair (Classic +)"
     for _, style in ipairs(reticleStyles) do
-        if style.value == UltraCursorFXDB.reticleStyle then
+        if style.value == addon:GetSetting("reticleStyle") then
             currentStyleText = style.text
             break
         end
@@ -964,10 +964,10 @@ function addon:CreateSettingsPanel()
     uiControls.reticleStyleDD = reticleStyleDD
 
     local reticleSizeSlider = CreateSlider("ReticleSize", "Reticle Size", yPos, 40, 150, 5, "Size of the reticle ring")
-    reticleSizeSlider:SetValue(UltraCursorFXDB.reticleSize or 80)
-    reticleSizeSlider.valueText:SetText(math.floor(UltraCursorFXDB.reticleSize or 80))
+    reticleSizeSlider:SetValue(addon:GetSetting("reticleSize") or 80)
+    reticleSizeSlider.valueText:SetText(math.floor(addon:GetSetting("reticleSize") or 80))
     reticleSizeSlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.reticleSize = value
+        addon:SetSetting("reticleSize", value)
         self.valueText:SetText(math.floor(value))
         AutoSaveToProfile()
     end)
@@ -976,10 +976,10 @@ function addon:CreateSettingsPanel()
 
     local reticleBrightnessSlider =
         CreateSlider("ReticleBrightness", "Brightness", yPos, 0.5, 2.0, 0.1, "Brightness multiplier for reticle glow")
-    reticleBrightnessSlider:SetValue(UltraCursorFXDB.reticleBrightness or 1.0)
-    reticleBrightnessSlider.valueText:SetText(string.format("%.1fx", UltraCursorFXDB.reticleBrightness or 1.0))
+    reticleBrightnessSlider:SetValue(addon:GetSetting("reticleBrightness") or 1.0)
+    reticleBrightnessSlider.valueText:SetText(string.format("%.1fx", addon:GetSetting("reticleBrightness") or 1.0))
     reticleBrightnessSlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.reticleBrightness = value
+        addon:SetSetting("reticleBrightness", value)
         self.valueText:SetText(string.format("%.1fx", value))
         AutoSaveToProfile()
     end)
@@ -988,12 +988,12 @@ function addon:CreateSettingsPanel()
 
     local reticleOpacitySlider =
         CreateSlider("ReticleOpacity", "Reticle Opacity", yPos, 0.2, 1.0, 0.05, "Overall visibility of reticle")
-    reticleOpacitySlider:SetValue(UltraCursorFXDB.reticleOpacity or 0.7)
+    reticleOpacitySlider:SetValue(addon:GetSetting("reticleOpacity") or 0.7)
     reticleOpacitySlider.valueText:SetText(
-        string.format("%d%%", math.floor((UltraCursorFXDB.reticleOpacity or 0.7) * 100))
+        string.format("%d%%", math.floor((addon:GetSetting("reticleOpacity") or 0.7) * 100))
     )
     reticleOpacitySlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.reticleOpacity = value
+        addon:SetSetting("reticleOpacity", value)
         self.valueText:SetText(string.format("%d%%", math.floor(value * 100)))
         AutoSaveToProfile()
     end)
@@ -1002,10 +1002,10 @@ function addon:CreateSettingsPanel()
 
     local reticleRotationSlider =
         CreateSlider("ReticleRotation", "Rotation Speed", yPos, 0.0, 3.0, 0.1, "Speed of reticle rotation animation")
-    reticleRotationSlider:SetValue(UltraCursorFXDB.reticleRotationSpeed or 1.0)
-    reticleRotationSlider.valueText:SetText(string.format("%.1fx", UltraCursorFXDB.reticleRotationSpeed or 1.0))
+    reticleRotationSlider:SetValue(addon:GetSetting("reticleRotationSpeed") or 1.0)
+    reticleRotationSlider.valueText:SetText(string.format("%.1fx", addon:GetSetting("reticleRotationSpeed") or 1.0))
     reticleRotationSlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.reticleRotationSpeed = value
+        addon:SetSetting("reticleRotationSpeed", value)
         self.valueText:SetText(string.format("%.1fx", value))
         AutoSaveToProfile()
     end)
@@ -1037,9 +1037,9 @@ function addon:CreateSettingsPanel()
         yPos,
         "Show arrows when cursor gets close to screen boundaries"
     )
-    edgeEnabledCB:SetChecked(UltraCursorFXDB.edgeWarningEnabled)
+    edgeEnabledCB:SetChecked(addon:GetSetting("edgeWarningEnabled"))
     edgeEnabledCB:SetScript("OnClick", function(self)
-        UltraCursorFXDB.edgeWarningEnabled = self:GetChecked()
+        addon:SetSetting("edgeWarningEnabled", self:GetChecked())
         addon:BuildTrail() -- Rebuild edge warnings
         AutoSaveToProfile()
     end)
@@ -1055,10 +1055,12 @@ function addon:CreateSettingsPanel()
         5,
         "How close to edge (in pixels) before warning appears"
     )
-    edgeDistanceSlider:SetValue(UltraCursorFXDB.edgeWarningDistance or 50)
-    edgeDistanceSlider.valueText:SetText(string.format("%dpx", math.floor(UltraCursorFXDB.edgeWarningDistance or 50)))
+    edgeDistanceSlider:SetValue(addon:GetSetting("edgeWarningDistance") or 50)
+    edgeDistanceSlider.valueText:SetText(
+        string.format("%dpx", math.floor(addon:GetSetting("edgeWarningDistance") or 50))
+    )
     edgeDistanceSlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.edgeWarningDistance = value
+        addon:SetSetting("edgeWarningDistance", value)
         self.valueText:SetText(string.format("%dpx", math.floor(value)))
         AutoSaveToProfile()
     end)
@@ -1066,10 +1068,10 @@ function addon:CreateSettingsPanel()
     uiControls.edgeDistanceSlider = edgeDistanceSlider
 
     local edgeSizeSlider = CreateSlider("EdgeSize", "Arrow Size", yPos, 32, 128, 4, "Size of warning arrows")
-    edgeSizeSlider:SetValue(UltraCursorFXDB.edgeWarningSize or 64)
-    edgeSizeSlider.valueText:SetText(math.floor(UltraCursorFXDB.edgeWarningSize or 64))
+    edgeSizeSlider:SetValue(addon:GetSetting("edgeWarningSize") or 64)
+    edgeSizeSlider.valueText:SetText(math.floor(addon:GetSetting("edgeWarningSize") or 64))
     edgeSizeSlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.edgeWarningSize = value
+        addon:SetSetting("edgeWarningSize", value)
         self.valueText:SetText(math.floor(value))
         addon:BuildTrail() -- Rebuild arrows with new size
         AutoSaveToProfile()
@@ -1079,12 +1081,12 @@ function addon:CreateSettingsPanel()
 
     local edgeOpacitySlider =
         CreateSlider("EdgeOpacity", "Arrow Opacity", yPos, 0.3, 1.0, 0.05, "How visible the warning arrows are")
-    edgeOpacitySlider:SetValue(UltraCursorFXDB.edgeWarningOpacity or 0.8)
+    edgeOpacitySlider:SetValue(addon:GetSetting("edgeWarningOpacity") or 0.8)
     edgeOpacitySlider.valueText:SetText(
-        string.format("%d%%", math.floor((UltraCursorFXDB.edgeWarningOpacity or 0.8) * 100))
+        string.format("%d%%", math.floor((addon:GetSetting("edgeWarningOpacity") or 0.8) * 100))
     )
     edgeOpacitySlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.edgeWarningOpacity = value
+        addon:SetSetting("edgeWarningOpacity", value)
         self.valueText:SetText(string.format("%d%%", math.floor(value * 100)))
         AutoSaveToProfile()
     end)
@@ -1100,12 +1102,12 @@ function addon:CreateSettingsPanel()
         0.05,
         "How much the arrows and reticle grow and shrink near edges"
     )
-    edgePulseSlider:SetValue(UltraCursorFXDB.edgeWarningPulseIntensity or 0.5)
+    edgePulseSlider:SetValue(addon:GetSetting("edgeWarningPulseIntensity") or 0.5)
     edgePulseSlider.valueText:SetText(
-        string.format("%d%%", math.floor((UltraCursorFXDB.edgeWarningPulseIntensity or 0.5) * 100))
+        string.format("%d%%", math.floor((addon:GetSetting("edgeWarningPulseIntensity") or 0.5) * 100))
     )
     edgePulseSlider:SetScript("OnValueChanged", function(self, value)
-        UltraCursorFXDB.edgeWarningPulseIntensity = value
+        addon:SetSetting("edgeWarningPulseIntensity", value)
         self.valueText:SetText(string.format("%d%%", math.floor(value * 100)))
         AutoSaveToProfile()
     end)
@@ -1276,47 +1278,49 @@ function addon:CreateSettingsPanel()
             )
         end
         if uiControls.reticleRotationSlider then
-            uiControls.reticleRotationSlider:SetValue(UltraCursorFXDB.reticleRotationSpeed or 1.0)
+            uiControls.reticleRotationSlider:SetValue(addon:GetSetting("reticleRotationSpeed") or 1.0)
             uiControls.reticleRotationSlider.valueText:SetText(
-                string.format("%.1fx", UltraCursorFXDB.reticleRotationSpeed or 1.0)
+                string.format("%.1fx", addon:GetSetting("reticleRotationSpeed") or 1.0)
             )
         end
 
         -- Update edge warning controls
         if uiControls.edgeEnabledCB then
-            uiControls.edgeEnabledCB:SetChecked(UltraCursorFXDB.edgeWarningEnabled)
+            uiControls.edgeEnabledCB:SetChecked(addon:GetSetting("edgeWarningEnabled"))
         end
         if uiControls.edgeDistanceSlider then
-            uiControls.edgeDistanceSlider:SetValue(UltraCursorFXDB.edgeWarningDistance or 50)
+            uiControls.edgeDistanceSlider:SetValue(addon:GetSetting("edgeWarningDistance") or 50)
             uiControls.edgeDistanceSlider.valueText:SetText(
-                string.format("%dpx", math.floor(UltraCursorFXDB.edgeWarningDistance or 50))
+                string.format("%dpx", math.floor(addon:GetSetting("edgeWarningDistance") or 50))
             )
         end
         if uiControls.edgeSizeSlider then
-            uiControls.edgeSizeSlider:SetValue(UltraCursorFXDB.edgeWarningSize or 64)
-            uiControls.edgeSizeSlider.valueText:SetText(math.floor(UltraCursorFXDB.edgeWarningSize or 64))
+            uiControls.edgeSizeSlider:SetValue(addon:GetSetting("edgeWarningSize") or 64)
+            uiControls.edgeSizeSlider.valueText:SetText(math.floor(addon:GetSetting("edgeWarningSize") or 64))
         end
         if uiControls.edgeOpacitySlider then
-            uiControls.edgeOpacitySlider:SetValue(UltraCursorFXDB.edgeWarningOpacity or 0.8)
+            uiControls.edgeOpacitySlider:SetValue(addon:GetSetting("edgeWarningOpacity") or 0.8)
             uiControls.edgeOpacitySlider.valueText:SetText(
-                string.format("%d%%", math.floor((UltraCursorFXDB.edgeWarningOpacity or 0.8) * 100))
+                string.format("%d%%", math.floor((addon:GetSetting("edgeWarningOpacity") or 0.8) * 100))
             )
         end
         if uiControls.edgePulseSlider then
-            uiControls.edgePulseSlider:SetValue(UltraCursorFXDB.edgeWarningPulseIntensity or 0.5)
+            uiControls.edgePulseSlider:SetValue(addon:GetSetting("edgeWarningPulseIntensity") or 0.5)
             uiControls.edgePulseSlider.valueText:SetText(
-                string.format("%d%%", math.floor((UltraCursorFXDB.edgeWarningPulseIntensity or 0.5) * 100))
+                string.format("%d%%", math.floor((addon:GetSetting("edgeWarningPulseIntensity") or 0.5) * 100))
             )
         end
 
         -- Update color button
-        uiControls.colorBtn.texture:SetColorTexture(unpack(UltraCursorFXDB.color))
+        uiControls.colorBtn.texture:SetColorTexture(
+            unpack(addon:GetSetting("color") or addon.defaults.color or { 0.0, 1.0, 1.0 })
+        )
 
         -- Update particle shape button highlights
         for _, s in ipairs(shapes) do
             local b = _G["ShapeBtn" .. s.id]
             if b and b.bg then
-                if UltraCursorFXDB.particleShape == s.id then
+                if addon:GetSetting("particleShape") == s.id then
                     b.bg:SetColorTexture(0.2, 0.6, 0.2, 0.8)
                 else
                     b.bg:SetColorTexture(0.2, 0.2, 0.2, 0.8)
@@ -1345,18 +1349,18 @@ end
 -- ===============================
 function UltraCursorFX_Toggle()
     local addon = UltraCursorFX
-    UltraCursorFXDB.enabled = not UltraCursorFXDB.enabled
-    if UltraCursorFXDB.enabled then
+    addon:SetSetting("enabled", not addon:GetSetting("enabled"))
+    if addon:GetSetting("enabled") then
         addon.frame:SetScript("OnUpdate", function(_, elapsed)
             addon:OnUpdate(elapsed)
         end)
     else
         addon.frame:SetScript("OnUpdate", nil)
     end
-    print("UltraCursorFX:", UltraCursorFXDB.enabled and "Enabled" or "Disabled")
+    print("UltraCursorFX:", addon:GetSetting("enabled") and "Enabled" or "Disabled")
 end
 
 function UltraCursorFX_ToggleFlash()
-    UltraCursorFXDB.flashEnabled = not UltraCursorFXDB.flashEnabled
-    print("UltraCursorFX Flash:", UltraCursorFXDB.flashEnabled and "Enabled" or "Disabled")
+    addon:SetSetting("flashEnabled", not addon:GetSetting("flashEnabled"))
+    print("UltraCursorFX Flash:", addon:GetSetting("flashEnabled") and "Enabled" or "Disabled")
 end

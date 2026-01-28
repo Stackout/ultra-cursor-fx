@@ -18,7 +18,7 @@ describe("Edge Warning System", function()
 
     describe("BuildEdgeWarnings", function()
         it("should create edge warnings when enabled", function()
-            UltraCursorFXDB.edgeWarningEnabled = true
+            addon:SetSetting("edgeWarningEnabled", true)
             addon:BuildEdgeWarnings()
 
             assert.is_not_nil(addon.edgeWarnings.top)
@@ -31,15 +31,15 @@ describe("Edge Warning System", function()
         end)
 
         it("should not create warnings when disabled", function()
-            UltraCursorFXDB.edgeWarningEnabled = false
+            addon:SetSetting("edgeWarningEnabled", false)
             addon:BuildEdgeWarnings()
 
             assert.equals(0, #addon.edgeWarnings)
         end)
 
         it("should respect edge warning size setting", function()
-            UltraCursorFXDB.edgeWarningEnabled = true
-            UltraCursorFXDB.edgeWarningSize = 100
+            addon:SetSetting("edgeWarningEnabled", true)
+            addon:SetSetting("edgeWarningSize", 100)
             addon:BuildEdgeWarnings()
 
             -- Size is set during BuildEdgeWarnings
@@ -48,7 +48,7 @@ describe("Edge Warning System", function()
         end)
 
         it("should clean up existing warnings before rebuilding", function()
-            UltraCursorFXDB.edgeWarningEnabled = true
+            addon:SetSetting("edgeWarningEnabled", true)
             addon:BuildEdgeWarnings()
             local firstTop = addon.edgeWarnings.top
 
@@ -63,10 +63,10 @@ describe("Edge Warning System", function()
 
     describe("UpdateEdgeWarnings", function()
         before_each(function()
-            UltraCursorFXDB.edgeWarningEnabled = true
-            UltraCursorFXDB.edgeWarningDistance = 50
-            UltraCursorFXDB.edgeWarningSize = 64
-            UltraCursorFXDB.edgeWarningOpacity = 0.8
+            addon:SetSetting("edgeWarningEnabled", true)
+            addon:SetSetting("edgeWarningDistance", 50)
+            addon:SetSetting("edgeWarningSize", 64)
+            addon:SetSetting("edgeWarningOpacity", 0.8)
             addon:BuildEdgeWarnings()
         end)
 
@@ -133,7 +133,7 @@ describe("Edge Warning System", function()
         end)
 
         it("should respect edgeWarningDistance setting", function()
-            UltraCursorFXDB.edgeWarningDistance = 100
+            addon:SetSetting("edgeWarningDistance", 100)
             local mouseX, mouseY = 500, 80 -- 80 pixels from bottom
 
             addon:UpdateEdgeWarnings(0.016, mouseX, mouseY)
@@ -142,7 +142,7 @@ describe("Edge Warning System", function()
             assert.is_false(addon.edgeWarnings.bottom.arrow.hidden)
 
             -- Now with smaller distance
-            UltraCursorFXDB.edgeWarningDistance = 50
+            addon:SetSetting("edgeWarningDistance", 50)
             addon:UpdateEdgeWarnings(0.016, mouseX, mouseY)
 
             -- Should hide because 80 > 50
@@ -161,8 +161,8 @@ describe("Edge Warning System", function()
         end)
 
         it("should use pulse intensity for size pulsation", function()
-            UltraCursorFXDB.edgeWarningPulseIntensity = 0.5
-            UltraCursorFXDB.edgeWarningSize = 100
+            addon:SetSetting("edgeWarningPulseIntensity", 0.5)
+            addon:SetSetting("edgeWarningSize", 100)
             local mouseX, mouseY = 500, 30
 
             addon:UpdateEdgeWarnings(0.016, mouseX, mouseY)
@@ -190,7 +190,7 @@ describe("Edge Warning System", function()
         end)
 
         it("should return false when edge warnings disabled", function()
-            UltraCursorFXDB.edgeWarningEnabled = false
+            addon:SetSetting("edgeWarningEnabled", false)
             local mouseX, mouseY = 500, 30 -- Near edge but disabled
 
             local result = addon:UpdateEdgeWarnings(0.016, mouseX, mouseY)
@@ -221,7 +221,7 @@ describe("Edge Warning System", function()
         end)
 
         it("should apply opacity setting to arrows", function()
-            UltraCursorFXDB.edgeWarningOpacity = 0.5
+            addon:SetSetting("edgeWarningOpacity", 0.5)
             local mouseX, mouseY = 500, 30
 
             addon:UpdateEdgeWarnings(0.016, mouseX, mouseY)
@@ -232,7 +232,7 @@ describe("Edge Warning System", function()
         end)
 
         it("should hide all warnings when feature disabled", function()
-            UltraCursorFXDB.edgeWarningEnabled = false
+            addon:SetSetting("edgeWarningEnabled", false)
             local mouseX, mouseY = 30, 30 -- Corner - would normally trigger
 
             addon:UpdateEdgeWarnings(0.016, mouseX, mouseY)
@@ -258,7 +258,7 @@ describe("Edge Warning System", function()
 
         it("should make glow slightly larger than arrow", function()
             local mouseX, mouseY = 500, 30
-            UltraCursorFXDB.edgeWarningSize = 64
+            addon:SetSetting("edgeWarningSize", 64)
 
             addon:UpdateEdgeWarnings(0.016, mouseX, mouseY)
 
@@ -269,8 +269,8 @@ describe("Edge Warning System", function()
 
     describe("Edge Detection Edge Cases", function()
         before_each(function()
-            UltraCursorFXDB.edgeWarningEnabled = true
-            UltraCursorFXDB.edgeWarningDistance = 50
+            addon:SetSetting("edgeWarningEnabled", true)
+            addon:SetSetting("edgeWarningDistance", 50)
             addon:BuildEdgeWarnings()
         end)
 
@@ -304,7 +304,7 @@ describe("Edge Warning System", function()
         end)
 
         it("should handle very small distance setting", function()
-            UltraCursorFXDB.edgeWarningDistance = 1
+            addon:SetSetting("edgeWarningDistance", 1)
             local mouseX, mouseY = 500, 2 -- Just 2 pixels from bottom
 
             addon:UpdateEdgeWarnings(0.016, mouseX, mouseY)
@@ -315,7 +315,7 @@ describe("Edge Warning System", function()
 
         it("should handle very large distance setting", function()
             local screenHeight = UIParent:GetHeight()
-            UltraCursorFXDB.edgeWarningDistance = 500
+            addon:SetSetting("edgeWarningDistance", 500)
             local mouseX, mouseY = 500, screenHeight / 2
 
             addon:UpdateEdgeWarnings(0.016, mouseX, mouseY)
@@ -327,8 +327,8 @@ describe("Edge Warning System", function()
 
     describe("Integration with BuildTrail", function()
         it("should build edge warnings when building trail", function()
-            UltraCursorFXDB.edgeWarningEnabled = true
-            UltraCursorFXDB.points = 10
+            addon:SetSetting("edgeWarningEnabled", true)
+            addon:SetSetting("points", 10)
 
             addon:BuildTrail()
 
@@ -340,7 +340,7 @@ describe("Edge Warning System", function()
         end)
 
         it("should clear old warnings when rebuilding trail", function()
-            UltraCursorFXDB.edgeWarningEnabled = true
+            addon:SetSetting("edgeWarningEnabled", true)
             addon:BuildTrail()
             local oldTop = addon.edgeWarnings.top
 
@@ -375,10 +375,10 @@ describe("Edge Warning System", function()
             _G.UltraCursorFXDB = {}
             addon:InitializeDefaults()
 
-            assert.is_false(UltraCursorFXDB.edgeWarningEnabled)
-            assert.equals(50, UltraCursorFXDB.edgeWarningDistance)
-            assert.equals(64, UltraCursorFXDB.edgeWarningSize)
-            assert.equals(0.8, UltraCursorFXDB.edgeWarningOpacity)
+            assert.is_false(addon:GetSetting("edgeWarningEnabled"))
+            assert.equals(50, addon:GetSetting("edgeWarningDistance"))
+            assert.equals(64, addon:GetSetting("edgeWarningSize"))
+            assert.equals(0.8, addon:GetSetting("edgeWarningOpacity"))
         end)
     end)
 

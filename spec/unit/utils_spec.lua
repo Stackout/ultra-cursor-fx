@@ -188,13 +188,20 @@ describe("Utils Module", function()
     describe("Export/Import Settings", function()
         before_each(function()
             _G.UltraCursorFXDB = {
-                enabled = true,
-                flashEnabled = false,
-                points = 60,
-                size = 40,
-                color = { 1.0, 0.5, 0.0 },
-                particleShape = "spark",
-                rainbowMode = true,
+                account = {
+                    enabled = true,
+                    flashEnabled = false,
+                    points = 60,
+                    size = 40,
+                    color = { 1.0, 0.5, 0.0 },
+                    particleShape = "spark",
+                    rainbowMode = true,
+                },
+                characters = {
+                    ["TestCharacter-TestRealm"] = {
+                        useAccountSettings = true,
+                    },
+                },
             }
         end)
 
@@ -217,13 +224,13 @@ describe("Utils Module", function()
             assert.is_string(message)
 
             -- Verify values
-            assert.is_true(_G.UltraCursorFXDB.enabled)
-            assert.is_false(_G.UltraCursorFXDB.flashEnabled)
-            assert.are.equal(60, _G.UltraCursorFXDB.points)
-            assert.are.equal(40, _G.UltraCursorFXDB.size)
-            assert.are.same({ 1, 0.5, 0 }, _G.UltraCursorFXDB.color)
-            assert.are.equal("spark", _G.UltraCursorFXDB.particleShape)
-            assert.is_true(_G.UltraCursorFXDB.rainbowMode)
+            assert.is_true(addon:GetSetting("enabled"))
+            assert.is_false(addon:GetSetting("flashEnabled"))
+            assert.are.equal(60, addon:GetSetting("points"))
+            assert.are.equal(40, addon:GetSetting("size"))
+            assert.are.same({ 1, 0.5, 0 }, addon:GetSetting("color"))
+            assert.are.equal("spark", addon:GetSetting("particleShape"))
+            assert.is_true(addon:GetSetting("rainbowMode"))
         end)
 
         it("should reject invalid import strings", function()
@@ -257,12 +264,12 @@ describe("Utils Module", function()
                 points = 50,
                 -- Missing most other settings
             }
-            
+
             local exported = addon:ExportSettings()
             _G.UltraCursorFXDB = {}
-            
+
             local success, message = addon:ImportSettings(exported)
-            
+
             -- Should succeed and note may be from older version
             assert.is_true(success)
             assert.is_string(message)

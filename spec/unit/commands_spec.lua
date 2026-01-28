@@ -32,19 +32,19 @@ describe("Commands Module", function()
 
     describe("Toggle Commands", function()
         it("should toggle addon off", function()
-            UltraCursorFXDB.enabled = true
+            addon:SetSetting("enabled", true)
             slashHandler("off")
-            assert.is_false(UltraCursorFXDB.enabled)
+            assert.is_false(addon:GetSetting("enabled"))
         end)
 
         it("should toggle addon on", function()
-            UltraCursorFXDB.enabled = false
+            addon:SetSetting("enabled", false)
             slashHandler("on")
-            assert.is_true(UltraCursorFXDB.enabled)
+            assert.is_true(addon:GetSetting("enabled"))
         end)
 
         it("should set OnUpdate script when turning on", function()
-            UltraCursorFXDB.enabled = false
+            addon:SetSetting("enabled", false)
             addon.frame:SetScript("OnUpdate", nil)
 
             slashHandler("on")
@@ -59,63 +59,63 @@ describe("Commands Module", function()
         end)
 
         it("should toggle flash", function()
-            local initial = UltraCursorFXDB.flashEnabled
+            local initial = addon:GetSetting("flashEnabled")
             slashHandler("flash")
-            assert.are.not_equal(initial, UltraCursorFXDB.flashEnabled)
+            assert.are.not_equal(initial, addon:GetSetting("flashEnabled"))
         end)
 
         it("should toggle rainbow mode", function()
-            local initial = UltraCursorFXDB.rainbowMode
+            local initial = addon:GetSetting("rainbowMode")
             slashHandler("rainbow")
-            assert.are.not_equal(initial, UltraCursorFXDB.rainbowMode)
+            assert.are.not_equal(initial, addon:GetSetting("rainbowMode"))
         end)
 
         it("should toggle click effects", function()
-            local initial = UltraCursorFXDB.clickEffects
+            local initial = addon:GetSetting("clickEffects")
             slashHandler("click")
-            assert.are.not_equal(initial, UltraCursorFXDB.clickEffects)
+            assert.are.not_equal(initial, addon:GetSetting("clickEffects"))
         end)
 
         it("should toggle comet mode", function()
-            local initial = UltraCursorFXDB.cometMode
+            local initial = addon:GetSetting("cometMode")
             slashHandler("comet")
-            assert.are.not_equal(initial, UltraCursorFXDB.cometMode)
+            assert.are.not_equal(initial, addon:GetSetting("cometMode"))
         end)
 
         it("should toggle situational profiles", function()
-            local initial = UltraCursorFXDB.situationalEnabled
+            local initial = addon:GetSetting("situationalEnabled")
             slashHandler("profiles")
-            assert.are.not_equal(initial, UltraCursorFXDB.situationalEnabled)
+            assert.are.not_equal(initial, addon:GetSetting("situationalEnabled"))
         end)
 
         it("should toggle combat only mode", function()
-            local initial = UltraCursorFXDB.combatOnly
+            local initial = addon:GetSetting("combatOnly")
             slashHandler("combat")
-            assert.are.not_equal(initial, UltraCursorFXDB.combatOnly)
+            assert.are.not_equal(initial, addon:GetSetting("combatOnly"))
         end)
 
         it("should toggle fade mode", function()
-            local initial = UltraCursorFXDB.fadeEnabled
+            local initial = addon:GetSetting("fadeEnabled")
             slashHandler("fade")
-            assert.are.not_equal(initial, UltraCursorFXDB.fadeEnabled)
+            assert.are.not_equal(initial, addon:GetSetting("fadeEnabled"))
         end)
 
         it("should toggle combat opacity boost", function()
-            local initial = UltraCursorFXDB.combatOpacityBoost
+            local initial = addon:GetSetting("combatOpacityBoost")
             slashHandler("boost")
-            assert.are.not_equal(initial, UltraCursorFXDB.combatOpacityBoost)
+            assert.are.not_equal(initial, addon:GetSetting("combatOpacityBoost"))
         end)
 
         it("should toggle reticle mode", function()
-            local initial = UltraCursorFXDB.reticleEnabled
+            local initial = addon:GetSetting("reticleEnabled")
             slashHandler("reticle")
-            assert.are.not_equal(initial, UltraCursorFXDB.reticleEnabled)
+            assert.are.not_equal(initial, addon:GetSetting("reticleEnabled"))
         end)
 
         it("should toggle edge warning mode", function()
-            local initial = UltraCursorFXDB.edgeWarningEnabled
+            local initial = addon:GetSetting("edgeWarningEnabled")
             slashHandler("edge")
-            assert.are.not_equal(initial, UltraCursorFXDB.edgeWarningEnabled)
+            assert.are.not_equal(initial, addon:GetSetting("edgeWarningEnabled"))
         end)
     end)
 
@@ -135,8 +135,8 @@ describe("Commands Module", function()
         end)
 
         it("should save to profile", function()
-            UltraCursorFXDB.color = { 1.0, 0.5, 0.0 }
-            UltraCursorFXDB.points = 100
+            addon:SetSetting("color", { 1.0, 0.5, 0.0 })
+            addon:SetSetting("points", 100)
             slashHandler("save world")
 
             local profiles = addon:GetActiveProfileTable()
@@ -153,23 +153,23 @@ describe("Commands Module", function()
         it("should load from profile", function()
             slashHandler("load raid")
 
-            assert.are.same({ 1.0, 0.0, 0.0 }, UltraCursorFXDB.color)
-            assert.are.equal(40, UltraCursorFXDB.points)
+            assert.are.same({ 1.0, 0.0, 0.0 }, addon:GetSetting("color"))
+            assert.are.equal(40, addon:GetSetting("points"))
         end)
 
         it("should reject load from non-existent profile", function()
-            local originalColor = UltraCursorFXDB.color
+            local originalColor = addon:GetSetting("color")
             slashHandler("load invalidprofile")
 
             -- Color should not change
-            assert.are.equal(originalColor, UltraCursorFXDB.color)
+            assert.are.same(originalColor, addon:GetSetting("color"))
         end)
     end)
 
     describe("Import/Export Commands", function()
         it("should export settings", function()
-            UltraCursorFXDB.enabled = true
-            UltraCursorFXDB.points = 60
+            addon:SetSetting("enabled", true)
+            addon:SetSetting("points", 60)
 
             slashHandler("export")
             -- Should not crash
@@ -183,7 +183,7 @@ describe("Commands Module", function()
 
             slashHandler("import " .. exportString)
 
-            assert.is_not_nil(UltraCursorFXDB.points)
+            assert.is_not_nil(addon:GetSetting("points"))
         end)
 
         it("should reject empty import", function()
@@ -243,9 +243,9 @@ describe("Commands Module", function()
         end)
 
         it("should handle case-insensitive commands", function()
-            UltraCursorFXDB.enabled = true
+            addon:SetSetting("enabled", true)
             slashHandler("OFF")
-            assert.is_false(UltraCursorFXDB.enabled)
+            assert.is_false(addon:GetSetting("enabled"))
         end)
     end)
 end)

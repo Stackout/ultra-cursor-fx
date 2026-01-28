@@ -97,39 +97,25 @@ describe("Core Module", function()
             _G.UltraCursorFXDB = {}
             UltraCursorFX:InitializeDefaults()
 
-            assert.is_true(_G.UltraCursorFXDB.enabled)
-            assert.are.equal(48, _G.UltraCursorFXDB.points)
-            assert.are.equal("star", _G.UltraCursorFXDB.particleShape)
+            assert.is_true(_G.UltraCursorFXDB.account.enabled)
+            assert.are.equal(48, _G.UltraCursorFXDB.account.points)
+            assert.are.equal("star", _G.UltraCursorFXDB.account.particleShape)
         end)
 
-        it("should not overwrite existing DB values", function()
-            _G.UltraCursorFXDB = { enabled = false, points = 100 }
+        it("should not overwrite existing account values", function()
+            _G.UltraCursorFXDB = { account = { enabled = false, points = 100 } }
             UltraCursorFX:InitializeDefaults()
 
-            assert.is_false(_G.UltraCursorFXDB.enabled)
-            assert.are.equal(100, _G.UltraCursorFXDB.points)
+            assert.is_false(_G.UltraCursorFXDB.account.enabled)
+            assert.are.equal(100, _G.UltraCursorFXDB.account.points)
         end)
 
-        it("should fill in missing DB values", function()
-            _G.UltraCursorFXDB = { enabled = false }
+        it("should fill in missing account values", function()
+            _G.UltraCursorFXDB = { account = { enabled = false } }
             UltraCursorFX:InitializeDefaults()
 
-            assert.is_false(_G.UltraCursorFXDB.enabled)
-            assert.are.equal(48, _G.UltraCursorFXDB.points)
-        end)
-    end)
-
-    describe("SyncSettingsToFlat", function()
-        it("should handle missing defaults gracefully", function()
-            local addon = UltraCursorFX
-            local originalDefaults = addon.defaults
-            addon.defaults = nil
-
-            -- Should not crash
-            addon:SyncSettingsToFlat()
-
-            -- Restore defaults
-            addon.defaults = originalDefaults
+            assert.is_false(_G.UltraCursorFXDB.account.enabled)
+            assert.are.equal(48, _G.UltraCursorFXDB.account.points)
         end)
     end)
 end)

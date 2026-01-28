@@ -13,47 +13,57 @@ SlashCmdList["ULTRACURSORFX"] = function(msg)
     cmd = cmd:lower()
 
     if cmd == "off" then
-        UltraCursorFXDB.enabled = false
+        addon:SetSetting("enabled", false)
         addon:UpdateCursorState()
         print("UltraCursorFX disabled")
     elseif cmd == "on" then
-        UltraCursorFXDB.enabled = true
+        addon:SetSetting("enabled", true)
         addon:UpdateCursorState()
         print("UltraCursorFX enabled")
     elseif cmd == "flash" then
-        UltraCursorFXDB.flashEnabled = not UltraCursorFXDB.flashEnabled
-        print("Flash:", UltraCursorFXDB.flashEnabled)
+        local newVal = not addon:GetSetting("flashEnabled")
+        addon:SetSetting("flashEnabled", newVal)
+        print("Flash:", newVal)
     elseif cmd == "rainbow" then
-        UltraCursorFXDB.rainbowMode = not UltraCursorFXDB.rainbowMode
-        print("Rainbow Mode:", UltraCursorFXDB.rainbowMode)
+        local newVal = not addon:GetSetting("rainbowMode")
+        addon:SetSetting("rainbowMode", newVal)
+        print("Rainbow Mode:", newVal)
     elseif cmd == "click" then
-        UltraCursorFXDB.clickEffects = not UltraCursorFXDB.clickEffects
-        print("Click Effects:", UltraCursorFXDB.clickEffects)
+        local newVal = not addon:GetSetting("clickEffects")
+        addon:SetSetting("clickEffects", newVal)
+        print("Click Effects:", newVal)
     elseif cmd == "comet" then
-        UltraCursorFXDB.cometMode = not UltraCursorFXDB.cometMode
-        print("Comet Mode:", UltraCursorFXDB.cometMode)
+        local newVal = not addon:GetSetting("cometMode")
+        addon:SetSetting("cometMode", newVal)
+        print("Comet Mode:", newVal)
     elseif cmd == "combat" then
-        UltraCursorFXDB.combatOnly = not UltraCursorFXDB.combatOnly
-        print("Combat Only Mode:", UltraCursorFXDB.combatOnly and "Enabled" or "Disabled")
+        local newVal = not addon:GetSetting("combatOnly")
+        addon:SetSetting("combatOnly", newVal)
+        print("Combat Only Mode:", newVal and "Enabled" or "Disabled")
         addon:UpdateCursorState()
     elseif cmd == "fade" then
-        UltraCursorFXDB.fadeEnabled = not UltraCursorFXDB.fadeEnabled
-        print("Fade Mode:", UltraCursorFXDB.fadeEnabled and "Enabled" or "Disabled")
+        local newVal = not addon:GetSetting("fadeEnabled")
+        addon:SetSetting("fadeEnabled", newVal)
+        print("Fade Mode:", newVal and "Enabled" or "Disabled")
     elseif cmd == "boost" then
-        UltraCursorFXDB.combatOpacityBoost = not UltraCursorFXDB.combatOpacityBoost
-        print("Combat Opacity Boost:", UltraCursorFXDB.combatOpacityBoost and "Enabled" or "Disabled")
+        local newVal = not addon:GetSetting("combatOpacityBoost")
+        addon:SetSetting("combatOpacityBoost", newVal)
+        print("Combat Opacity Boost:", newVal and "Enabled" or "Disabled")
     elseif cmd == "reticle" then
-        UltraCursorFXDB.reticleEnabled = not UltraCursorFXDB.reticleEnabled
+        local newVal = not addon:GetSetting("reticleEnabled")
+        addon:SetSetting("reticleEnabled", newVal)
         addon:BuildTrail() -- Rebuild reticle
-        print("Smart Reticle:", UltraCursorFXDB.reticleEnabled and "Enabled" or "Disabled")
+        print("Smart Reticle:", newVal and "Enabled" or "Disabled")
     elseif cmd == "edge" then
-        UltraCursorFXDB.edgeWarningEnabled = not UltraCursorFXDB.edgeWarningEnabled
+        local newVal = not addon:GetSetting("edgeWarningEnabled")
+        addon:SetSetting("edgeWarningEnabled", newVal)
         addon:BuildTrail() -- Rebuild edge warnings
-        print("Screen Edge Warnings:", UltraCursorFXDB.edgeWarningEnabled and "Enabled" or "Disabled")
+        print("Screen Edge Warnings:", newVal and "Enabled" or "Disabled")
     elseif cmd == "profiles" then
-        UltraCursorFXDB.situationalEnabled = not UltraCursorFXDB.situationalEnabled
-        print("Situational Profiles:", UltraCursorFXDB.situationalEnabled and "Enabled" or "Disabled")
-        if UltraCursorFXDB.situationalEnabled then
+        local newVal = not addon:GetSetting("situationalEnabled")
+        addon:SetSetting("situationalEnabled", newVal)
+        print("Situational Profiles:", newVal and "Enabled" or "Disabled")
+        if newVal then
             addon:SwitchToZoneProfile()
         end
     elseif cmd == "save" then

@@ -46,11 +46,12 @@ describe("Profiles Module", function()
 
     describe("SaveToProfile", function()
         before_each(function()
-            UltraCursorFXDB.profiles = {}
-            UltraCursorFXDB.color = { 1.0, 0.0, 0.0 }
-            UltraCursorFXDB.points = 50
-            UltraCursorFXDB.size = 40
-            UltraCursorFXDB.particleShape = "skull"
+            UltraCursorFXDB.account = UltraCursorFXDB.account or {}
+            UltraCursorFXDB.account.profiles = {}
+            addon:SetSetting("color", { 1.0, 0.0, 0.0 })
+            addon:SetSetting("points", 50)
+            addon:SetSetting("size", 40)
+            addon:SetSetting("particleShape", "skull")
         end)
 
         it("should save current settings to profile", function()
@@ -73,7 +74,9 @@ describe("Profiles Module", function()
         it("should copy color table, not reference", function()
             addon:SaveToProfile("world")
             local profiles = addon:GetActiveProfileTable()
-            UltraCursorFXDB.color[1] = 0.5
+            -- Modify the original setting
+            addon:SetSetting("color", { 0.5, 0.0, 0.0 })
+            -- The saved profile should still have the original value
             assert.are.equal(1.0, profiles.world.color[1])
         end)
     end)
@@ -81,10 +84,6 @@ describe("Profiles Module", function()
     describe("LoadFromProfile", function()
         before_each(function()
             _G.UltraCursorFXDB = {
-                -- Flat structure that LoadFromProfile writes to
-                color = { 0.0, 1.0, 1.0 },
-                points = 48,
-                size = 34,
                 account = {
                     profiles = {
                         test = {
@@ -112,14 +111,14 @@ describe("Profiles Module", function()
         it("should load profile settings to DB", function()
             addon:LoadFromProfile("test")
 
-            assert.are.same({ 0.8, 0.2, 1.0 }, UltraCursorFXDB.color)
-            assert.are.equal(75, UltraCursorFXDB.points)
-            assert.are.equal(50, UltraCursorFXDB.size)
-            assert.are.equal(80, UltraCursorFXDB.glowSize)
-            assert.are.equal(0.25, UltraCursorFXDB.smoothness)
-            assert.are.equal("spark", UltraCursorFXDB.particleShape)
-            assert.is_true(UltraCursorFXDB.rainbowMode)
-            assert.is_true(UltraCursorFXDB.cometMode)
+            assert.are.same({ 0.8, 0.2, 1.0 }, addon:GetSetting("color"))
+            assert.are.equal(75, addon:GetSetting("points"))
+            assert.are.equal(50, addon:GetSetting("size"))
+            assert.are.equal(80, addon:GetSetting("glowSize"))
+            assert.are.equal(0.25, addon:GetSetting("smoothness"))
+            assert.are.equal("spark", addon:GetSetting("particleShape"))
+            assert.is_true(addon:GetSetting("rainbowMode"))
+            assert.is_true(addon:GetSetting("cometMode"))
         end)
 
         it("should return false for non-existent profile", function()
@@ -132,19 +131,18 @@ describe("Profiles Module", function()
             profiles.partial = { color = { 1.0, 1.0, 1.0 } }
             addon:LoadFromProfile("partial")
 
-            assert.are.equal(48, UltraCursorFXDB.points)
-            assert.are.equal(34, UltraCursorFXDB.size)
+            assert.are.equal(48, addon:GetSetting("points"))
+            assert.are.equal(34, addon:GetSetting("size"))
         end)
     end)
 
     describe("SwitchToZoneProfile", function()
         before_each(function()
             _G.UltraCursorFXDB = {
-                situationalEnabled = true,
-                -- Flat structure
-                color = { 0.0, 1.0, 1.0 },
-                points = 48,
                 account = {
+                    situationalEnabled = true,
+                    color = { 0.0, 1.0, 1.0 },
+                    points = 48,
                     profiles = {
                         world = { name = "World", color = { 0.0, 1.0, 1.0 }, points = 48 },
                         raid = { name = "Raid", color = { 1.0, 0.0, 0.0 }, points = 40 },
@@ -161,13 +159,13 @@ describe("Profiles Module", function()
         end)
 
         it("should not switch if situational disabled", function()
-            UltraCursorFXDB.situationalEnabled = false
-            UltraCursorFXDB.color = { 0.0, 1.0, 1.0 }
+            addon:SetSetting("situationalEnabled", false)
+            addon:SetSetting("color", { 0.0, 1.0, 1.0 })
 
             mocks.SimulateZoneChange(true, "raid")
             addon:SwitchToZoneProfile()
 
-            assert.are.same({ 0.0, 1.0, 1.0 }, UltraCursorFXDB.color)
+            assert.are.same({ 0.0, 1.0, 1.0 }, addon:GetSetting("color"))
         end)
 
         it("should switch to raid profile in raid", function()
@@ -175,7 +173,7 @@ describe("Profiles Module", function()
             addon:SwitchToZoneProfile()
 
             assert.are.equal("raid", addon.currentZoneProfile)
-            assert.are.equal(40, UltraCursorFXDB.points)
+            assert.are.equal(40, addon:GetSetting("points"))
         end)
 
         it("should not switch if already in correct profile", function()

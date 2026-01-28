@@ -45,10 +45,10 @@ describe("UI Module", function()
             addon:CreateSettingsPanel()
 
             -- Test color changes
-            UltraCursorFXDB.color = { 0.5, 0.5, 0.5 }
+            addon:SetSetting("color", { 0.5, 0.5, 0.5 })
             addon:BuildTrail()
 
-            assert.are.same({ 0.5, 0.5, 0.5 }, UltraCursorFXDB.color)
+            assert.are.same({ 0.5, 0.5, 0.5 }, addon:GetSetting("color"))
         end)
     end)
 
@@ -76,13 +76,13 @@ describe("UI Module", function()
             -- Simulate loading raid profile
             addon:LoadFromProfile("raid")
 
-            assert.are.equal(40, UltraCursorFXDB.points)
+            assert.are.equal(40, addon:GetSetting("points"))
         end)
 
         it("should save profile on button click", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.points = 100
+            addon:SetSetting("points", 100)
             addon:SaveToProfile("world")
 
             local profiles = addon:GetActiveProfileTable()
@@ -94,10 +94,10 @@ describe("UI Module", function()
         it("should change particle shape", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.particleShape = "skull"
+            addon:SetSetting("particleShape", "skull")
             addon:BuildTrail()
 
-            assert.are.equal("skull", UltraCursorFXDB.particleShape)
+            assert.are.equal("skull", addon:GetSetting("particleShape"))
         end)
 
         it("should support all shapes", function()
@@ -105,10 +105,10 @@ describe("UI Module", function()
 
             local shapes = { "star", "skull", "spark", "dot" }
             for _, shape in ipairs(shapes) do
-                UltraCursorFXDB.particleShape = shape
+                addon:SetSetting("particleShape", shape)
                 addon:BuildTrail()
 
-                assert.are.equal(shape, UltraCursorFXDB.particleShape)
+                assert.are.equal(shape, addon:GetSetting("particleShape"))
             end
         end)
     end)
@@ -117,84 +117,84 @@ describe("UI Module", function()
         it("should update points slider value", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.points = 75
+            addon:SetSetting("points", 75)
             addon:BuildTrail()
 
-            assert.are.equal(75, UltraCursorFXDB.points)
+            assert.are.equal(75, addon:GetSetting("points"))
         end)
 
         it("should update size slider value", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.size = 50
+            addon:SetSetting("size", 50)
             addon:BuildTrail()
 
-            assert.are.equal(50, UltraCursorFXDB.size)
+            assert.are.equal(50, addon:GetSetting("size"))
         end)
 
         it("should update smoothness slider value", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.smoothness = 0.5
+            addon:SetSetting("smoothness", 0.5)
 
-            assert.are.equal(0.5, UltraCursorFXDB.smoothness)
+            assert.are.equal(0.5, addon:GetSetting("smoothness"))
         end)
 
         it("should update glow size slider value", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.glowSize = 80
+            addon:SetSetting("glowSize", 80)
             addon:BuildTrail()
 
-            assert.are.equal(80, UltraCursorFXDB.glowSize)
+            assert.are.equal(80, addon:GetSetting("glowSize"))
         end)
 
         it("should update pulse speed slider value", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.pulseSpeed = 5.0
+            addon:SetSetting("pulseSpeed", 5.0)
 
-            assert.are.equal(5.0, UltraCursorFXDB.pulseSpeed)
+            assert.are.equal(5.0, addon:GetSetting("pulseSpeed"))
         end)
 
         it("should update rainbow speed slider value", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.rainbowSpeed = 2.0
+            addon:SetSetting("rainbowSpeed", 2.0)
 
-            assert.are.equal(2.0, UltraCursorFXDB.rainbowSpeed)
+            assert.are.equal(2.0, addon:GetSetting("rainbowSpeed"))
         end)
 
         it("should update comet length slider value", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.cometLength = 3.5
+            addon:SetSetting("cometLength", 3.5)
 
-            assert.are.equal(3.5, UltraCursorFXDB.cometLength)
+            assert.are.equal(3.5, addon:GetSetting("cometLength"))
         end)
 
         it("should update click particles slider value", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.clickParticles = 16
+            addon:SetSetting("clickParticles", 16)
 
-            assert.are.equal(16, UltraCursorFXDB.clickParticles)
+            assert.are.equal(16, addon:GetSetting("clickParticles"))
         end)
 
         it("should update click size slider value", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.clickSize = 64
+            addon:SetSetting("clickSize", 64)
 
-            assert.are.equal(64, UltraCursorFXDB.clickSize)
+            assert.are.equal(64, addon:GetSetting("clickSize"))
         end)
 
         it("should update click duration slider value", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.clickDuration = 1.0
+            addon:SetSetting("clickDuration", 1.0)
 
-            assert.are.equal(1.0, UltraCursorFXDB.clickDuration)
+            assert.are.equal(1.0, addon:GetSetting("clickDuration"))
         end)
     end)
 
@@ -202,46 +202,46 @@ describe("UI Module", function()
         it("should toggle enabled checkbox", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.enabled = false
-            assert.is_false(UltraCursorFXDB.enabled)
+            addon:SetSetting("enabled", false)
+            assert.is_false(addon:GetSetting("enabled"))
 
-            UltraCursorFXDB.enabled = true
-            assert.is_true(UltraCursorFXDB.enabled)
+            addon:SetSetting("enabled", true)
+            assert.is_true(addon:GetSetting("enabled"))
         end)
 
         it("should toggle flash checkbox", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.flashEnabled = false
-            assert.is_false(UltraCursorFXDB.flashEnabled)
+            addon:SetSetting("flashEnabled", false)
+            assert.is_false(addon:GetSetting("flashEnabled"))
         end)
 
         it("should toggle rainbow checkbox", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.rainbowMode = false
-            assert.is_false(UltraCursorFXDB.rainbowMode)
+            addon:SetSetting("rainbowMode", false)
+            assert.is_false(addon:GetSetting("rainbowMode"))
         end)
 
         it("should toggle click effects checkbox", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.clickEffects = false
-            assert.is_false(UltraCursorFXDB.clickEffects)
+            addon:SetSetting("clickEffects", false)
+            assert.is_false(addon:GetSetting("clickEffects"))
         end)
 
         it("should toggle comet mode checkbox", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.cometMode = false
-            assert.is_false(UltraCursorFXDB.cometMode)
+            addon:SetSetting("cometMode", false)
+            assert.is_false(addon:GetSetting("cometMode"))
         end)
 
         it("should toggle situational profiles checkbox", function()
             addon:CreateSettingsPanel()
 
-            UltraCursorFXDB.situationalEnabled = false
-            assert.is_false(UltraCursorFXDB.situationalEnabled)
+            addon:SetSetting("situationalEnabled", false)
+            assert.is_false(addon:GetSetting("situationalEnabled"))
         end)
     end)
 
@@ -250,12 +250,12 @@ describe("UI Module", function()
             addon:CreateSettingsPanel()
 
             -- Test applying a preset
-            UltraCursorFXDB.color = { 1.0, 0.0, 0.0 }
-            UltraCursorFXDB.points = 60
+            addon:SetSetting("color", { 1.0, 0.0, 0.0 })
+            addon:SetSetting("points", 60)
 
             -- Verify values were set
-            assert.are.same({ 1.0, 0.0, 0.0 }, UltraCursorFXDB.color)
-            assert.are.equal(60, UltraCursorFXDB.points)
+            assert.are.same({ 1.0, 0.0, 0.0 }, addon:GetSetting("color"))
+            assert.are.equal(60, addon:GetSetting("points"))
         end)
     end)
 

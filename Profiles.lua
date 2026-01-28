@@ -120,21 +120,22 @@ function addon:SaveToProfile(profileKey)
     end
 
     local profile = profiles[profileKey]
-    profile.color = { unpack(UltraCursorFXDB.color) }
-    profile.points = UltraCursorFXDB.points
-    profile.size = UltraCursorFXDB.size
-    profile.glowSize = UltraCursorFXDB.glowSize
-    profile.smoothness = UltraCursorFXDB.smoothness
-    profile.pulseSpeed = UltraCursorFXDB.pulseSpeed
-    profile.rainbowMode = UltraCursorFXDB.rainbowMode
-    profile.rainbowSpeed = UltraCursorFXDB.rainbowSpeed
-    profile.clickEffects = UltraCursorFXDB.clickEffects
-    profile.clickParticles = UltraCursorFXDB.clickParticles
-    profile.clickSize = UltraCursorFXDB.clickSize
-    profile.clickDuration = UltraCursorFXDB.clickDuration
-    profile.particleShape = UltraCursorFXDB.particleShape
-    profile.cometMode = UltraCursorFXDB.cometMode
-    profile.cometLength = UltraCursorFXDB.cometLength
+    local color = self:GetSetting("color")
+    profile.color = { unpack(color) }
+    profile.points = self:GetSetting("points")
+    profile.size = self:GetSetting("size")
+    profile.glowSize = self:GetSetting("glowSize")
+    profile.smoothness = self:GetSetting("smoothness")
+    profile.pulseSpeed = self:GetSetting("pulseSpeed")
+    profile.rainbowMode = self:GetSetting("rainbowMode")
+    profile.rainbowSpeed = self:GetSetting("rainbowSpeed")
+    profile.clickEffects = self:GetSetting("clickEffects")
+    profile.clickParticles = self:GetSetting("clickParticles")
+    profile.clickSize = self:GetSetting("clickSize")
+    profile.clickDuration = self:GetSetting("clickDuration")
+    profile.particleShape = self:GetSetting("particleShape")
+    profile.cometMode = self:GetSetting("cometMode")
+    profile.cometLength = self:GetSetting("cometLength")
 end
 
 -- Load settings from a profile
@@ -145,21 +146,21 @@ function addon:LoadFromProfile(profileKey)
         return false
     end
 
-    UltraCursorFXDB.color = profile.color and { unpack(profile.color) } or { 0.0, 1.0, 1.0 }
-    UltraCursorFXDB.points = profile.points or 48
-    UltraCursorFXDB.size = profile.size or 34
-    UltraCursorFXDB.glowSize = profile.glowSize or 64
-    UltraCursorFXDB.smoothness = profile.smoothness or 0.18
-    UltraCursorFXDB.pulseSpeed = profile.pulseSpeed or 2.5
-    UltraCursorFXDB.rainbowMode = profile.rainbowMode or false
-    UltraCursorFXDB.rainbowSpeed = profile.rainbowSpeed or 1.0
-    UltraCursorFXDB.clickEffects = profile.clickEffects ~= nil and profile.clickEffects or true
-    UltraCursorFXDB.clickParticles = profile.clickParticles or 12
-    UltraCursorFXDB.clickSize = profile.clickSize or 50
-    UltraCursorFXDB.clickDuration = profile.clickDuration or 0.6
-    UltraCursorFXDB.particleShape = profile.particleShape or "star"
-    UltraCursorFXDB.cometMode = profile.cometMode or false
-    UltraCursorFXDB.cometLength = profile.cometLength or 2.0
+    self:SetSetting("color", profile.color and { unpack(profile.color) } or { 0.0, 1.0, 1.0 })
+    self:SetSetting("points", profile.points or 48)
+    self:SetSetting("size", profile.size or 34)
+    self:SetSetting("glowSize", profile.glowSize or 64)
+    self:SetSetting("smoothness", profile.smoothness or 0.18)
+    self:SetSetting("pulseSpeed", profile.pulseSpeed or 2.5)
+    self:SetSetting("rainbowMode", profile.rainbowMode or false)
+    self:SetSetting("rainbowSpeed", profile.rainbowSpeed or 1.0)
+    self:SetSetting("clickEffects", profile.clickEffects ~= nil and profile.clickEffects or true)
+    self:SetSetting("clickParticles", profile.clickParticles or 12)
+    self:SetSetting("clickSize", profile.clickSize or 50)
+    self:SetSetting("clickDuration", profile.clickDuration or 0.6)
+    self:SetSetting("particleShape", profile.particleShape or "star")
+    self:SetSetting("cometMode", profile.cometMode or false)
+    self:SetSetting("cometLength", profile.cometLength or 2.0)
 
     addon:BuildTrail()
     return true
@@ -167,7 +168,7 @@ end
 
 -- Switch to appropriate profile based on current zone
 function addon:SwitchToZoneProfile()
-    if not UltraCursorFXDB.situationalEnabled then
+    if not self:GetSetting("situationalEnabled") then
         return
     end
 
@@ -266,11 +267,20 @@ function addon:MigrateProfiles()
                     else
                         UltraCursorFXDB.account[key] = UltraCursorFXDB[key]
                     end
+                    -- Clean up flat structure after migration
+                    UltraCursorFXDB[key] = nil
                 end
             end
             local charKey = self:GetCharacterKey()
             print("|cFF00FFFFUltraCursorFX:|r Migrated custom settings to account-wide for " .. charKey)
             print("|cFFFFD700→|r All your characters will now share these cursor settings!")
+        else
+            -- Clean up flat structure even if no custom settings
+            for _, key in ipairs(settingsToMigrate) do
+                if UltraCursorFXDB[key] ~= nil then
+                    UltraCursorFXDB[key] = nil
+                end
+            end
         end
 
         -- Migrate old profiles structure to account.profiles
@@ -317,10 +327,5 @@ function addon:MigrateProfiles()
     local charKey = self:GetCharacterKey()
     if UltraCursorFXDB.characters[charKey] then
         UltraCursorFXDB.characters[charKey].lastLogin = time()
-    end
-
-    -- Sync current settings to flat structure for backwards compatibility
-    if self.SyncSettingsToFlat then
-        self:SyncSettingsToFlat()
     end
 end

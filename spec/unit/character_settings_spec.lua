@@ -500,7 +500,7 @@ describe("Character Settings (Account-Wide vs Character-Specific)", function()
             assert.are.same({ 0.0, 1.0, 1.0 }, addon:GetSetting("color"))
         end)
 
-        it("should maintain flat structure for backwards compatibility", function()
+        it("should NOT use flat structure - only account/character storage", function()
             _G.UltraCursorFXDB = {
                 account = {
                     color = { 1.0, 0.5, 0.2 },
@@ -520,9 +520,9 @@ describe("Character Settings (Account-Wide vs Character-Specific)", function()
             -- Set a value
             addon:SetSetting("rainbowMode", true)
 
-            -- Should be in both account and flat structure
+            -- Should be ONLY in account structure, NOT in flat structure
             assert.is_true(UltraCursorFXDB.account.rainbowMode)
-            assert.is_true(UltraCursorFXDB.rainbowMode) -- Flat for backwards compatibility
+            assert.is_nil(UltraCursorFXDB.rainbowMode) -- Flat structure should NOT exist
         end)
     end)
 end)

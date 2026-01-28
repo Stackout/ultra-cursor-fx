@@ -284,13 +284,10 @@ function addon:InitializeDefaults()
 
     -- Apply defaults for any missing values in account
     for k, v in pairs(addon.defaults) do
-        if UltraCursorFXDB.account[k] == nil and UltraCursorFXDB[k] == nil then
+        if UltraCursorFXDB.account[k] == nil then
             UltraCursorFXDB.account[k] = v
         end
     end
-
-    -- Sync to flat structure for backwards compatibility
-    self:SyncSettingsToFlat()
 end
 
 -- Get effective setting value (supports account/character hierarchy)
@@ -308,13 +305,11 @@ function addon:GetSetting(key)
         return UltraCursorFXDB.account[key]
     end
 
-    -- Check legacy flat structure (for migration)
-    if UltraCursorFXDB[key] ~= nil then
-        return UltraCursorFXDB[key]
+    -- Fall back to defaults (with safety check)
+    if self.defaults then
+        return self.defaults[key]
     end
-
-    -- Fall back to defaults
-    return self.defaults[key]
+    return nil
 end
 
 -- Get a setting value for a specific character (for viewing other characters' settings)
@@ -352,23 +347,9 @@ function addon:SetSetting(key, value)
         -- Write to character-specific
         charData[key] = value
     else
-        -- Write to account-wide
-        if UltraCursorFXDB.account then
-            UltraCursorFXDB.account[key] = value
-        end
-    end
-
-    -- ALWAYS update legacy flat structure for backwards compatibility
-    UltraCursorFXDB[key] = value
-end
-
--- Sync settings from account/character to flat structure (for backwards compatibility)
-function addon:SyncSettingsToFlat()
-    if not self.defaults then
-        return
-    end
-    for key, _ in pairs(self.defaults) do
-        UltraCursorFXDB[key] = self:GetSetting(key)
+        -- Write to account-wide (ensure account table exists)
+        UltraCursorFXDB.account = UltraCursorFXDB.account or {}
+        UltraCursorFXDB.account[key] = value
     end
 end
 
@@ -376,10 +357,10 @@ end
 -- Combat State Management
 -- ===============================
 function addon:UpdateCursorState()
-    local shouldShow = UltraCursorFXDB.enabled
+    local shouldShow = self:GetSetting("enabled")
 
     -- If combat-only mode is enabled, only show in combat
-    if UltraCursorFXDB.combatOnly then
+    if self:GetSetting("combatOnly") then
         shouldShow = shouldShow and addon.inCombat
     end
 

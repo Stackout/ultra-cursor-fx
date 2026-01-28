@@ -47,7 +47,7 @@ describe("Init Module", function()
             require("Init")
             mocks.SimulateAddonLoad("UltraCursorFX")
 
-            assert.is_not_nil(UltraCursorFXDB.enabled)
+            assert.is_not_nil(addon:GetSetting("enabled"))
             assert.is_not_nil(UltraCursorFXDB.account)
             assert.is_not_nil(UltraCursorFXDB.account.profiles)
         end)
@@ -71,7 +71,7 @@ describe("Init Module", function()
         end)
 
         it("should start OnUpdate when enabled", function()
-            UltraCursorFXDB = { enabled = true }
+            UltraCursorFXDB = { account = { enabled = true } }
             require("Init")
             mocks.SimulateAddonLoad("UltraCursorFX")
 
@@ -80,13 +80,13 @@ describe("Init Module", function()
         end)
 
         it("should respect enabled state", function()
-            _G.UltraCursorFXDB = { enabled = false }
+            _G.UltraCursorFXDB = { account = { enabled = false } }
             require("Init")
 
             mocks.SimulateAddonLoad("UltraCursorFX")
 
             -- Should still initialize properly
-            assert.is_false(_G.UltraCursorFXDB.enabled)
+            assert.is_false(addon:GetSetting("enabled"))
             assert.is_not_nil(_G.UltraCursorFXDB.account)
             assert.is_not_nil(_G.UltraCursorFXDB.account.profiles)
         end)
@@ -99,11 +99,11 @@ describe("Init Module", function()
         end)
 
         it("should trigger profile switch on zone change", function()
-            UltraCursorFXDB.situationalEnabled = true
-            UltraCursorFXDB.profiles = {
+            addon:SetSetting("situationalEnabled", true)
+            addon:SetSetting("profiles", {
                 world = { name = "World", color = { 0.0, 1.0, 1.0 }, points = 48 },
                 raid = { name = "Raid", color = { 1.0, 0.0, 0.0 }, points = 40 },
-            }
+            })
 
             mocks.SimulateZoneChange(true, "raid")
 
@@ -142,8 +142,8 @@ describe("Init Module", function()
         end)
 
         it("should update cursor state on combat enter", function()
-            UltraCursorFXDB.combatOnly = true
-            UltraCursorFXDB.enabled = true
+            addon:SetSetting("combatOnly", true)
+            addon:SetSetting("enabled", true)
             addon.inCombat = false
 
             local handler = addon.frame._scripts["OnEvent"]
@@ -154,8 +154,8 @@ describe("Init Module", function()
         end)
 
         it("should update cursor state on combat leave", function()
-            UltraCursorFXDB.combatOnly = true
-            UltraCursorFXDB.enabled = true
+            addon:SetSetting("combatOnly", true)
+            addon:SetSetting("enabled", true)
             addon.inCombat = true
 
             local handler = addon.frame._scripts["OnEvent"]

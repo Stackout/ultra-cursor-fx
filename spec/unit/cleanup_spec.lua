@@ -16,25 +16,24 @@ describe("Memory Management & Cleanup", function()
         addon = UltraCursorFX
         addon:InitializeDefaults()
 
-        _G.UltraCursorFXDB = {
-            enabled = true,
-            points = 20,
-            size = 8,
-            glowSize = 16,
-            particleShape = "star",
-            clickEffects = true,
-            clickParticles = 12,
-            clickSize = 32,
-            clickDuration = 0.5,
-            color = { 1.0, 1.0, 1.0 },
-            rainbowMode = false,
-            reticleEnabled = true,
-            reticleStyle = "military",
-            reticleSize = 80,
-            reticleOpacity = 0.7,
-            reticleBrightness = 1.0,
-            reticleRotationSpeed = 0.5,
-        }
+        -- Set up test settings using SetSetting
+        addon:SetSetting("enabled", true)
+        addon:SetSetting("points", 20)
+        addon:SetSetting("size", 8)
+        addon:SetSetting("glowSize", 16)
+        addon:SetSetting("particleShape", "star")
+        addon:SetSetting("clickEffects", true)
+        addon:SetSetting("clickParticles", 12)
+        addon:SetSetting("clickSize", 32)
+        addon:SetSetting("clickDuration", 0.5)
+        addon:SetSetting("color", { 1.0, 1.0, 1.0 })
+        addon:SetSetting("rainbowMode", false)
+        addon:SetSetting("reticleEnabled", true)
+        addon:SetSetting("reticleStyle", "military")
+        addon:SetSetting("reticleSize", 80)
+        addon:SetSetting("reticleOpacity", 0.7)
+        addon:SetSetting("reticleBrightness", 1.0)
+        addon:SetSetting("reticleRotationSpeed", 0.5)
 
         addon:BuildTrail()
     end)
@@ -46,7 +45,7 @@ describe("Memory Management & Cleanup", function()
     describe("BuildTrail Cleanup", function()
         it("properly hides old textures before creating new ones", function()
             -- Build initial trail
-            _G.UltraCursorFXDB.points = 10
+            addon:SetSetting("points", 10)
             addon:BuildTrail()
 
             local initialPoints = #addon.points
@@ -57,7 +56,7 @@ describe("Memory Management & Cleanup", function()
             assert.equals(10, initialGlow)
 
             -- Rebuild with different count
-            _G.UltraCursorFXDB.points = 5
+            addon:SetSetting("points", 5)
             addon:BuildTrail()
 
             -- Should have exactly 5 new points, not 15
@@ -66,12 +65,12 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("wipes arrays completely when rebuilding", function()
-            _G.UltraCursorFXDB.points = 20
+            addon:SetSetting("points", 20)
             addon:BuildTrail()
 
             -- Rebuild multiple times
             for i = 1, 5 do
-                _G.UltraCursorFXDB.points = 10 + i
+                addon:SetSetting("points", 10 + i)
                 addon:BuildTrail()
 
                 -- Array size should match current setting, not accumulate
@@ -83,7 +82,7 @@ describe("Memory Management & Cleanup", function()
         it("handles rapid rebuilds without accumulating textures", function()
             -- Simulate rapid UI slider changes
             for i = 1, 20 do
-                _G.UltraCursorFXDB.points = 10 + (i % 10)
+                addon:SetSetting("points", 10 + (i % 10))
                 addon:BuildTrail()
             end
 
@@ -93,7 +92,7 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("does not leave hidden textures accessible after rebuild", function()
-            _G.UltraCursorFXDB.points = 30
+            addon:SetSetting("points", 30)
             addon:BuildTrail()
 
             local oldPoints = {}
@@ -102,7 +101,7 @@ describe("Memory Management & Cleanup", function()
             end
 
             -- Rebuild with fewer points
-            _G.UltraCursorFXDB.points = 10
+            addon:SetSetting("points", 10)
             addon:BuildTrail()
 
             -- Old textures from first 30 positions should have been hidden during wipe
@@ -127,14 +126,14 @@ describe("Memory Management & Cleanup", function()
 
     describe("BuildReticle Cleanup", function()
         it("properly hides old reticle segments before creating new ones", function()
-            _G.UltraCursorFXDB.reticleStyle = "crosshair"
+            addon:SetSetting("reticleStyle", "crosshair")
             addon:BuildReticle()
 
             local initialCount = #addon.reticleSegments
             assert.equals(5, initialCount) -- Crosshair has 5 segments
 
             -- Switch to different style
-            _G.UltraCursorFXDB.reticleStyle = "military"
+            addon:SetSetting("reticleStyle", "military")
             addon:BuildReticle()
 
             -- Should have exactly 8 segments, not 13
@@ -151,7 +150,7 @@ describe("Memory Management & Cleanup", function()
             }
 
             for _, style in ipairs(styles) do
-                _G.UltraCursorFXDB.reticleStyle = style.name
+                addon:SetSetting("reticleStyle", style.name)
                 addon:BuildReticle()
 
                 -- Should have exact count for style, not accumulated
@@ -164,7 +163,7 @@ describe("Memory Management & Cleanup", function()
 
             -- Rapidly switch styles 30 times
             for i = 1, 30 do
-                _G.UltraCursorFXDB.reticleStyle = styles[(i % #styles) + 1]
+                addon:SetSetting("reticleStyle", styles[(i % #styles) + 1])
                 addon:BuildReticle()
             end
 
@@ -183,15 +182,15 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("hides all segments when disabling reticle", function()
-            _G.UltraCursorFXDB.reticleEnabled = true
-            _G.UltraCursorFXDB.reticleStyle = "military"
+            addon:SetSetting("reticleEnabled", true)
+            addon:SetSetting("reticleStyle", "military")
             addon:BuildReticle()
 
             local segmentCount = #addon.reticleSegments
             assert.is_true(segmentCount > 0)
 
             -- Disable reticle
-            _G.UltraCursorFXDB.reticleEnabled = false
+            addon:SetSetting("reticleEnabled", false)
             addon:BuildReticle()
 
             -- All segments should be hidden
@@ -201,7 +200,7 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("does not leave old segments visible after style change", function()
-            _G.UltraCursorFXDB.reticleStyle = "circledot" -- 9 segments
+            addon:SetSetting("reticleStyle", "circledot") -- 9 segments
             addon:BuildReticle()
 
             local oldSegments = {}
@@ -210,7 +209,7 @@ describe("Memory Management & Cleanup", function()
             end
 
             -- Switch to minimal (4 segments)
-            _G.UltraCursorFXDB.reticleStyle = "minimal"
+            addon:SetSetting("reticleStyle", "minimal")
             addon:BuildReticle()
 
             -- Verify new array has correct count
@@ -276,8 +275,8 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("properly releases particles back to pool when expired", function()
-            _G.UltraCursorFXDB.clickParticles = 8
-            _G.UltraCursorFXDB.clickDuration = 0.5
+            addon:SetSetting("clickParticles", 8)
+            addon:SetSetting("clickDuration", 0.5)
 
             -- Create click effect
             mocks.SimulateMouseClick("LeftButton", true)
@@ -295,7 +294,7 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("removes expired particles from active array", function()
-            _G.UltraCursorFXDB.clickParticles = 5
+            addon:SetSetting("clickParticles", 5)
 
             mocks.SimulateMouseClick("LeftButton", true)
             addon:OnUpdate(0.016)
@@ -312,7 +311,7 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("clears particle positions before returning to pool", function()
-            _G.UltraCursorFXDB.clickParticles = 3
+            addon:SetSetting("clickParticles", 3)
 
             mocks.SimulateMouseClick("LeftButton", true)
             addon:OnUpdate(0.016)
@@ -336,8 +335,8 @@ describe("Memory Management & Cleanup", function()
 
     describe("Combat State Transitions", function()
         it("properly cleans up when disabling in combat", function()
-            _G.UltraCursorFXDB.enabled = true
-            _G.UltraCursorFXDB.combatOnly = false
+            addon:SetSetting("enabled", true)
+            addon:SetSetting("combatOnly", false)
             addon.inCombat = true
 
             -- Build trail
@@ -345,7 +344,7 @@ describe("Memory Management & Cleanup", function()
             addon:UpdateCursorState() -- Enable OnUpdate script
 
             -- Disable addon
-            _G.UltraCursorFXDB.enabled = false
+            addon:SetSetting("enabled", false)
             addon:UpdateCursorState()
 
             -- Particles should be hidden (UpdateCursorState hides them)
@@ -363,8 +362,8 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("cleans up when exiting combat with combatOnly mode enabled", function()
-            _G.UltraCursorFXDB.enabled = true
-            _G.UltraCursorFXDB.combatOnly = true
+            addon:SetSetting("enabled", true)
+            addon:SetSetting("combatOnly", true)
             addon.inCombat = true
 
             -- Build trail
@@ -383,8 +382,8 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("does not accumulate particles across combat state changes", function()
-            _G.UltraCursorFXDB.combatOnly = true
-            _G.UltraCursorFXDB.points = 15
+            addon:SetSetting("combatOnly", true)
+            addon:SetSetting("points", 15)
 
             -- Build initial trail
             addon:BuildTrail()
@@ -505,14 +504,14 @@ describe("Memory Management & Cleanup", function()
 
     describe("Table Memory Management", function()
         it("properly wipes points array without leaving references", function()
-            _G.UltraCursorFXDB.points = 30
+            addon:SetSetting("points", 30)
             addon:BuildTrail()
 
             local pointsTable = addon.points
             local oldPointsCount = #pointsTable
 
             -- Rebuild with fewer points
-            _G.UltraCursorFXDB.points = 10
+            addon:SetSetting("points", 10)
             addon:BuildTrail()
 
             -- Same table reference (not recreated)
@@ -524,12 +523,12 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("properly wipes glow array without leaving references", function()
-            _G.UltraCursorFXDB.points = 25
+            addon:SetSetting("points", 25)
             addon:BuildTrail()
 
             local glowTable = addon.glow
 
-            _G.UltraCursorFXDB.points = 8
+            addon:SetSetting("points", 8)
             addon:BuildTrail()
 
             -- Same table reference
@@ -540,12 +539,12 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("properly wipes reticle segments array", function()
-            _G.UltraCursorFXDB.reticleStyle = "circledot" -- 9 segments
+            addon:SetSetting("reticleStyle", "circledot") -- 9 segments
             addon:BuildReticle()
 
             local reticleTable = addon.reticleSegments
 
-            _G.UltraCursorFXDB.reticleStyle = "minimal" -- 4 segments
+            addon:SetSetting("reticleStyle", "minimal") -- 4 segments
             addon:BuildReticle()
 
             -- Same table reference
@@ -556,7 +555,7 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("does not accumulate click particles beyond active count", function()
-            _G.UltraCursorFXDB.clickParticles = 8
+            addon:SetSetting("clickParticles", 8)
 
             -- Create many click effects
             for i = 1, 50 do
@@ -575,13 +574,13 @@ describe("Memory Management & Cleanup", function()
 
     describe("Texture Hiding on Disable", function()
         it("hides all trail particles when addon disabled", function()
-            _G.UltraCursorFXDB.enabled = true
-            _G.UltraCursorFXDB.points = 20
+            addon:SetSetting("enabled", true)
+            addon:SetSetting("points", 20)
             addon:BuildTrail()
             addon:UpdateCursorState() -- Enable
 
             -- Disable addon
-            _G.UltraCursorFXDB.enabled = false
+            addon:SetSetting("enabled", false)
             addon:UpdateCursorState()
 
             -- OnUpdate script should be disabled
@@ -593,12 +592,12 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("hides all reticle segments when reticle disabled", function()
-            _G.UltraCursorFXDB.reticleEnabled = true
-            _G.UltraCursorFXDB.reticleStyle = "military"
+            addon:SetSetting("reticleEnabled", true)
+            addon:SetSetting("reticleStyle", "military")
             addon:BuildReticle()
 
             -- Disable reticle
-            _G.UltraCursorFXDB.reticleEnabled = false
+            addon:SetSetting("reticleEnabled", false)
             addon:BuildReticle()
 
             -- All segments should be hidden
@@ -608,9 +607,9 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("hides particles when combatOnly mode exits combat", function()
-            _G.UltraCursorFXDB.combatOnly = true
-            _G.UltraCursorFXDB.enabled = true
-            _G.UltraCursorFXDB.points = 15
+            addon:SetSetting("combatOnly", true)
+            addon:SetSetting("enabled", true)
+            addon:SetSetting("points", 15)
 
             addon:BuildTrail()
 
@@ -632,7 +631,7 @@ describe("Memory Management & Cleanup", function()
 
     describe("No Memory Leak Edge Cases", function()
         it("handles zero points setting without errors", function()
-            _G.UltraCursorFXDB.points = 0
+            addon:SetSetting("points", 0)
             addon:BuildTrail()
 
             assert.equals(0, #addon.points)
@@ -644,14 +643,14 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("handles maximum points setting without accumulation", function()
-            _G.UltraCursorFXDB.points = 100
+            addon:SetSetting("points", 100)
             addon:BuildTrail()
 
             assert.equals(100, #addon.points)
             assert.equals(100, #addon.glow)
 
             -- Reduce to minimum
-            _G.UltraCursorFXDB.points = 10
+            addon:SetSetting("points", 10)
             addon:BuildTrail()
 
             assert.equals(10, #addon.points)
@@ -659,15 +658,15 @@ describe("Memory Management & Cleanup", function()
         end)
 
         it("handles rapid enable/disable cycles", function()
-            _G.UltraCursorFXDB.points = 20
+            addon:SetSetting("points", 20)
 
             -- Rapid toggle 50 times
             for i = 1, 50 do
-                _G.UltraCursorFXDB.enabled = true
+                addon:SetSetting("enabled", true)
                 addon:UpdateCursorState()
                 addon:OnUpdate(0.016)
 
-                _G.UltraCursorFXDB.enabled = false
+                addon:SetSetting("enabled", false)
                 addon:UpdateCursorState()
             end
 
@@ -687,14 +686,21 @@ describe("Memory Management & Cleanup", function()
 
             local newAddon = UltraCursorFX
 
-            -- Set minimal DB with ALL required fields
+            -- Set minimal DB with ALL required fields using account structure
             _G.UltraCursorFXDB = {
-                points = 10,
-                size = 8,
-                glowSize = 16,
-                particleShape = "star",
-                color = { 1.0, 1.0, 1.0 }, -- Required for unpack()
-                reticleEnabled = false, -- Don't build reticle
+                account = {
+                    points = 10,
+                    size = 8,
+                    glowSize = 16,
+                    particleShape = "star",
+                    color = { 1.0, 1.0, 1.0 }, -- Required for unpack()
+                    reticleEnabled = false, -- Don't build reticle
+                },
+                characters = {
+                    ["TestCharacter-TestRealm"] = {
+                        useAccountSettings = true,
+                    },
+                },
             }
 
             -- Should not crash

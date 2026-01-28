@@ -151,9 +151,9 @@ describe("Profile Migration (User Data Safety)", function()
             -- Verify migration flag was set
             assert.is_true(UltraCursorFXDB.profilesMigrated)
 
-            -- Verify backward compatibility - flat structure should be synced
-            assert.are.same({ 0.5, 0.8, 0.3 }, UltraCursorFXDB.color)
-            assert.are.equal(72, UltraCursorFXDB.points)
+            -- Verify flat structure was cleaned up (no longer synced)
+            assert.is_nil(UltraCursorFXDB.color)
+            assert.is_nil(UltraCursorFXDB.points)
         end)
 
         it("should preserve all default profiles after migration", function()
@@ -378,8 +378,8 @@ describe("Profile Migration (User Data Safety)", function()
         end)
     end)
 
-    describe("Backwards Compatibility", function()
-        it("should maintain flat structure for existing code", function()
+    describe("Migration Cleanup", function()
+        it("should migrate flat structure to account and clean up flat keys", function()
             _G.UltraCursorFXDB = {
                 color = { 1.0, 0.5, 0.0 },
                 points = 75,
@@ -392,16 +392,20 @@ describe("Profile Migration (User Data Safety)", function()
             addon:InitializeDefaults()
             addon:MigrateProfiles()
 
-            -- Flat structure should still be accessible
-            assert.are.same({ 1.0, 0.5, 0.0 }, UltraCursorFXDB.color)
-            assert.are.equal(75, UltraCursorFXDB.points)
+            -- Flat structure should be cleaned up after migration
+            assert.is_nil(UltraCursorFXDB.color)
+            assert.is_nil(UltraCursorFXDB.points)
 
-            -- And should match account settings
-            assert.are.same(UltraCursorFXDB.color, UltraCursorFXDB.account.color)
-            assert.are.equal(UltraCursorFXDB.points, UltraCursorFXDB.account.points)
+            -- Account settings should have the migrated values
+            assert.are.same({ 1.0, 0.5, 0.0 }, UltraCursorFXDB.account.color)
+            assert.are.equal(75, UltraCursorFXDB.account.points)
+
+            -- GetSetting should return account values
+            assert.are.same({ 1.0, 0.5, 0.0 }, addon:GetSetting("color"))
+            assert.are.equal(75, addon:GetSetting("points"))
         end)
 
-        it("should keep flat structure in sync when using SetSetting", function()
+        it("should only write to account/character when using SetSetting", function()
             _G.UltraCursorFXDB = {}
 
             require("Core")
@@ -414,9 +418,12 @@ describe("Profile Migration (User Data Safety)", function()
             -- Change via SetSetting
             addon:SetSetting("points", 120)
 
-            -- Both should be updated
+            -- Only account should be updated, not flat structure
             assert.are.equal(120, UltraCursorFXDB.account.points)
-            assert.are.equal(120, UltraCursorFXDB.points)
+            assert.is_nil(UltraCursorFXDB.points)
+
+            -- GetSetting should return the updated value
+            assert.are.equal(120, addon:GetSetting("points"))
         end)
     end)
 

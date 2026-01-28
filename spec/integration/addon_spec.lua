@@ -35,7 +35,8 @@ describe("Full Addon Integration", function()
             mocks.SimulateAddonLoad("UltraCursorFX")
 
             assert.is_not_nil(UltraCursorFXDB)
-            assert.is_true(UltraCursorFXDB.enabled)
+            local addon = UltraCursorFX
+            assert.is_true(addon:GetSetting("enabled"))
             assert.is_not_nil(UltraCursorFXDB.account)
             assert.is_not_nil(UltraCursorFXDB.account.profiles)
         end)
@@ -55,8 +56,8 @@ describe("Full Addon Integration", function()
             local addon = UltraCursorFX
 
             -- 1. Modify settings
-            UltraCursorFXDB.color = { 1.0, 0.0, 1.0 }
-            UltraCursorFXDB.points = 99
+            addon:SetSetting("color", { 1.0, 0.0, 1.0 })
+            addon:SetSetting("points", 99)
 
             -- 2. Save to raid profile
             addon:SaveToProfile("raid")
@@ -65,24 +66,24 @@ describe("Full Addon Integration", function()
             addon:LoadFromProfile("world")
 
             -- 4. Verify world settings
-            assert.are.same({ 0.0, 1.0, 1.0 }, UltraCursorFXDB.color)
+            assert.are.same({ 0.0, 1.0, 1.0 }, addon:GetSetting("color"))
 
             -- 5. Load back raid profile
             addon:LoadFromProfile("raid")
 
             -- 6. Verify raid settings were saved
-            assert.are.same({ 1.0, 0.0, 1.0 }, UltraCursorFXDB.color)
-            assert.are.equal(99, UltraCursorFXDB.points)
+            assert.are.same({ 1.0, 0.0, 1.0 }, addon:GetSetting("color"))
+            assert.are.equal(99, addon:GetSetting("points"))
         end)
 
         it("should auto-switch profiles on zone change", function()
             local addon = UltraCursorFX
-            UltraCursorFXDB.situationalEnabled = true
+            addon:SetSetting("situationalEnabled", true)
 
             -- Start in world
             mocks.SimulateZoneChange(false, "none")
             addon:SwitchToZoneProfile()
-            local worldColor = { unpack(UltraCursorFXDB.color) }
+            local worldColor = { unpack(addon:GetSetting("color")) }
 
             -- Enter raid
             mocks.SimulateZoneChange(true, "raid")
@@ -90,7 +91,7 @@ describe("Full Addon Integration", function()
             addon:SwitchToZoneProfile()
 
             -- Color should have changed
-            assert.is_not.same(worldColor, UltraCursorFXDB.color)
+            assert.is_not.same(worldColor, addon:GetSetting("color"))
         end)
     end)
 

@@ -31,7 +31,7 @@ addon.frame:SetScript("OnEvent", function(self, event, addonName)
         end
 
         -- Start animation loop if enabled
-        if UltraCursorFXDB.enabled then
+        if addon:GetSetting("enabled") then
             addon:UpdateCursorState()
         end
 

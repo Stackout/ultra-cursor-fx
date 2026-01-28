@@ -24,23 +24,28 @@ function addon:BuildTrail()
     wipe(points)
     wipe(glow)
 
-    local shape = UltraCursorFXDB.particleShape
+    local shape = self:GetSetting("particleShape")
     local texture = particleTextures[shape] or particleTextures.star
 
-    for i = 1, UltraCursorFXDB.points do
+    local numPoints = self:GetSetting("points")
+    local size = self:GetSetting("size")
+    local glowSize = self:GetSetting("glowSize")
+    local color = self:GetSetting("color")
+
+    for i = 1, numPoints do
         local p = parent:CreateTexture(nil, "OVERLAY")
         p:SetTexture(texture)
         p:SetBlendMode("ADD")
-        p:SetSize(UltraCursorFXDB.size, UltraCursorFXDB.size)
-        p:SetVertexColor(unpack(UltraCursorFXDB.color))
+        p:SetSize(size, size)
+        p:SetVertexColor(unpack(color))
         p.x, p.y = 0, 0
         points[i] = p
 
         local g = parent:CreateTexture(nil, "OVERLAY")
         g:SetTexture("Interface\\SPELLBOOK\\Spellbook-IconGlow")
         g:SetBlendMode("ADD")
-        g:SetSize(UltraCursorFXDB.glowSize, UltraCursorFXDB.glowSize)
-        g:SetVertexColor(unpack(UltraCursorFXDB.color))
+        g:SetSize(glowSize, glowSize)
+        g:SetVertexColor(unpack(color))
         glow[i] = g
     end
 
@@ -65,11 +70,11 @@ function addon:BuildReticle()
     end
     wipe(reticleSegments)
 
-    if not UltraCursorFXDB.reticleEnabled then
+    if not self:GetSetting("reticleEnabled") then
         return
     end
 
-    local style = UltraCursorFXDB.reticleStyle or "crosshair"
+    local style = self:GetSetting("reticleStyle") or "crosshair"
 
     -- Create different reticle styles
     if style == "crosshair" then
@@ -141,9 +146,11 @@ function addon:BuildEdgeWarnings()
     end
     wipe(edgeWarnings)
 
-    if not UltraCursorFXDB.edgeWarningEnabled then
+    if not self:GetSetting("edgeWarningEnabled") then
         return
     end
+
+    local edgeWarningSize = self:GetSetting("edgeWarningSize")
 
     -- Create arrow textures for each edge
     local edges = { "top", "bottom", "left", "right" }
@@ -151,13 +158,13 @@ function addon:BuildEdgeWarnings()
         local arrow = parent:CreateTexture(nil, "OVERLAY")
         arrow:SetTexture("Interface\\Buttons\\UI-MicroStream-Yellow")
         arrow:SetBlendMode("ADD")
-        arrow:SetSize(UltraCursorFXDB.edgeWarningSize, UltraCursorFXDB.edgeWarningSize)
+        arrow:SetSize(edgeWarningSize, edgeWarningSize)
         arrow:Hide()
 
         local glow = parent:CreateTexture(nil, "OVERLAY")
         glow:SetTexture("Interface\\Buttons\\UI-MicroStream-Yellow")
         glow:SetBlendMode("ADD")
-        glow:SetSize(UltraCursorFXDB.edgeWarningSize * 1.2, UltraCursorFXDB.edgeWarningSize * 1.2)
+        glow:SetSize(edgeWarningSize * 1.2, edgeWarningSize * 1.2)
         glow:Hide()
 
         edgeWarnings[edgeName] = {
@@ -169,7 +176,7 @@ function addon:BuildEdgeWarnings()
 end
 
 function addon:UpdateEdgeWarnings(elapsed, mouseX, mouseY)
-    if not UltraCursorFXDB.edgeWarningEnabled then
+    if not self:GetSetting("edgeWarningEnabled") then
         -- Hide all warnings
         for _, edge in pairs(edgeWarnings) do
             if edge.arrow then
@@ -184,10 +191,10 @@ function addon:UpdateEdgeWarnings(elapsed, mouseX, mouseY)
 
     local screenWidth = UIParent:GetWidth()
     local screenHeight = UIParent:GetHeight()
-    local distance = UltraCursorFXDB.edgeWarningDistance or 50
-    local baseSize = UltraCursorFXDB.edgeWarningSize or 64
-    local opacity = UltraCursorFXDB.edgeWarningOpacity or 0.8
-    local pulseIntensity = UltraCursorFXDB.edgeWarningPulseIntensity or 0.5
+    local distance = self:GetSetting("edgeWarningDistance") or 50
+    local baseSize = self:GetSetting("edgeWarningSize") or 64
+    local opacity = self:GetSetting("edgeWarningOpacity") or 0.8
+    local pulseIntensity = self:GetSetting("edgeWarningPulseIntensity") or 0.5
 
     -- Check each edge
     local showTop = mouseY >= (screenHeight - distance)
@@ -334,22 +341,26 @@ local function ReleaseClickParticle(p)
 end
 
 local function CreateClickEffect(x, y)
-    if not UltraCursorFXDB.clickEffects then
+    if not addon:GetSetting("clickEffects") then
         return
     end
 
-    local color = UltraCursorFXDB.rainbowMode and { addon.HSVtoRGB(addon.rainbowHue, 1, 1) } or UltraCursorFXDB.color
+    local color = addon:GetSetting("rainbowMode") and { addon.HSVtoRGB(addon.rainbowHue, 1, 1) }
+        or addon:GetSetting("color")
 
-    local shape = UltraCursorFXDB.particleShape
+    local shape = addon:GetSetting("particleShape")
     local texture = particleTextures[shape] or particleTextures.star
+    local clickParticleCount = addon:GetSetting("clickParticles")
+    local clickSize = addon:GetSetting("clickSize")
+    local clickDuration = addon:GetSetting("clickDuration")
 
-    for i = 1, UltraCursorFXDB.clickParticles do
-        local angle = (i / UltraCursorFXDB.clickParticles) * math.pi * 2
+    for i = 1, clickParticleCount do
+        local angle = (i / clickParticleCount) * math.pi * 2
         local speed = 200 + math.random(0, 100)
 
         local p = GetClickParticle()
         p:SetTexture(texture)
-        p:SetSize(UltraCursorFXDB.clickSize, UltraCursorFXDB.clickSize)
+        p:SetSize(clickSize, clickSize)
         p:SetVertexColor(unpack(color))
         p:SetPoint("CENTER", parent, "BOTTOMLEFT", x, y)
         p:Show()
@@ -357,13 +368,14 @@ local function CreateClickEffect(x, y)
         p.velocityX = math.cos(angle) * speed
         p.velocityY = math.sin(angle) * speed
         p.life = 0
-        p.maxLife = UltraCursorFXDB.clickDuration
+        p.maxLife = clickDuration
 
         table.insert(clickParticles, p)
     end
 end
 
 local function UpdateClickParticles(elapsed)
+    local clickSize = addon:GetSetting("clickSize")
     for i = #clickParticles, 1, -1 do
         local p = clickParticles[i]
         p.life = p.life + elapsed
@@ -382,7 +394,7 @@ local function UpdateClickParticles(elapsed)
                 p:SetPoint("CENTER", parent, "BOTTOMLEFT", x, y)
             end
 
-            local size = UltraCursorFXDB.clickSize * (1 - progress * 0.5)
+            local size = clickSize * (1 - progress * 0.5)
             p:SetSize(size, size)
             p:SetAlpha(alpha)
         end
@@ -390,7 +402,7 @@ local function UpdateClickParticles(elapsed)
 end
 
 local function CheckMouseClicks()
-    if not UltraCursorFXDB.clickEffects then
+    if not addon:GetSetting("clickEffects") then
         return
     end
 
@@ -419,13 +431,13 @@ end
 local tAccum = 0
 
 function addon:OnUpdate(elapsed)
-    if not UltraCursorFXDB.enabled then
+    if not self:GetSetting("enabled") then
         return
     end
 
-    local pulseSpeed = UltraCursorFXDB.pulseSpeed or 2.5
-    local smoothness = UltraCursorFXDB.smoothness or 0.18
-    local flashEnabled = UltraCursorFXDB.flashEnabled
+    local pulseSpeed = self:GetSetting("pulseSpeed") or 2.5
+    local smoothness = self:GetSetting("smoothness") or 0.18
+    local flashEnabled = self:GetSetting("flashEnabled")
 
     if #points == 0 then
         return
@@ -439,10 +451,10 @@ function addon:OnUpdate(elapsed)
     end
 
     -- Rainbow Mode
-    if UltraCursorFXDB.rainbowMode then
-        self.rainbowHue = (self.rainbowHue + elapsed * UltraCursorFXDB.rainbowSpeed * 0.1) % 1
+    if self:GetSetting("rainbowMode") then
+        self.rainbowHue = (self.rainbowHue + elapsed * self:GetSetting("rainbowSpeed") * 0.1) % 1
         local r, g, b = self.HSVtoRGB(self.rainbowHue, 1, 1)
-        UltraCursorFXDB.color = { r, g, b }
+        self:SetSetting("color", { r, g, b })
 
         for i = 1, #points do
             points[i]:SetVertexColor(r, g, b)
@@ -458,13 +470,17 @@ function addon:OnUpdate(elapsed)
     local edgeWarningActive = addon:UpdateEdgeWarnings(elapsed, cx, cy)
 
     -- Comet Mode - adjust spacing between points
-    local spacing = UltraCursorFXDB.cometMode and (1 / UltraCursorFXDB.cometLength) or 1
+    local cometMode = self:GetSetting("cometMode")
+    local spacing = cometMode and (1 / self:GetSetting("cometLength")) or 1
 
     -- Calculate base opacity with combat boost
-    local baseOpacity = UltraCursorFXDB.opacity or 1.0
-    if UltraCursorFXDB.combatOpacityBoost and addon.inCombat then
+    local baseOpacity = self:GetSetting("opacity") or 1.0
+    if self:GetSetting("combatOpacityBoost") and addon.inCombat then
         baseOpacity = math.min(1.0, baseOpacity * 1.3) -- 30% boost in combat
     end
+
+    local fadeEnabled = self:GetSetting("fadeEnabled")
+    local fadeStrength = self:GetSetting("fadeStrength") or 0.5
 
     for i = 1, #points do
         local p = points[i]
@@ -480,11 +496,10 @@ function addon:OnUpdate(elapsed)
         -- Calculate fade with optional fade mode
         local fadeProgress = (1 - (i - 1) / #points)
         local fadeAlpha
-        if UltraCursorFXDB.fadeEnabled then
-            local fadeStrength = UltraCursorFXDB.fadeStrength or 0.5
+        if fadeEnabled then
             fadeAlpha = fadeProgress ^ (1 + fadeStrength * 2) -- Stronger fade = faster dropoff
         else
-            fadeAlpha = ((#points - i + 1) / #points) ^ (UltraCursorFXDB.cometMode and 2.5 or 1.5)
+            fadeAlpha = ((#points - i + 1) / #points) ^ (cometMode and 2.5 or 1.5)
         end
 
         p:SetPoint("CENTER", parent, "BOTTOMLEFT", p.x, p.y)
@@ -517,12 +532,12 @@ end
 -- Reticle Update & Mouseover Detection
 -- ===============================
 function addon:UpdateReticle(elapsed, cx, cy, edgeWarningActive)
-    if not UltraCursorFXDB.reticleEnabled or #reticleSegments == 0 then
+    if not self:GetSetting("reticleEnabled") or #reticleSegments == 0 then
         return
     end
 
     -- Update rotation
-    addon.reticleRotation = (addon.reticleRotation + elapsed * UltraCursorFXDB.reticleRotationSpeed) % (math.pi * 2)
+    addon.reticleRotation = (addon.reticleRotation + elapsed * self:GetSetting("reticleRotationSpeed")) % (math.pi * 2)
 
     -- Detect mouseover unit type
     local unitType = "default"
@@ -548,8 +563,8 @@ function addon:UpdateReticle(elapsed, cx, cy, edgeWarningActive)
 
     -- Set color based on unit type
     local r, g, b, alpha
-    local brightness = UltraCursorFXDB.reticleBrightness or 1.0
-    local opacity = UltraCursorFXDB.reticleOpacity or 0.7
+    local brightness = self:GetSetting("reticleBrightness") or 1.0
+    local opacity = self:GetSetting("reticleOpacity") or 0.7
 
     if unitType == "enemy" then
         r, g, b = 1.0 * brightness, 0.1 * brightness, 0.1 * brightness
@@ -562,14 +577,14 @@ function addon:UpdateReticle(elapsed, cx, cy, edgeWarningActive)
         alpha = opacity
     else
         -- Default - use trail color
-        local color = UltraCursorFXDB.rainbowMode and { addon.HSVtoRGB(addon.rainbowHue, 1, 1) }
-            or UltraCursorFXDB.color
+        local color = self:GetSetting("rainbowMode") and { addon.HSVtoRGB(addon.rainbowHue, 1, 1) }
+            or self:GetSetting("color")
         r, g, b = color[1] * brightness, color[2] * brightness, color[3] * brightness
         alpha = opacity * 0.6
     end
 
-    local baseSize = UltraCursorFXDB.reticleSize or 80
-    local style = UltraCursorFXDB.reticleStyle or "military"
+    local baseSize = self:GetSetting("reticleSize") or 80
+    local style = self:GetSetting("reticleStyle") or "military"
 
     -- Pulse effect for friendlies or edge warnings
     local pulse = 1.0

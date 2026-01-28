@@ -18,7 +18,7 @@ describe("Effects Module", function()
 
     describe("BuildTrail", function()
         it("should create trail particles", function()
-            UltraCursorFXDB.points = 10
+            addon:SetSetting("points", 10)
             addon:BuildTrail()
 
             assert.are.equal(10, #addon.points)
@@ -26,35 +26,35 @@ describe("Effects Module", function()
         end)
 
         it("should respect points setting", function()
-            UltraCursorFXDB.points = 50
+            addon:SetSetting("points", 50)
             addon:BuildTrail()
 
             assert.are.equal(50, #addon.points)
         end)
 
         it("should clear old particles before rebuilding", function()
-            UltraCursorFXDB.points = 20
+            addon:SetSetting("points", 20)
             addon:BuildTrail()
 
-            UltraCursorFXDB.points = 10
+            addon:SetSetting("points", 10)
             addon:BuildTrail()
 
             assert.are.equal(10, #addon.points)
         end)
 
         it("should use selected particle shape", function()
-            UltraCursorFXDB.particleShape = "star"
+            addon:SetSetting("particleShape", "star")
             addon:BuildTrail()
 
-            assert.are.equal(UltraCursorFXDB.points, #addon.points)
+            assert.are.equal(addon:GetSetting("points"), #addon.points)
         end)
 
         it("should handle different shapes", function()
             local shapes = { "star", "skull", "spark", "dot" }
 
             for _, shape in ipairs(shapes) do
-                UltraCursorFXDB.particleShape = shape
-                UltraCursorFXDB.points = 5
+                addon:SetSetting("particleShape", shape)
+                addon:SetSetting("points", 5)
                 addon:BuildTrail()
 
                 assert.are.equal(5, #addon.points)
@@ -62,16 +62,16 @@ describe("Effects Module", function()
         end)
 
         it("should set particle color", function()
-            UltraCursorFXDB.color = { 1.0, 0.5, 0.0 }
-            UltraCursorFXDB.points = 5
+            addon:SetSetting("color", { 1.0, 0.5, 0.0 })
+            addon:SetSetting("points", 5)
             addon:BuildTrail()
 
             assert.are.equal(5, #addon.points)
         end)
 
         it("should set particle size", function()
-            UltraCursorFXDB.size = 50
-            UltraCursorFXDB.points = 5
+            addon:SetSetting("size", 50)
+            addon:SetSetting("points", 5)
             addon:BuildTrail()
 
             assert.are.equal(5, #addon.points)
@@ -80,13 +80,13 @@ describe("Effects Module", function()
 
     describe("OnUpdate Animation", function()
         before_each(function()
-            UltraCursorFXDB.enabled = true
-            UltraCursorFXDB.points = 10
+            addon:SetSetting("enabled", true)
+            addon:SetSetting("points", 10)
             addon:BuildTrail()
         end)
 
         it("should not run when disabled", function()
-            UltraCursorFXDB.enabled = false
+            addon:SetSetting("enabled", false)
             addon:OnUpdate(0.016)
 
             -- Should not crash
@@ -102,7 +102,7 @@ describe("Effects Module", function()
         end)
 
         it("should update rainbow hue", function()
-            UltraCursorFXDB.rainbowMode = true
+            addon:SetSetting("rainbowMode", true)
             local initialHue = addon.rainbowHue
 
             addon:OnUpdate(0.1)
@@ -119,8 +119,8 @@ describe("Effects Module", function()
         end)
 
         it("should create comet effect spacing", function()
-            UltraCursorFXDB.cometMode = true
-            UltraCursorFXDB.cometLength = 2.0
+            addon:SetSetting("cometMode", true)
+            addon:SetSetting("cometLength", 2.0)
 
             addon:OnUpdate(0.016)
 
@@ -129,7 +129,7 @@ describe("Effects Module", function()
         end)
 
         it("should apply pulse effect", function()
-            UltraCursorFXDB.pulseSpeed = 3.0
+            addon:SetSetting("pulseSpeed", 3.0)
 
             addon:OnUpdate(0.016)
 
@@ -137,7 +137,7 @@ describe("Effects Module", function()
         end)
 
         it("should handle flash effect", function()
-            UltraCursorFXDB.flashEnabled = true
+            addon:SetSetting("flashEnabled", true)
 
             -- Simulate many frames to trigger flash
             for i = 1, 100 do
@@ -148,7 +148,7 @@ describe("Effects Module", function()
         end)
 
         it("should handle different smoothness values", function()
-            UltraCursorFXDB.smoothness = 0.5
+            addon:SetSetting("smoothness", 0.5)
 
             addon:OnUpdate(0.016)
 
@@ -158,12 +158,12 @@ describe("Effects Module", function()
 
     describe("Rainbow Mode", function()
         before_each(function()
-            UltraCursorFXDB.points = 10
+            addon:SetSetting("points", 10)
             addon:BuildTrail()
         end)
 
         it("should cycle through colors", function()
-            UltraCursorFXDB.rainbowMode = true
+            addon:SetSetting("rainbowMode", true)
             addon.rainbowHue = 0
 
             addon:OnUpdate(1.0)
@@ -172,9 +172,9 @@ describe("Effects Module", function()
         end)
 
         it("should wrap hue value", function()
-            UltraCursorFXDB.rainbowMode = true
+            addon:SetSetting("rainbowMode", true)
             addon.rainbowHue = 0.95
-            UltraCursorFXDB.rainbowSpeed = 10
+            addon:SetSetting("rainbowSpeed", 10)
 
             addon:OnUpdate(1.0)
 
@@ -183,31 +183,33 @@ describe("Effects Module", function()
         end)
 
         it("should update particle colors in rainbow mode", function()
-            UltraCursorFXDB.rainbowMode = true
-            local initialColor = { UltraCursorFXDB.color[1], UltraCursorFXDB.color[2], UltraCursorFXDB.color[3] }
+            addon:SetSetting("rainbowMode", true)
+            local initialColor = addon:GetSetting("color")
+            local initialCopy = { initialColor[1], initialColor[2], initialColor[3] }
 
             addon:OnUpdate(0.5)
 
             -- Color should have changed
-            local changed = UltraCursorFXDB.color[1] ~= initialColor[1]
-                or UltraCursorFXDB.color[2] ~= initialColor[2]
-                or UltraCursorFXDB.color[3] ~= initialColor[3]
+            local currentColor = addon:GetSetting("color")
+            local changed = currentColor[1] ~= initialCopy[1]
+                or currentColor[2] ~= initialCopy[2]
+                or currentColor[3] ~= initialCopy[3]
             assert.is_true(changed)
         end)
     end)
 
     describe("Click Effects", function()
         before_each(function()
-            UltraCursorFXDB.clickEffects = true
-            UltraCursorFXDB.clickParticles = 8
-            UltraCursorFXDB.clickSize = 32
-            UltraCursorFXDB.clickDuration = 0.5
-            UltraCursorFXDB.points = 10
+            addon:SetSetting("clickEffects", true)
+            addon:SetSetting("clickParticles", 8)
+            addon:SetSetting("clickSize", 32)
+            addon:SetSetting("clickDuration", 0.5)
+            addon:SetSetting("points", 10)
             addon:BuildTrail()
         end)
 
         it("should not create effects when disabled", function()
-            UltraCursorFXDB.clickEffects = false
+            addon:SetSetting("clickEffects", false)
             local initialCount = #addon.clickParticles
 
             addon:OnUpdate(0.016)
@@ -244,7 +246,7 @@ describe("Effects Module", function()
         end)
 
         it("should use rainbow color for click effects when rainbow mode enabled", function()
-            UltraCursorFXDB.rainbowMode = true
+            addon:SetSetting("rainbowMode", true)
             addon.rainbowHue = 0.5
 
             mocks.SimulateMouseClick("LeftButton", true)
@@ -257,7 +259,7 @@ describe("Effects Module", function()
         end)
 
         it("should create correct number of click particles", function()
-            UltraCursorFXDB.clickParticles = 12
+            addon:SetSetting("clickParticles", 12)
             local initialCount = #addon.clickParticles
 
             mocks.SimulateMouseClick("LeftButton", true)
@@ -316,8 +318,8 @@ describe("Effects Module", function()
         end)
 
         it("should fallback to star for unknown shape", function()
-            UltraCursorFXDB.particleShape = "unknownshape"
-            UltraCursorFXDB.points = 5
+            addon:SetSetting("particleShape", "unknownshape")
+            addon:SetSetting("points", 5)
 
             addon:BuildTrail()
 
@@ -328,9 +330,9 @@ describe("Effects Module", function()
 
     describe("Comet Mode", function()
         before_each(function()
-            UltraCursorFXDB.cometMode = true
-            UltraCursorFXDB.cometLength = 2.5
-            UltraCursorFXDB.points = 20
+            addon:SetSetting("cometMode", true)
+            addon:SetSetting("cometLength", 2.5)
+            addon:SetSetting("points", 20)
             addon:BuildTrail()
         end)
 
@@ -342,7 +344,7 @@ describe("Effects Module", function()
         end)
 
         it("should use custom spacing", function()
-            UltraCursorFXDB.cometLength = 1.0
+            addon:SetSetting("cometLength", 1.0)
 
             addon:OnUpdate(0.016)
 
@@ -353,7 +355,7 @@ describe("Effects Module", function()
             local lengths = { 0.5, 1.0, 2.0, 5.0 }
 
             for _, length in ipairs(lengths) do
-                UltraCursorFXDB.cometLength = length
+                addon:SetSetting("cometLength", length)
                 addon:OnUpdate(0.016)
 
                 assert.is_true(true)
@@ -373,20 +375,19 @@ describe("BuildReticle", function()
         addon = UltraCursorFX
         addon:InitializeDefaults()
 
-        _G.UltraCursorFXDB = {
-            reticleEnabled = true,
-            reticleStyle = "military",
-            reticleSize = 80,
-            reticleOpacity = 0.7,
-            reticleBrightness = 1.0,
-            reticleRotationSpeed = 0.5,
-            color = { 0.5, 0.8, 1.0 },
-            rainbowMode = false,
-            points = 10,
-            size = 8,
-            glowSize = 16,
-            particleShape = "star",
-        }
+        -- Set up test settings using SetSetting
+        addon:SetSetting("reticleEnabled", true)
+        addon:SetSetting("reticleStyle", "military")
+        addon:SetSetting("reticleSize", 80)
+        addon:SetSetting("reticleOpacity", 0.7)
+        addon:SetSetting("reticleBrightness", 1.0)
+        addon:SetSetting("reticleRotationSpeed", 0.5)
+        addon:SetSetting("color", { 0.5, 0.8, 1.0 })
+        addon:SetSetting("rainbowMode", false)
+        addon:SetSetting("points", 10)
+        addon:SetSetting("size", 8)
+        addon:SetSetting("glowSize", 16)
+        addon:SetSetting("particleShape", "star")
 
         addon:BuildTrail()
     end)
@@ -396,7 +397,7 @@ describe("BuildReticle", function()
     end)
 
     it("builds crosshair reticle with 5 segments", function()
-        _G.UltraCursorFXDB.reticleStyle = "crosshair"
+        addon:SetSetting("reticleStyle", "crosshair")
         addon:BuildReticle(parent)
 
         assert.equals(5, #addon.reticleSegments)
@@ -405,7 +406,7 @@ describe("BuildReticle", function()
     end)
 
     it("builds circledot reticle with 9 segments", function()
-        _G.UltraCursorFXDB.reticleStyle = "circledot"
+        addon:SetSetting("reticleStyle", "circledot")
         addon:BuildReticle(parent)
 
         assert.equals(9, #addon.reticleSegments)
@@ -414,7 +415,7 @@ describe("BuildReticle", function()
     end)
 
     it("builds tshape reticle with 5 segments", function()
-        _G.UltraCursorFXDB.reticleStyle = "tshape"
+        addon:SetSetting("reticleStyle", "tshape")
         addon:BuildReticle(parent)
 
         assert.equals(5, #addon.reticleSegments)
@@ -423,7 +424,7 @@ describe("BuildReticle", function()
     end)
 
     it("builds military reticle with 8 segments", function()
-        _G.UltraCursorFXDB.reticleStyle = "military"
+        addon:SetSetting("reticleStyle", "military")
         addon:BuildReticle(parent)
 
         assert.equals(8, #addon.reticleSegments)
@@ -432,7 +433,7 @@ describe("BuildReticle", function()
     end)
 
     it("builds cyberpunk reticle with 8 segments", function()
-        _G.UltraCursorFXDB.reticleStyle = "cyberpunk"
+        addon:SetSetting("reticleStyle", "cyberpunk")
         addon:BuildReticle(parent)
 
         assert.equals(8, #addon.reticleSegments)
@@ -441,7 +442,7 @@ describe("BuildReticle", function()
     end)
 
     it("builds minimal reticle with 4 segments", function()
-        _G.UltraCursorFXDB.reticleStyle = "minimal"
+        addon:SetSetting("reticleStyle", "minimal")
         addon:BuildReticle(parent)
 
         assert.equals(4, #addon.reticleSegments)
@@ -450,7 +451,7 @@ describe("BuildReticle", function()
     end)
 
     it("hides all reticle segments when reticleEnabled is false", function()
-        _G.UltraCursorFXDB.reticleEnabled = false
+        addon:SetSetting("reticleEnabled", false)
         addon:BuildReticle(parent)
 
         for _, seg in ipairs(addon.reticleSegments) do
@@ -459,7 +460,7 @@ describe("BuildReticle", function()
     end)
 
     it("creates texture segments with correct properties", function()
-        _G.UltraCursorFXDB.reticleStyle = "crosshair"
+        addon:SetSetting("reticleStyle", "crosshair")
         addon:BuildReticle()
 
         -- Verify 5 segments were created for crosshair style
@@ -487,20 +488,19 @@ describe("UpdateReticle", function()
             return mockTime
         end
 
-        _G.UltraCursorFXDB = {
-            reticleEnabled = true,
-            reticleStyle = "military",
-            reticleSize = 80,
-            reticleOpacity = 0.7,
-            reticleBrightness = 1.0,
-            reticleRotationSpeed = 0.5,
-            color = { 0.5, 0.8, 1.0 },
-            rainbowMode = false,
-            points = 10,
-            size = 8,
-            glowSize = 16,
-            particleShape = "star",
-        }
+        -- Set up test settings using SetSetting
+        addon:SetSetting("reticleEnabled", true)
+        addon:SetSetting("reticleStyle", "military")
+        addon:SetSetting("reticleSize", 80)
+        addon:SetSetting("reticleOpacity", 0.7)
+        addon:SetSetting("reticleBrightness", 1.0)
+        addon:SetSetting("reticleRotationSpeed", 0.5)
+        addon:SetSetting("color", { 0.5, 0.8, 1.0 })
+        addon:SetSetting("rainbowMode", false)
+        addon:SetSetting("points", 10)
+        addon:SetSetting("size", 8)
+        addon:SetSetting("glowSize", 16)
+        addon:SetSetting("particleShape", "star")
 
         _G.UnitExists = function(unit)
             return false
@@ -630,7 +630,7 @@ describe("UpdateReticle", function()
     end)
 
     it("applies brightness multiplier to colors", function()
-        _G.UltraCursorFXDB.reticleBrightness = 0.5
+        addon:SetSetting("reticleBrightness", 0.5)
 
         addon:UpdateReticle(0.016, 500, 300)
 
@@ -639,7 +639,7 @@ describe("UpdateReticle", function()
     end)
 
     it("applies opacity setting to alpha", function()
-        _G.UltraCursorFXDB.reticleOpacity = 0.5
+        addon:SetSetting("reticleOpacity", 0.5)
 
         addon:UpdateReticle(0.016, 500, 300)
 
@@ -648,7 +648,7 @@ describe("UpdateReticle", function()
     end)
 
     it("does not update when reticleEnabled is false", function()
-        _G.UltraCursorFXDB.reticleEnabled = false
+        addon:SetSetting("reticleEnabled", false)
         local initialRotation = addon.reticleRotation
 
         addon:UpdateReticle(1.0, 500, 300)
@@ -683,20 +683,19 @@ describe("Reticle Rendering Styles", function()
         addon = UltraCursorFX
         addon:InitializeDefaults()
 
-        _G.UltraCursorFXDB = {
-            reticleEnabled = true,
-            reticleStyle = "crosshair",
-            reticleSize = 100,
-            reticleOpacity = 0.8,
-            reticleBrightness = 1.0,
-            reticleRotationSpeed = 0.5,
-            color = { 1.0, 1.0, 1.0 },
-            rainbowMode = false,
-            points = 10,
-            size = 8,
-            glowSize = 16,
-            particleShape = "star",
-        }
+        -- Set up test settings using SetSetting
+        addon:SetSetting("reticleEnabled", true)
+        addon:SetSetting("reticleStyle", "crosshair")
+        addon:SetSetting("reticleSize", 100)
+        addon:SetSetting("reticleOpacity", 0.8)
+        addon:SetSetting("reticleBrightness", 1.0)
+        addon:SetSetting("reticleRotationSpeed", 0.5)
+        addon:SetSetting("color", { 1.0, 1.0, 1.0 })
+        addon:SetSetting("rainbowMode", false)
+        addon:SetSetting("points", 10)
+        addon:SetSetting("size", 8)
+        addon:SetSetting("glowSize", 16)
+        addon:SetSetting("particleShape", "star")
 
         addon.reticleRotation = 0
         addon:BuildTrail()
@@ -716,7 +715,7 @@ describe("Reticle Rendering Styles", function()
     end)
 
     it("renders circledot with 8 segments + center", function()
-        _G.UltraCursorFXDB.reticleStyle = "circledot"
+        addon:SetSetting("reticleStyle", "circledot")
         addon:BuildReticle()
 
         addon:RenderCircleDotReticle(500, 300, 100, 1.0, 0.5, 0.2, 0.8)
@@ -726,7 +725,7 @@ describe("Reticle Rendering Styles", function()
     end)
 
     it("renders tshape with range tick marks", function()
-        _G.UltraCursorFXDB.reticleStyle = "tshape"
+        addon:SetSetting("reticleStyle", "tshape")
         addon:BuildReticle()
 
         addon:RenderTShapeReticle(500, 300, 100, 0.8, 0.8, 0.8, 0.7, "default")
@@ -736,7 +735,7 @@ describe("Reticle Rendering Styles", function()
     end)
 
     it("renders military with rotating segments for enemies", function()
-        _G.UltraCursorFXDB.reticleStyle = "military"
+        addon:SetSetting("reticleStyle", "military")
         addon:BuildReticle()
         addon.reticleRotation = math.pi / 4
 
@@ -747,7 +746,7 @@ describe("Reticle Rendering Styles", function()
     end)
 
     it("renders military without rotating segments for default", function()
-        _G.UltraCursorFXDB.reticleStyle = "military"
+        addon:SetSetting("reticleStyle", "military")
         addon:BuildReticle()
 
         addon:RenderMilitaryReticle(500, 300, 100, 0.5, 0.5, 0.5, 0.8, "default")
@@ -757,7 +756,7 @@ describe("Reticle Rendering Styles", function()
     end)
 
     it("renders cyberpunk with rotating neon segments", function()
-        _G.UltraCursorFXDB.reticleStyle = "cyberpunk"
+        addon:SetSetting("reticleStyle", "cyberpunk")
         addon:BuildReticle()
         addon.reticleRotation = math.pi / 8
 
@@ -768,7 +767,7 @@ describe("Reticle Rendering Styles", function()
     end)
 
     it("renders minimal with 4 corner L-brackets", function()
-        _G.UltraCursorFXDB.reticleStyle = "minimal"
+        addon:SetSetting("reticleStyle", "minimal")
         addon:BuildReticle()
 
         addon:RenderMinimalReticle(500, 300, 80, 1.0, 1.0, 1.0, 0.6)
@@ -789,25 +788,35 @@ describe("Fade Effect Calculations", function()
         addon = UltraCursorFX
         addon:InitializeDefaults()
 
-        _G.UltraCursorFXDB = {
-            points = 20, -- was trailLength
-            smoothness = 0.35,
-            opacity = 1.0,
-            fadeEnabled = true,
-            fadeStrength = 0.5,
-            combatOpacityBoost = false,
-            rainbowMode = false,
-            color = { 1.0, 1.0, 1.0 },
-            cometMode = false,
-            size = 8,
-            glow = true,
-            glowSize = 16,
-            particleShape = "star",
-        }
+        -- Set up test settings using SetSetting
+        addon:SetSetting("points", 20)
+        addon:SetSetting("smoothness", 0.35)
+        addon:SetSetting("opacity", 1.0)
+        addon:SetSetting("fadeEnabled", true)
+        addon:SetSetting("fadeStrength", 0.5)
+        addon:SetSetting("combatOpacityBoost", false)
+        addon:SetSetting("rainbowMode", false)
+        addon:SetSetting("color", { 1.0, 1.0, 1.0 })
+        addon:SetSetting("cometMode", false)
+        addon:SetSetting("size", 8)
+        addon:SetSetting("glow", true)
+        addon:SetSetting("glowSize", 16)
+        addon:SetSetting("particleShape", "star")
+        addon:SetSetting("reticleEnabled", false)
 
         _G.InCombatLockdown = function()
             return false
         end
+
+        _G.UnitExists = function(unit)
+            return false
+        end
+
+        _G.GameTooltip = {
+            IsShown = function()
+                return false
+            end,
+        }
 
         addon.inCombat = false
         addon:BuildTrail()
@@ -816,11 +825,12 @@ describe("Fade Effect Calculations", function()
     after_each(function()
         _G.UltraCursorFXDB = nil
         _G.InCombatLockdown = nil
+        _G.GameTooltip = nil
     end)
 
     it("applies fade with fadeEnabled and fadeStrength", function()
-        _G.UltraCursorFXDB.fadeEnabled = true
-        _G.UltraCursorFXDB.fadeStrength = 0.5
+        addon:SetSetting("fadeEnabled", true)
+        addon:SetSetting("fadeStrength", 0.5)
 
         addon:OnUpdate(0.016)
 
@@ -829,7 +839,7 @@ describe("Fade Effect Calculations", function()
     end)
 
     it("uses standard fade when fadeEnabled is false", function()
-        _G.UltraCursorFXDB.fadeEnabled = false
+        addon:SetSetting("fadeEnabled", false)
 
         addon:OnUpdate(0.016)
 
@@ -838,8 +848,8 @@ describe("Fade Effect Calculations", function()
     end)
 
     it("applies combat opacity boost when in combat", function()
-        _G.UltraCursorFXDB.combatOpacityBoost = true
-        _G.UltraCursorFXDB.opacity = 0.8
+        addon:SetSetting("combatOpacityBoost", true)
+        addon:SetSetting("opacity", 0.8)
         addon.inCombat = true
         _G.InCombatLockdown = function()
             return true
@@ -852,8 +862,8 @@ describe("Fade Effect Calculations", function()
     end)
 
     it("does not boost opacity when not in combat", function()
-        _G.UltraCursorFXDB.combatOpacityBoost = true
-        _G.UltraCursorFXDB.opacity = 0.8
+        addon:SetSetting("combatOpacityBoost", true)
+        addon:SetSetting("opacity", 0.8)
         addon.inCombat = false
         _G.InCombatLockdown = function()
             return false
@@ -866,8 +876,8 @@ describe("Fade Effect Calculations", function()
     end)
 
     it("clamps boosted opacity to 1.0 maximum", function()
-        _G.UltraCursorFXDB.combatOpacityBoost = true
-        _G.UltraCursorFXDB.opacity = 0.9 -- Would boost to 1.17
+        addon:SetSetting("combatOpacityBoost", true)
+        addon:SetSetting("opacity", 0.9) -- Would boost to 1.17
         addon.inCombat = true
 
         addon:OnUpdate(0.016)
@@ -877,8 +887,8 @@ describe("Fade Effect Calculations", function()
     end)
 
     it("renders circledot reticle during OnUpdate", function()
-        _G.UltraCursorFXDB.reticleEnabled = true
-        _G.UltraCursorFXDB.reticleStyle = "circledot"
+        addon:SetSetting("reticleEnabled", true)
+        addon:SetSetting("reticleStyle", "circledot")
         addon:BuildReticle()
 
         addon:OnUpdate(0.016)
@@ -888,8 +898,8 @@ describe("Fade Effect Calculations", function()
     end)
 
     it("renders tshape reticle during OnUpdate", function()
-        _G.UltraCursorFXDB.reticleEnabled = true
-        _G.UltraCursorFXDB.reticleStyle = "tshape"
+        addon:SetSetting("reticleEnabled", true)
+        addon:SetSetting("reticleStyle", "tshape")
         addon:BuildReticle()
 
         addon:OnUpdate(0.016)
@@ -899,8 +909,8 @@ describe("Fade Effect Calculations", function()
     end)
 
     it("renders cyberpunk reticle during OnUpdate", function()
-        _G.UltraCursorFXDB.reticleEnabled = true
-        _G.UltraCursorFXDB.reticleStyle = "cyberpunk"
+        addon:SetSetting("reticleEnabled", true)
+        addon:SetSetting("reticleStyle", "cyberpunk")
         addon:BuildReticle()
 
         addon:OnUpdate(0.016)
@@ -910,8 +920,8 @@ describe("Fade Effect Calculations", function()
     end)
 
     it("renders minimal reticle during OnUpdate", function()
-        _G.UltraCursorFXDB.reticleEnabled = true
-        _G.UltraCursorFXDB.reticleStyle = "minimal"
+        addon:SetSetting("reticleEnabled", true)
+        addon:SetSetting("reticleStyle", "minimal")
         addon:BuildReticle()
 
         addon:OnUpdate(0.016)
@@ -921,10 +931,10 @@ describe("Fade Effect Calculations", function()
     end)
 
     it("handles edge warning pulse when active", function()
-        _G.UltraCursorFXDB.edgeWarningEnabled = true
-        _G.UltraCursorFXDB.edgeWarningSize = 64
-        _G.UltraCursorFXDB.edgeWarningDistance = 50
-        _G.UltraCursorFXDB.edgeWarningOpacity = 0.8
+        addon:SetSetting("edgeWarningEnabled", true)
+        addon:SetSetting("edgeWarningSize", 64)
+        addon:SetSetting("edgeWarningDistance", 50)
+        addon:SetSetting("edgeWarningOpacity", 0.8)
         addon:BuildEdgeWarnings()
         addon.edgeWarningPulse = 0.5
 
