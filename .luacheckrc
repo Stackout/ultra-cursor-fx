@@ -45,6 +45,9 @@ globals = {
     "BINDING_HEADER_ULTRACURSORFX",
     "BINDING_NAME_ULTRACURSORFX_TOGGLE",
     "BINDING_NAME_ULTRACURSORFX_FLASH",
+    -- Static popup dialogs
+    "StaticPopup_Show",
+    "StaticPopupDialogs",
 }
 
 -- Exclude generated or vendored files
