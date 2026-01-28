@@ -4,7 +4,7 @@
 ![Coverage](https://img.shields.io/badge/coverage-98.4%25-brightgreen)
 ![Release](https://github.com/Stackout/ultra-cursor-fx/workflows/Create%20Release/badge.svg)
 ![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
-![Version](https://img.shields.io/badge/version-0.7.0-green)
+![Version](https://img.shields.io/badge/version-1.0.0-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 [![Download on CurseForge](https://img.shields.io/badge/Download-CurseForge-orange)](https://www.curseforge.com/wow/addons/ultracursorfx)
 [![GitHub Release](https://img.shields.io/github/v/release/Stackout/ultra-cursor-fx)](https://github.com/Stackout/ultra-cursor-fx/releases)

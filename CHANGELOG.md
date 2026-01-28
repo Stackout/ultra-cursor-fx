@@ -2,6 +2,56 @@
 
 All notable changes to UltraCursorFX will be documented in this file.
 
+## [1.0.0] - 2025-01-28
+
+### Breaking Changes
+This is a major release with significant database restructuring. Settings should be migrated automatically, but this version is not backward compatible with pre-1.0 saved variables.
+
+### Added
+- **Account-Wide & Character-Specific Settings**
+  - New toggle to switch between account-wide and per-character settings
+  - Account-wide mode: All characters share the same cursor appearance and profiles
+  - Character-specific mode: Each character has independent cursor settings
+  - Automatic migration of existing settings to the new system
+  - Visual indicator shows which mode is active in settings panel
+  - Character settings include full profile support (World, Raid, Dungeon, Arena, Battleground)
+
+- **Reset Settings Button**
+  - New "Reset Settings" button in the settings panel (bottom of UI)
+  - Confirmation dialog prevents accidental resets
+  - Resets all settings to default values
+  - Tooltip explains the action with warning that it cannot be undone
+  - Chat confirmation message on successful reset
+
+### Changed
+- **Refactored Database Architecture**
+  - Complete rewrite of settings storage to support multi-character profiles
+  - New `UltraCursorFXDB.account` structure for account-wide settings
+  - New `UltraCursorFXDB.characters` structure for per-character settings
+  - Profile data now stored hierarchically under account or character scope
+  - Improved `GetSetting()` and `SetSetting()` functions with scope awareness
+  - New `GetActiveProfileTable()` function for transparent profile access
+
+- **Updated Default Values**
+  - Refined default settings for better out-of-box experience
+  - Profile-specific defaults optimized for each game mode
+
+### Testing & Quality
+- **Test Suite Expanded to 314 Tests**
+  - Added comprehensive tests for character/account settings toggle
+  - New tests for settings migration between scopes
+  - Reset functionality fully tested
+  - Profile isolation tests for multi-character scenarios
+  - All 314 tests passing
+
+### Technical
+- New `StaticPopupDialogs` integration for reset confirmation
+- Enhanced WoW API mocks for `StaticPopup_Show` and `StaticPopupDialogs`
+- Improved settings panel refresh logic for scope changes
+- Better error handling in profile switching
+
+---
+
 ## [0.7.0] - 2025-01-27
 
 ### Added
