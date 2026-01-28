@@ -87,13 +87,50 @@ describe("Commands Module", function()
             slashHandler("profiles")
             assert.are.not_equal(initial, UltraCursorFXDB.situationalEnabled)
         end)
+
+        it("should toggle combat only mode", function()
+            local initial = UltraCursorFXDB.combatOnly
+            slashHandler("combat")
+            assert.are.not_equal(initial, UltraCursorFXDB.combatOnly)
+        end)
+
+        it("should toggle fade mode", function()
+            local initial = UltraCursorFXDB.fadeEnabled
+            slashHandler("fade")
+            assert.are.not_equal(initial, UltraCursorFXDB.fadeEnabled)
+        end)
+
+        it("should toggle combat opacity boost", function()
+            local initial = UltraCursorFXDB.combatOpacityBoost
+            slashHandler("boost")
+            assert.are.not_equal(initial, UltraCursorFXDB.combatOpacityBoost)
+        end)
+
+        it("should toggle reticle mode", function()
+            local initial = UltraCursorFXDB.reticleEnabled
+            slashHandler("reticle")
+            assert.are.not_equal(initial, UltraCursorFXDB.reticleEnabled)
+        end)
+
+        it("should toggle edge warning mode", function()
+            local initial = UltraCursorFXDB.edgeWarningEnabled
+            slashHandler("edge")
+            assert.are.not_equal(initial, UltraCursorFXDB.edgeWarningEnabled)
+        end)
     end)
 
     describe("Profile Commands", function()
         before_each(function()
-            UltraCursorFXDB.profiles = {
-                world = { name = "World", color = { 0.0, 1.0, 1.0 }, points = 48 },
-                raid = { name = "Raid", color = { 1.0, 0.0, 0.0 }, points = 40 },
+            UltraCursorFXDB.account = {
+                profiles = {
+                    world = { name = "World", color = { 0.0, 1.0, 1.0 }, points = 48 },
+                    raid = { name = "Raid", color = { 1.0, 0.0, 0.0 }, points = 40 },
+                },
+            }
+            UltraCursorFXDB.characters = {
+                ["TestCharacter-TestRealm"] = {
+                    useAccountSettings = true,
+                },
             }
         end)
 
@@ -102,8 +139,9 @@ describe("Commands Module", function()
             UltraCursorFXDB.points = 100
             slashHandler("save world")
 
-            assert.are.same({ 1.0, 0.5, 0.0 }, UltraCursorFXDB.profiles.world.color)
-            assert.are.equal(100, UltraCursorFXDB.profiles.world.points)
+            local profiles = addon:GetActiveProfileTable()
+            assert.are.same({ 1.0, 0.5, 0.0 }, profiles.world.color)
+            assert.are.equal(100, profiles.world.points)
         end)
 
         it("should reject save to non-existent profile", function()

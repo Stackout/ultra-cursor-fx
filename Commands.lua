@@ -58,25 +58,38 @@ SlashCmdList["ULTRACURSORFX"] = function(msg)
         end
     elseif cmd == "save" then
         local profile = msg:match("%S+%s+(%S+)")
-        if profile and UltraCursorFXDB.profiles[profile] then
+        local profiles = addon:GetActiveProfileTable()
+        if profile and profiles[profile] then
             addon:SaveToProfile(profile)
-            local profileName = UltraCursorFXDB.profiles[profile].name or profile
-            print("|cFF00FFFFUltraCursorFX:|r Saved current settings to " .. profileName .. " profile")
+            local profileName = profiles[profile].name or profile
+            local charKey = addon:GetCharacterKey()
+            local charData = UltraCursorFXDB.characters and UltraCursorFXDB.characters[charKey]
+            local scope = (charData and charData.useAccountSettings) and "account-wide" or charKey
+            print(
+                "|cFF00FFFFUltraCursorFX:|r Saved current settings to " .. profileName .. " profile (" .. scope .. ")"
+            )
         else
             print("|cFFFF0000UltraCursorFX:|r Usage: /ucfx save <world|raid|dungeon|arena|battleground>")
         end
     elseif cmd == "load" then
         local profile = msg:match("%S+%s+(%S+)")
-        if profile and UltraCursorFXDB.profiles[profile] then
+        local profiles = addon:GetActiveProfileTable()
+        if profile and profiles[profile] then
             addon:LoadFromProfile(profile)
-            local profileName = UltraCursorFXDB.profiles[profile].name or profile
-            print("|cFF00FFFFUltraCursorFX:|r Loaded " .. profileName .. " profile")
+            local profileName = profiles[profile].name or profile
+            local charKey = addon:GetCharacterKey()
+            local charData = UltraCursorFXDB.characters and UltraCursorFXDB.characters[charKey]
+            local scope = (charData and charData.useAccountSettings) and "account-wide" or charKey
+            print("|cFF00FFFFUltraCursorFX:|r Loaded " .. profileName .. " profile (" .. scope .. ")")
         else
             print("|cFFFF0000UltraCursorFX:|r Usage: /ucfx load <world|raid|dungeon|arena|battleground>")
         end
     elseif cmd == "export" then
         local exportString = addon:ExportSettings()
-        print("|cFF00FFFFUltraCursorFX Export String:|r")
+        local charKey = addon:GetCharacterKey()
+        local charData = UltraCursorFXDB.characters and UltraCursorFXDB.characters[charKey]
+        local scope = (charData and not charData.useAccountSettings) and "character-specific" or "account-wide"
+        print("|cFF00FFFFUltraCursorFX Export String:|r " .. charKey .. " (" .. scope .. ")")
         print(exportString)
         print("|cFFFFD700Copy the string above to share your settings!|r")
     elseif cmd == "import" then

@@ -1,6 +1,7 @@
-# UltraCursorFX ✨
+# UltraCursorFX
 
 ![Tests](https://github.com/Stackout/ultra-cursor-fx/workflows/Test%20Suite/badge.svg)
+![Coverage](https://img.shields.io/badge/coverage-98.3%25-brightgreen)
 ![Release](https://github.com/Stackout/ultra-cursor-fx/workflows/Create%20Release/badge.svg)
 ![WoW Version](https://img.shields.io/badge/WoW-Midnight%20Ready-blue)
 ![Version](https://img.shields.io/badge/version-0.7.0-green)
@@ -9,7 +10,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/Stackout/ultra-cursor-fx)](https://github.com/Stackout/ultra-cursor-fx/releases)
 ![UltraCursorFX Icon](icon.png)
 
-## 🎯 **Stop Losing Your Cursor!**
+## **Stop Losing Your Cursor!**
 
 ### Are you constantly losing track of your mouse cursor during intense gameplay?
 ### Do you find yourself squinting at the screen, frantically waving your mouse around just to locate that tiny arrow?

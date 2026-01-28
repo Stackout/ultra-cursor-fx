@@ -118,4 +118,18 @@ describe("Core Module", function()
             assert.are.equal(48, _G.UltraCursorFXDB.points)
         end)
     end)
+
+    describe("SyncSettingsToFlat", function()
+        it("should handle missing defaults gracefully", function()
+            local addon = UltraCursorFX
+            local originalDefaults = addon.defaults
+            addon.defaults = nil
+
+            -- Should not crash
+            addon:SyncSettingsToFlat()
+
+            -- Restore defaults
+            addon.defaults = originalDefaults
+        end)
+    end)
 end)

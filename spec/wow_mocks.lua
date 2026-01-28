@@ -301,8 +301,23 @@ _G.UnitIsUnit = function(unit1, unit2)
     return unit1 == unit2
 end
 
+_G.UnitName = function(unit)
+    if unit == "player" then
+        return "TestCharacter"
+    end
+    return "Unknown"
+end
+
+_G.GetRealmName = function()
+    return "TestRealm"
+end
+
 _G.GetTime = function()
     return os.clock()
+end
+
+_G.time = function()
+    return os.time()
 end
 
 -- Settings API (modern)
@@ -341,6 +356,7 @@ _G.UIDropDownMenu_CreateInfo = function()
 end
 _G.UIDropDownMenu_AddButton = function(info, level) end
 _G.UIDropDownMenu_SetText = function(frame, text) end
+_G.UIDropDownMenu_SetSelectedValue = function(frame, value) end
 
 -- Slash commands
 _G.SlashCmdList = {}

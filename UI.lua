@@ -27,15 +27,17 @@ function addon:CreateSettingsPanel()
             -- Update UI indicators immediately
             if uiControls.profileSwatches and uiControls.profileSwatches[currentEditingProfile] then
                 local swatchData = uiControls.profileSwatches[currentEditingProfile]
-                SetupColorSwatch(swatchData.swatch, UltraCursorFXDB.profiles[currentEditingProfile])
-                local profile = UltraCursorFXDB.profiles[currentEditingProfile]
+                local profiles = addon:GetActiveProfileTable()
+                SetupColorSwatch(swatchData.swatch, profiles[currentEditingProfile])
+                local profile = profiles[currentEditingProfile]
                 swatchData.rainbowIndicator:SetText(profile and profile.rainbowMode and "|cFFFFFF00R|r" or "")
             end
             -- Update active indicator if this is the current zone profile
             if addon.currentZoneProfile == currentEditingProfile and uiControls.activeColorSwatch then
-                SetupColorSwatch(uiControls.activeColorSwatch, UltraCursorFXDB.profiles[currentEditingProfile])
+                local profiles = addon:GetActiveProfileTable()
+                SetupColorSwatch(uiControls.activeColorSwatch, profiles[currentEditingProfile])
                 if uiControls.activeRainbowIndicator then
-                    local profile = UltraCursorFXDB.profiles[currentEditingProfile]
+                    local profile = profiles[currentEditingProfile]
                     uiControls.activeRainbowIndicator:SetText(profile and profile.rainbowMode and "|cFFFFFF00R|r" or "")
                 end
             end
@@ -160,6 +162,113 @@ function addon:CreateSettingsPanel()
 
     local yPos = -100
 
+    -- CHARACTER SELECTOR
+    yPos = CreateSection("Character Settings", yPos)
+
+    local charSelectorDesc = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    charSelectorDesc:SetPoint("TOPLEFT", 20, yPos)
+    charSelectorDesc:SetText("Manage settings per character or share across all characters")
+    yPos = yPos - 25
+
+    -- Account-wide toggle
+    local accountWideCB = CreateCheckbox(
+        "UseAccountSettings",
+        "Use Account-Wide Settings",
+        yPos,
+        "When enabled: All characters share the same cursor settings\nWhen disabled: This character has unique settings separate from other characters"
+    )
+    local currentCharKey = addon:GetCharacterKey()
+    local charData = UltraCursorFXDB.characters and UltraCursorFXDB.characters[currentCharKey]
+    accountWideCB:SetChecked(charData and charData.useAccountSettings)
+    accountWideCB:SetScript("OnClick", function(self)
+        addon:SetUseAccountSettings(self:GetChecked())
+        if settingsPanel.RefreshUI then
+            settingsPanel.RefreshUI()
+        end
+    end)
+    uiControls.accountWideCB = accountWideCB
+    yPos = yPos - 35
+
+    -- Helper text explaining account-wide setting
+    local accountWideHelp = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    accountWideHelp:SetPoint("TOPLEFT", 40, yPos)
+    accountWideHelp:SetWidth(520)
+    accountWideHelp:SetJustifyH("LEFT")
+    if accountWideHelp.SetTextColor then
+        accountWideHelp:SetTextColor(0.8, 0.8, 0.8)
+    end
+    if charData and charData.useAccountSettings then
+        accountWideHelp:SetText(
+            "|cFF00FF00Enabled:|r All your characters will use the same cursor appearance and behavior."
+        )
+    else
+        accountWideHelp:SetText(
+            "|cFFFFAA00Disabled:|r This character has its own unique cursor settings. Changes won't affect other characters."
+        )
+    end
+    uiControls.accountWideHelp = accountWideHelp
+    yPos = yPos - 30
+
+    -- Character dropdown
+    local charDropdownLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    charDropdownLabel:SetPoint("TOPLEFT", 20, yPos)
+    charDropdownLabel:SetText("Viewing Character:")
+
+    local charDropdown = CreateFrame("Frame", "UltraCursorFXCharDropdown", content, "UIDropDownMenuTemplate")
+    charDropdown:SetPoint("LEFT", charDropdownLabel, "RIGHT", -10, -3)
+
+    -- Store the currently selected character key for viewing
+    settingsPanel.viewingCharKey = currentCharKey
+
+    local function UpdateCharacterDropdown()
+        local charList = addon:GetCharacterList()
+
+        UIDropDownMenu_Initialize(charDropdown, function(self, level)
+            local info = UIDropDownMenu_CreateInfo()
+
+            -- Current character (this session)
+            info.text = currentCharKey .. " |cFF00FF00(Current)|r"
+            info.value = currentCharKey
+            info.func = function()
+                settingsPanel.viewingCharKey = currentCharKey
+                UIDropDownMenu_SetSelectedValue(charDropdown, currentCharKey)
+                if settingsPanel.RefreshUI then
+                    settingsPanel.RefreshUI()
+                end
+            end
+            info.checked = (settingsPanel.viewingCharKey == currentCharKey)
+            UIDropDownMenu_AddButton(info)
+
+            -- Other characters
+            for _, char in ipairs(charList) do
+                if char.key ~= currentCharKey then
+                    info = UIDropDownMenu_CreateInfo()
+                    info.text = char.key
+                    info.value = char.key
+                    info.func = function()
+                        settingsPanel.viewingCharKey = char.key
+                        UIDropDownMenu_SetSelectedValue(charDropdown, char.key)
+                        if settingsPanel.RefreshUI then
+                            settingsPanel.RefreshUI()
+                        end
+                    end
+                    info.checked = (settingsPanel.viewingCharKey == char.key)
+                    UIDropDownMenu_AddButton(info)
+                end
+            end
+        end)
+
+        UIDropDownMenu_SetSelectedValue(charDropdown, settingsPanel.viewingCharKey)
+        UIDropDownMenu_SetWidth(charDropdown, 200)
+        UIDropDownMenu_SetText(charDropdown, settingsPanel.viewingCharKey)
+    end
+
+    UpdateCharacterDropdown()
+    uiControls.charDropdown = charDropdown
+    uiControls.updateCharacterDropdown = UpdateCharacterDropdown
+
+    yPos = yPos - 45
+
     -- IMPORT/EXPORT (Top placement for visibility)
     yPos = CreateSection("Share & Import Settings", yPos)
 
@@ -267,7 +376,8 @@ function addon:CreateSettingsPanel()
     activeProfileBg:SetAllPoints()
     activeProfileBg:SetColorTexture(0.1, 0.3, 0.1, 0.5)
 
-    local currentProfile = UltraCursorFXDB.profiles[addon.currentZoneProfile]
+    local profiles = addon:GetActiveProfileTable()
+    local currentProfile = profiles[addon.currentZoneProfile]
     local currentProfileName = currentProfile and currentProfile.name or "World"
 
     local activeColorSwatch = activeProfileFrame:CreateTexture(nil, "ARTWORK")
@@ -336,15 +446,16 @@ function addon:CreateSettingsPanel()
             GameTooltip:Hide()
         end)
 
+        local profilesTable = addon:GetActiveProfileTable()
         local colorSwatch = profileFrame:CreateTexture(nil, "ARTWORK")
         colorSwatch:SetSize(24, 24)
         colorSwatch:SetPoint("LEFT", 4, 0)
-        SetupColorSwatch(colorSwatch, UltraCursorFXDB.profiles[profileInfo.key])
+        SetupColorSwatch(colorSwatch, profilesTable[profileInfo.key])
 
         -- Rainbow indicator overlay
         local rainbowIndicator = profileFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
         rainbowIndicator:SetPoint("CENTER", colorSwatch, "CENTER", 0, 0)
-        local profile = UltraCursorFXDB.profiles[profileInfo.key]
+        local profile = profiles[profileInfo.key]
         rainbowIndicator:SetText(profile and profile.rainbowMode and "|cFFFFFF00R|r" or "")
 
         -- Store for updates
@@ -369,12 +480,10 @@ function addon:CreateSettingsPanel()
             uiControls.activeProfileLabel:SetText(
                 "Editing: |cFFFFD700" .. profileInfo.name .. "|r |cFF888888(auto-saves)|r"
             )
-            SetupColorSwatch(uiControls.activeColorSwatch, UltraCursorFXDB.profiles[profileInfo.key])
+            local profiles = addon:GetActiveProfileTable()
+            SetupColorSwatch(uiControls.activeColorSwatch, profiles[profileInfo.key])
             uiControls.activeRainbowIndicator:SetText(
-                UltraCursorFXDB.profiles[profileInfo.key]
-                        and UltraCursorFXDB.profiles[profileInfo.key].rainbowMode
-                        and "|cFFFFFF00R|r"
-                    or ""
+                profiles[profileInfo.key] and profiles[profileInfo.key].rainbowMode and "|cFFFFFF00R|r" or ""
             )
             RefreshUI()
             isLoadingProfile = false
@@ -1042,75 +1151,128 @@ function addon:CreateSettingsPanel()
 
     -- Function to refresh UI controls from current database values
     RefreshUI = function()
+        -- Determine which character we're viewing
+        local viewingChar = settingsPanel.viewingCharKey or addon:GetCharacterKey()
+        local isViewingOtherChar = (viewingChar ~= addon:GetCharacterKey())
+
+        -- Helper function to get the appropriate setting value
+        local function GetDisplaySetting(key)
+            if isViewingOtherChar then
+                return addon:GetSettingForCharacter(viewingChar, key)
+            else
+                return UltraCursorFXDB[key]
+            end
+        end
+
+        -- Update account-wide checkbox
+        if uiControls.accountWideCB then
+            local charData = UltraCursorFXDB.characters and UltraCursorFXDB.characters[viewingChar]
+            uiControls.accountWideCB:SetChecked(charData and charData.useAccountSettings)
+            -- Disable if viewing another character
+            if isViewingOtherChar then
+                uiControls.accountWideCB:Disable()
+            else
+                uiControls.accountWideCB:Enable()
+            end
+        end
+
+        -- Update account-wide helper text
+        if uiControls.accountWideHelp then
+            local charData = UltraCursorFXDB.characters and UltraCursorFXDB.characters[viewingChar]
+            if charData and charData.useAccountSettings then
+                uiControls.accountWideHelp:SetText(
+                    "|cFF00FF00Enabled:|r All your characters will use the same cursor appearance and behavior."
+                )
+            else
+                uiControls.accountWideHelp:SetText(
+                    "|cFFFFAA00Disabled:|r This character has its own unique cursor settings. Changes won't affect other characters."
+                )
+            end
+        end
+
+        -- Show indicator if viewing another character
+        if isViewingOtherChar then
+            if not uiControls.viewOnlyWarning then
+                uiControls.viewOnlyWarning = content:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+                uiControls.viewOnlyWarning:SetPoint("TOP", content, "TOP", 0, -20)
+            end
+            uiControls.viewOnlyWarning:SetText("|cFFFF8800[View-Only Mode]|r")
+            uiControls.viewOnlyWarning:Show()
+        elseif uiControls.viewOnlyWarning then
+            uiControls.viewOnlyWarning:Hide()
+        end
+
         -- Update checkboxes
-        uiControls.enableCB:SetChecked(UltraCursorFXDB.enabled)
-        uiControls.flashCB:SetChecked(UltraCursorFXDB.flashEnabled)
-        uiControls.combatCB:SetChecked(UltraCursorFXDB.combatOnly)
-        uiControls.rainbowCB:SetChecked(UltraCursorFXDB.rainbowMode)
-        uiControls.clickCB:SetChecked(UltraCursorFXDB.clickEffects)
-        uiControls.cometCB:SetChecked(UltraCursorFXDB.cometMode)
-        uiControls.fadeCB:SetChecked(UltraCursorFXDB.fadeEnabled)
-        uiControls.combatBoostCB:SetChecked(UltraCursorFXDB.combatOpacityBoost)
+        uiControls.enableCB:SetChecked(GetDisplaySetting("enabled"))
+        uiControls.flashCB:SetChecked(GetDisplaySetting("flashEnabled"))
+        uiControls.combatCB:SetChecked(GetDisplaySetting("combatOnly"))
+        uiControls.rainbowCB:SetChecked(GetDisplaySetting("rainbowMode"))
+        uiControls.clickCB:SetChecked(GetDisplaySetting("clickEffects"))
+        uiControls.cometCB:SetChecked(GetDisplaySetting("cometMode"))
+        uiControls.fadeCB:SetChecked(GetDisplaySetting("fadeEnabled"))
+        uiControls.combatBoostCB:SetChecked(GetDisplaySetting("combatOpacityBoost"))
 
         -- Update sliders
-        uiControls.pointsSlider:SetValue(UltraCursorFXDB.points or 48)
-        uiControls.pointsSlider.valueText:SetText(UltraCursorFXDB.points or 48)
+        uiControls.pointsSlider:SetValue(GetDisplaySetting("points") or 48)
+        uiControls.pointsSlider.valueText:SetText(GetDisplaySetting("points") or 48)
 
-        uiControls.sizeSlider:SetValue(UltraCursorFXDB.size or 34)
-        uiControls.sizeSlider.valueText:SetText(UltraCursorFXDB.size or 34)
+        uiControls.sizeSlider:SetValue(GetDisplaySetting("size") or 34)
+        uiControls.sizeSlider.valueText:SetText(GetDisplaySetting("size") or 34)
 
-        uiControls.glowSlider:SetValue(UltraCursorFXDB.glowSize or 64)
-        uiControls.glowSlider.valueText:SetText(UltraCursorFXDB.glowSize or 64)
+        uiControls.glowSlider:SetValue(GetDisplaySetting("glowSize") or 64)
+        uiControls.glowSlider.valueText:SetText(GetDisplaySetting("glowSize") or 64)
 
-        uiControls.smoothSlider:SetValue(UltraCursorFXDB.smoothness or 0.18)
-        uiControls.smoothSlider.valueText:SetText(string.format("%.2f", UltraCursorFXDB.smoothness or 0.18))
+        uiControls.smoothSlider:SetValue(GetDisplaySetting("smoothness") or 0.18)
+        uiControls.smoothSlider.valueText:SetText(string.format("%.2f", GetDisplaySetting("smoothness") or 0.18))
 
-        uiControls.pulseSlider:SetValue(UltraCursorFXDB.pulseSpeed or 2.5)
-        uiControls.pulseSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.pulseSpeed or 2.5))
+        uiControls.pulseSlider:SetValue(GetDisplaySetting("pulseSpeed") or 2.5)
+        uiControls.pulseSlider.valueText:SetText(string.format("%.1f", GetDisplaySetting("pulseSpeed") or 2.5))
 
-        uiControls.rainbowSlider:SetValue(UltraCursorFXDB.rainbowSpeed or 1.0)
-        uiControls.rainbowSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.rainbowSpeed or 1.0))
+        uiControls.rainbowSlider:SetValue(GetDisplaySetting("rainbowSpeed") or 1.0)
+        uiControls.rainbowSlider.valueText:SetText(string.format("%.1f", GetDisplaySetting("rainbowSpeed") or 1.0))
 
-        uiControls.clickParticlesSlider:SetValue(UltraCursorFXDB.clickParticles or 12)
-        uiControls.clickParticlesSlider.valueText:SetText(UltraCursorFXDB.clickParticles or 12)
+        uiControls.clickParticlesSlider:SetValue(GetDisplaySetting("clickParticles") or 12)
+        uiControls.clickParticlesSlider.valueText:SetText(GetDisplaySetting("clickParticles") or 12)
 
-        uiControls.clickSizeSlider:SetValue(UltraCursorFXDB.clickSize or 50)
-        uiControls.clickSizeSlider.valueText:SetText(UltraCursorFXDB.clickSize or 50)
+        uiControls.clickSizeSlider:SetValue(GetDisplaySetting("clickSize") or 50)
+        uiControls.clickSizeSlider.valueText:SetText(GetDisplaySetting("clickSize") or 50)
 
-        uiControls.clickDurationSlider:SetValue(UltraCursorFXDB.clickDuration or 0.6)
-        uiControls.clickDurationSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.clickDuration or 0.6))
-
-        uiControls.cometSlider:SetValue(UltraCursorFXDB.cometLength or 2.0)
-        uiControls.cometSlider.valueText:SetText(string.format("%.1f", UltraCursorFXDB.cometLength or 2.0))
-
-        uiControls.opacitySlider:SetValue(UltraCursorFXDB.opacity or 1.0)
-        uiControls.opacitySlider.valueText:SetText(
-            string.format("%d%%", math.floor((UltraCursorFXDB.opacity or 1.0) * 100))
+        uiControls.clickDurationSlider:SetValue(GetDisplaySetting("clickDuration") or 0.6)
+        uiControls.clickDurationSlider.valueText:SetText(
+            string.format("%.1f", GetDisplaySetting("clickDuration") or 0.6)
         )
 
-        uiControls.fadeStrengthSlider:SetValue(UltraCursorFXDB.fadeStrength or 0.5)
+        uiControls.cometSlider:SetValue(GetDisplaySetting("cometLength") or 2.0)
+        uiControls.cometSlider.valueText:SetText(string.format("%.1f", GetDisplaySetting("cometLength") or 2.0))
+
+        uiControls.opacitySlider:SetValue(GetDisplaySetting("opacity") or 1.0)
+        uiControls.opacitySlider.valueText:SetText(
+            string.format("%d%%", math.floor((GetDisplaySetting("opacity") or 1.0) * 100))
+        )
+
+        uiControls.fadeStrengthSlider:SetValue(GetDisplaySetting("fadeStrength") or 0.5)
         uiControls.fadeStrengthSlider.valueText:SetText(
-            string.format("%.0f%%", (UltraCursorFXDB.fadeStrength or 0.5) * 100)
+            string.format("%.0f%%", (GetDisplaySetting("fadeStrength") or 0.5) * 100)
         )
 
         -- Update reticle controls
         if uiControls.reticleEnabledCB then
-            uiControls.reticleEnabledCB:SetChecked(UltraCursorFXDB.reticleEnabled)
+            uiControls.reticleEnabledCB:SetChecked(GetDisplaySetting("reticleEnabled"))
         end
         if uiControls.reticleSizeSlider then
-            uiControls.reticleSizeSlider:SetValue(UltraCursorFXDB.reticleSize or 80)
-            uiControls.reticleSizeSlider.valueText:SetText(math.floor(UltraCursorFXDB.reticleSize or 80))
+            uiControls.reticleSizeSlider:SetValue(GetDisplaySetting("reticleSize") or 80)
+            uiControls.reticleSizeSlider.valueText:SetText(math.floor(GetDisplaySetting("reticleSize") or 80))
         end
         if uiControls.reticleBrightnessSlider then
-            uiControls.reticleBrightnessSlider:SetValue(UltraCursorFXDB.reticleBrightness or 1.0)
+            uiControls.reticleBrightnessSlider:SetValue(GetDisplaySetting("reticleBrightness") or 1.0)
             uiControls.reticleBrightnessSlider.valueText:SetText(
-                string.format("%.1fx", UltraCursorFXDB.reticleBrightness or 1.0)
+                string.format("%.1fx", GetDisplaySetting("reticleBrightness") or 1.0)
             )
         end
         if uiControls.reticleOpacitySlider then
-            uiControls.reticleOpacitySlider:SetValue(UltraCursorFXDB.reticleOpacity or 0.7)
+            uiControls.reticleOpacitySlider:SetValue(GetDisplaySetting("reticleOpacity") or 0.7)
             uiControls.reticleOpacitySlider.valueText:SetText(
-                string.format("%d%%", math.floor((UltraCursorFXDB.reticleOpacity or 0.7) * 100))
+                string.format("%d%%", math.floor((GetDisplaySetting("reticleOpacity") or 0.7) * 100))
             )
         end
         if uiControls.reticleRotationSlider then

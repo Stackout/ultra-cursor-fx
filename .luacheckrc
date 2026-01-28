@@ -1,5 +1,6 @@
 -- Luacheck configuration
 std = "lua51"
+max_line_length = 160
 
 -- Global variables provided by WoW
 globals = {
@@ -18,19 +19,23 @@ globals = {
     "GameTooltip",
     "wipe",
     "print",
-    -- Unit API (for reticle system)
+    "time",
+    -- Unit API (for reticle system and character key)
     "UnitExists",
     "UnitCanAttack",
     "UnitIsFriend",
     "UnitIsDead",
     "UnitIsUnit",
+    "UnitName",
+    "GetRealmName",
     "GetTime",
-    -- UIDropDownMenu API (for reticle style dropdown)
+    -- UIDropDownMenu API (for character dropdown and reticle style)
     "UIDropDownMenu_SetWidth",
     "UIDropDownMenu_Initialize",
     "UIDropDownMenu_CreateInfo",
     "UIDropDownMenu_AddButton",
     "UIDropDownMenu_SetText",
+    "UIDropDownMenu_SetSelectedValue",
     -- Slash commands and keybinding globals
     "UltraCursorFX_Toggle",
     "UltraCursorFX_ToggleFlash",
@@ -52,9 +57,9 @@ exclude_files = {
 -- Warnings to ignore
 ignore = {
     "212", -- Unused argument (common in WoW callbacks)
+    "431", -- Shadowing upvalue (common pattern in WoW UI callbacks)
     "611", -- Line contains only whitespace (formatting preference)
     "612", -- Line contains trailing whitespace (will fix separately)
-    "431", -- Shadowing upvalue (common pattern in WoW UI callbacks)
 }
 
 -- Files with special rules

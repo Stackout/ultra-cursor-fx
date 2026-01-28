@@ -14,7 +14,7 @@ describe("Profiles Module", function()
         require("Profiles")
         require("Effects")
         addon = UltraCursorFX
-        addon:InitializeDefaults()
+        -- Don't call InitializeDefaults here - let each test set up its own DB
     end)
 
     describe("GetCurrentZoneProfile", function()
@@ -56,40 +56,57 @@ describe("Profiles Module", function()
         it("should save current settings to profile", function()
             addon:SaveToProfile("world")
 
-            assert.is_not_nil(UltraCursorFXDB.profiles.world)
-            assert.are.same({ 1.0, 0.0, 0.0 }, UltraCursorFXDB.profiles.world.color)
-            assert.are.equal(50, UltraCursorFXDB.profiles.world.points)
-            assert.are.equal(40, UltraCursorFXDB.profiles.world.size)
-            assert.are.equal("skull", UltraCursorFXDB.profiles.world.particleShape)
+            local profiles = addon:GetActiveProfileTable()
+            assert.is_not_nil(profiles.world)
+            assert.are.same({ 1.0, 0.0, 0.0 }, profiles.world.color)
+            assert.are.equal(50, profiles.world.points)
+            assert.are.equal(40, profiles.world.size)
+            assert.are.equal("skull", profiles.world.particleShape)
         end)
 
         it("should create profile if it doesn't exist", function()
             addon:SaveToProfile("custom")
-            assert.is_not_nil(UltraCursorFXDB.profiles.custom)
+            local profiles = addon:GetActiveProfileTable()
+            assert.is_not_nil(profiles.custom)
         end)
 
         it("should copy color table, not reference", function()
             addon:SaveToProfile("world")
+            local profiles = addon:GetActiveProfileTable()
             UltraCursorFXDB.color[1] = 0.5
-
-            assert.are.equal(1.0, UltraCursorFXDB.profiles.world.color[1])
+            assert.are.equal(1.0, profiles.world.color[1])
         end)
     end)
 
     describe("LoadFromProfile", function()
         before_each(function()
-            UltraCursorFXDB.profiles = {
-                test = {
-                    color = { 0.8, 0.2, 1.0 },
-                    points = 75,
-                    size = 50,
-                    glowSize = 80,
-                    smoothness = 0.25,
-                    particleShape = "spark",
-                    rainbowMode = true,
-                    cometMode = true,
+            _G.UltraCursorFXDB = {
+                -- Flat structure that LoadFromProfile writes to
+                color = { 0.0, 1.0, 1.0 },
+                points = 48,
+                size = 34,
+                account = {
+                    profiles = {
+                        test = {
+                            color = { 0.8, 0.2, 1.0 },
+                            points = 75,
+                            size = 50,
+                            glowSize = 80,
+                            smoothness = 0.25,
+                            particleShape = "spark",
+                            rainbowMode = true,
+                            cometMode = true,
+                        },
+                    },
+                },
+                characters = {
+                    ["TestCharacter-TestRealm"] = {
+                        useAccountSettings = true,
+                    },
                 },
             }
+            -- Mock BuildTrail to avoid errors
+            addon.BuildTrail = function() end
         end)
 
         it("should load profile settings to DB", function()
@@ -111,7 +128,8 @@ describe("Profiles Module", function()
         end)
 
         it("should use defaults for missing values", function()
-            UltraCursorFXDB.profiles.partial = { color = { 1.0, 1.0, 1.0 } }
+            local profiles = addon:GetActiveProfileTable()
+            profiles.partial = { color = { 1.0, 1.0, 1.0 } }
             addon:LoadFromProfile("partial")
 
             assert.are.equal(48, UltraCursorFXDB.points)
@@ -121,12 +139,25 @@ describe("Profiles Module", function()
 
     describe("SwitchToZoneProfile", function()
         before_each(function()
-            UltraCursorFXDB.situationalEnabled = true
-            UltraCursorFXDB.profiles = {
-                world = { name = "World", color = { 0.0, 1.0, 1.0 }, points = 48 },
-                raid = { name = "Raid", color = { 1.0, 0.0, 0.0 }, points = 40 },
+            _G.UltraCursorFXDB = {
+                situationalEnabled = true,
+                -- Flat structure
+                color = { 0.0, 1.0, 1.0 },
+                points = 48,
+                account = {
+                    profiles = {
+                        world = { name = "World", color = { 0.0, 1.0, 1.0 }, points = 48 },
+                        raid = { name = "Raid", color = { 1.0, 0.0, 0.0 }, points = 40 },
+                    },
+                },
+                characters = {
+                    ["TestCharacter-TestRealm"] = {
+                        useAccountSettings = true,
+                    },
+                },
             }
-            addon.currentZoneProfile = "world"
+            addon.currentZoneProfile = "world" -- Mock BuildTrail to avoid errors
+            addon.BuildTrail = function() end
         end)
 
         it("should not switch if situational disabled", function()
@@ -164,24 +195,69 @@ describe("Profiles Module", function()
         end)
     end)
 
+    describe("GetCharacterList", function()
+        it("should return empty table when no characters exist", function()
+            _G.UltraCursorFXDB = {}
+            -- Don't set characters property at all
+
+            local charList = addon:GetCharacterList()
+
+            assert.are.same({}, charList)
+        end)
+
+        it("should handle edge case where GetCurrentZoneProfile returns unknown type", function()
+            -- Simulate an unknown instance type
+            _G.IsInInstance = function()
+                return true, "unknown_type"
+            end
+
+            local profile = addon:GetCurrentZoneProfile()
+
+            -- Should default to world
+            assert.are.equal("world", profile)
+        end)
+    end)
+
+    describe("SetUseAccountSettings Edge Cases", function()
+        it("should handle missing characters table", function()
+            _G.UltraCursorFXDB = {}
+            -- Don't initialize characters
+
+            addon:SetUseAccountSettings(false)
+
+            assert.is_table(_G.UltraCursorFXDB.characters)
+        end)
+
+        it("should handle missing account table", function()
+            _G.UltraCursorFXDB = {
+                characters = {},
+            }
+            -- Don't initialize account
+
+            addon:SetUseAccountSettings(false)
+
+            assert.is_table(_G.UltraCursorFXDB.account)
+        end)
+    end)
+
     describe("MigrateProfiles", function()
         it("should initialize profiles structure", function()
             _G.UltraCursorFXDB = {}
             addon:MigrateProfiles()
 
-            assert.is_table(_G.UltraCursorFXDB.profiles)
+            assert.is_table(_G.UltraCursorFXDB.account.profiles)
         end)
 
         it("should create all 5 default profiles", function()
             _G.UltraCursorFXDB = {}
             addon:MigrateProfiles()
 
-            assert.is_not_nil(_G.UltraCursorFXDB.profiles)
-            assert.is_not_nil(_G.UltraCursorFXDB.profiles.world)
-            assert.is_not_nil(_G.UltraCursorFXDB.profiles.raid)
-            assert.is_not_nil(_G.UltraCursorFXDB.profiles.dungeon)
-            assert.is_not_nil(_G.UltraCursorFXDB.profiles.arena)
-            assert.is_not_nil(_G.UltraCursorFXDB.profiles.battleground)
+            assert.is_not_nil(_G.UltraCursorFXDB.account.profiles)
+            assert.is_not_nil(_G.UltraCursorFXDB.account.profiles.world)
+            assert.is_not_nil(_G.UltraCursorFXDB.account.profiles.raid)
+            assert.is_not_nil(_G.UltraCursorFXDB.account.profiles.dungeon)
+            assert.is_not_nil(_G.UltraCursorFXDB.account.profiles.arena)
+            assert.is_not_nil(_G.UltraCursorFXDB.account.profiles.battleground)
         end)
 
         it("should migrate custom user settings to world profile", function()
@@ -194,10 +270,10 @@ describe("Profiles Module", function()
 
             addon:MigrateProfiles()
 
-            assert.are.same({ 1.0, 0.5, 0.0 }, _G.UltraCursorFXDB.profiles.world.color)
-            assert.are.equal(100, _G.UltraCursorFXDB.profiles.world.points)
-            assert.are.equal(60, _G.UltraCursorFXDB.profiles.world.size)
-            assert.are.equal("skull", _G.UltraCursorFXDB.profiles.world.particleShape)
+            assert.are.same({ 1.0, 0.5, 0.0 }, _G.UltraCursorFXDB.account.color)
+            assert.are.equal(100, _G.UltraCursorFXDB.account.points)
+            assert.are.equal(60, _G.UltraCursorFXDB.account.size)
+            assert.are.equal("skull", _G.UltraCursorFXDB.account.particleShape)
         end)
 
         it("should not migrate if settings match defaults", function()
@@ -208,8 +284,8 @@ describe("Profiles Module", function()
 
             addon:MigrateProfiles()
 
-            -- Should use profile defaults, not user's default-matching values
-            assert.are.equal(48, _G.UltraCursorFXDB.profiles.world.points)
+            -- Should use profile defaults
+            assert.are.equal(48, _G.UltraCursorFXDB.account.profiles.world.points)
         end)
 
         it("should only migrate once", function()
@@ -219,13 +295,13 @@ describe("Profiles Module", function()
             assert.is_true(_G.UltraCursorFXDB.profilesMigrated)
 
             -- Change world profile
-            _G.UltraCursorFXDB.profiles.world.color = { 0.0, 1.0, 0.0 }
+            _G.UltraCursorFXDB.account.profiles.world.color = { 0.0, 1.0, 0.0 }
 
             -- Migrate again
             addon:MigrateProfiles()
 
             -- Should NOT overwrite
-            assert.are.same({ 0.0, 1.0, 0.0 }, _G.UltraCursorFXDB.profiles.world.color)
+            assert.are.same({ 0.0, 1.0, 0.0 }, _G.UltraCursorFXDB.account.profiles.world.color)
         end)
 
         it("should migrate numeric differences from defaults", function()
@@ -236,8 +312,8 @@ describe("Profiles Module", function()
 
             addon:MigrateProfiles()
 
-            assert.are.equal(100, _G.UltraCursorFXDB.profiles.world.points)
-            assert.are.equal(60, _G.UltraCursorFXDB.profiles.world.size)
+            assert.are.equal(100, _G.UltraCursorFXDB.account.points)
+            assert.are.equal(60, _G.UltraCursorFXDB.account.size)
         end)
 
         it("should migrate boolean differences from defaults", function()
@@ -248,7 +324,7 @@ describe("Profiles Module", function()
             addon:MigrateProfiles()
 
             -- Should preserve the false value
-            assert.is_not_nil(_G.UltraCursorFXDB.profiles.world)
+            assert.is_not_nil(_G.UltraCursorFXDB.account.profiles.world)
         end)
 
         it("should preserve existing profiles", function()

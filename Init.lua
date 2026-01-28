@@ -35,7 +35,16 @@ addon.frame:SetScript("OnEvent", function(self, event, addonName)
             addon:UpdateCursorState()
         end
 
-        print("|cFF00FFFFUltraCursorFX|r loaded! Type |cFFFFD700/ucfx|r for settings")
+        local charKey = addon:GetCharacterKey()
+        local charData = UltraCursorFXDB.characters and UltraCursorFXDB.characters[charKey]
+        local scope = (charData and charData.useAccountSettings) and "account-wide" or "character-specific"
+        print(
+            "|cFF00FFFFUltraCursorFX|r loaded for "
+                .. charKey
+                .. " ("
+                .. scope
+                .. ") - Type |cFFFFD700/ucfx|r for settings"
+        )
     elseif event == "PLAYER_ENTERING_WORLD" then
         -- Auto-switch profiles when entering new zones
         addon:SwitchToZoneProfile()

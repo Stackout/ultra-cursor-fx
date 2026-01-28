@@ -54,12 +54,19 @@ describe("UI Module", function()
 
     describe("Profile Buttons", function()
         before_each(function()
-            UltraCursorFXDB.profiles = {
-                world = { name = "World", color = { 0.0, 1.0, 1.0 }, points = 48 },
-                raid = { name = "Raid", color = { 1.0, 0.0, 0.0 }, points = 40 },
-                dungeon = { name = "Dungeon", color = { 0.0, 1.0, 0.0 }, points = 50 },
-                arena = { name = "Arena", color = { 1.0, 1.0, 0.0 }, points = 35 },
-                battleground = { name = "Battleground", color = { 1.0, 0.0, 1.0 }, points = 45 },
+            UltraCursorFXDB.account = {
+                profiles = {
+                    world = { name = "World", color = { 0.0, 1.0, 1.0 }, points = 48 },
+                    raid = { name = "Raid", color = { 1.0, 0.0, 0.0 }, points = 40 },
+                    dungeon = { name = "Dungeon", color = { 0.0, 1.0, 0.0 }, points = 50 },
+                    arena = { name = "Arena", color = { 1.0, 1.0, 0.0 }, points = 35 },
+                    battleground = { name = "Battleground", color = { 1.0, 0.0, 1.0 }, points = 45 },
+                },
+            }
+            UltraCursorFXDB.characters = {
+                ["TestCharacter-TestRealm"] = {
+                    useAccountSettings = true,
+                },
             }
         end)
 
@@ -78,7 +85,8 @@ describe("UI Module", function()
             UltraCursorFXDB.points = 100
             addon:SaveToProfile("world")
 
-            assert.are.equal(100, UltraCursorFXDB.profiles.world.points)
+            local profiles = addon:GetActiveProfileTable()
+            assert.are.equal(100, profiles.world.points)
         end)
     end)
 

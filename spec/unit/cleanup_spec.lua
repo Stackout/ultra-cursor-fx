@@ -410,28 +410,35 @@ describe("Memory Management & Cleanup", function()
             require("Profiles")
 
             -- Create profile with different settings
-            _G.UltraCursorFXDB.profiles = {
-                world = {
-                    points = 20,
-                    size = 10,
-                    particleShape = "star",
-                    color = { 1.0, 1.0, 1.0 },
-                    glowSize = 16,
-                    smoothness = 0.2,
-                    pulseSpeed = 2.0,
-                    rainbowMode = false,
-                    clickEffects = false,
+            _G.UltraCursorFXDB.account = {
+                profiles = {
+                    world = {
+                        points = 20,
+                        size = 10,
+                        particleShape = "star",
+                        color = { 1.0, 1.0, 1.0 },
+                        glowSize = 16,
+                        smoothness = 0.2,
+                        pulseSpeed = 2.0,
+                        rainbowMode = false,
+                        clickEffects = false,
+                    },
+                    raid = {
+                        points = 40,
+                        size = 15,
+                        particleShape = "spark",
+                        color = { 1.0, 0.0, 0.0 },
+                        glowSize = 16,
+                        smoothness = 0.2,
+                        pulseSpeed = 2.0,
+                        rainbowMode = false,
+                        clickEffects = false,
+                    },
                 },
-                raid = {
-                    points = 40,
-                    size = 15,
-                    particleShape = "spark",
-                    color = { 1.0, 0.0, 0.0 },
-                    glowSize = 16,
-                    smoothness = 0.2,
-                    pulseSpeed = 2.0,
-                    rainbowMode = false,
-                    clickEffects = false,
+            }
+            _G.UltraCursorFXDB.characters = {
+                ["TestCharacter-TestRealm"] = {
+                    useAccountSettings = true,
                 },
             }
 
@@ -448,28 +455,35 @@ describe("Memory Management & Cleanup", function()
         it("does not leave orphaned textures after profile switch", function()
             require("Profiles")
 
-            _G.UltraCursorFXDB.profiles = {
-                small = {
-                    points = 10,
-                    size = 8,
-                    particleShape = "star",
-                    color = { 1.0, 1.0, 1.0 },
-                    glowSize = 16,
-                    smoothness = 0.2,
-                    pulseSpeed = 2.0,
-                    rainbowMode = false,
-                    clickEffects = false,
+            _G.UltraCursorFXDB.account = {
+                profiles = {
+                    small = {
+                        points = 10,
+                        size = 8,
+                        particleShape = "star",
+                        color = { 1.0, 1.0, 1.0 },
+                        glowSize = 16,
+                        smoothness = 0.2,
+                        pulseSpeed = 2.0,
+                        rainbowMode = false,
+                        clickEffects = false,
+                    },
+                    large = {
+                        points = 50,
+                        size = 16,
+                        particleShape = "star",
+                        color = { 1.0, 1.0, 1.0 },
+                        glowSize = 16,
+                        smoothness = 0.2,
+                        pulseSpeed = 2.0,
+                        rainbowMode = false,
+                        clickEffects = false,
+                    },
                 },
-                large = {
-                    points = 50,
-                    size = 16,
-                    particleShape = "star",
-                    color = { 1.0, 1.0, 1.0 },
-                    glowSize = 16,
-                    smoothness = 0.2,
-                    pulseSpeed = 2.0,
-                    rainbowMode = false,
-                    clickEffects = false,
+            }
+            _G.UltraCursorFXDB.characters = {
+                ["TestCharacter-TestRealm"] = {
+                    useAccountSettings = true,
                 },
             }
 

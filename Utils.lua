@@ -138,6 +138,8 @@ function addon:ExportSettings()
     local fields = {
         "enabled",
         "flashEnabled",
+        "combatOnly",
+        "color",
         "points",
         "size",
         "glowSize",
@@ -152,11 +154,28 @@ function addon:ExportSettings()
         "particleShape",
         "cometMode",
         "cometLength",
-        "color",
+        "opacity",
+        "fadeEnabled",
+        "fadeStrength",
+        "combatOpacityBoost",
+        "reticleEnabled",
+        "reticleStyle",
+        "reticleSize",
+        "reticleBrightness",
+        "reticleOpacity",
+        "reticleRotationSpeed",
+        "edgeWarningEnabled",
+        "edgeWarningDistance",
+        "edgeWarningSize",
+        "edgeWarningOpacity",
+        "edgeWarningPulseIntensity",
+        "situationalEnabled",
+        "currentProfile",
     }
 
     for _, field in ipairs(fields) do
-        local value = UltraCursorFXDB[field]
+        -- Use GetSetting to get current effective value (respects account/character settings)
+        local value = self:GetSetting(field)
         if value ~= nil then
             table.insert(exportData, field .. "=" .. self.SerializeValue(value))
         end
@@ -186,6 +205,8 @@ function addon:ImportSettings(importString)
     local typeMap = {
         enabled = "boolean",
         flashEnabled = "boolean",
+        combatOnly = "boolean",
+        color = "table",
         points = "number",
         size = "number",
         glowSize = "number",
@@ -200,19 +221,55 @@ function addon:ImportSettings(importString)
         particleShape = "string",
         cometMode = "boolean",
         cometLength = "number",
-        color = "table",
+        opacity = "number",
+        fadeEnabled = "boolean",
+        fadeStrength = "number",
+        combatOpacityBoost = "boolean",
+        reticleEnabled = "boolean",
+        reticleStyle = "string",
+        reticleSize = "number",
+        reticleBrightness = "number",
+        reticleOpacity = "number",
+        reticleRotationSpeed = "number",
+        edgeWarningEnabled = "boolean",
+        edgeWarningDistance = "number",
+        edgeWarningSize = "number",
+        edgeWarningOpacity = "number",
+        edgeWarningPulseIntensity = "number",
+        situationalEnabled = "boolean",
+        currentProfile = "string",
     }
 
     local imported = 0
     for pair in string.gmatch(decoded, "[^;]+") do
         local field, value = pair:match("([^=]+)=(.+)")
         if field and value and typeMap[field] then
-            UltraCursorFXDB[field] = self.DeserializeValue(value, typeMap[field])
+            -- Use SetSetting to write to correct location (account or character)
+            self:SetSetting(field, self.DeserializeValue(value, typeMap[field]))
             imported = imported + 1
         end
     end
 
     if imported > 0 then
+        -- Trigger visual updates
+        if self.BuildTrail then
+            self:BuildTrail()
+        end
+        if self.BuildReticle then
+            self:BuildReticle()
+        end
+        if self.UpdateEdgeWarnings then
+            self:UpdateEdgeWarnings()
+        end
+        if self.UpdateCursorState then
+            self:UpdateCursorState()
+        end
+
+        -- Warn if importing from older version
+        if imported < 20 then
+            return true, string.format("Imported %d settings (may be from older addon version)", imported)
+        end
+
         return true, "Successfully imported " .. imported .. " settings"
     else
         return false, "No valid settings found in import string"

@@ -8,6 +8,89 @@ local addon = UltraCursorFX
 -- Profile Functions
 -- ===============================
 
+-- Get the active profile table (account or character-specific)
+function addon:GetActiveProfileTable()
+    -- Ensure structure exists
+    if not UltraCursorFXDB.account then
+        UltraCursorFXDB.account = {}
+    end
+    if not UltraCursorFXDB.characters then
+        UltraCursorFXDB.characters = {}
+    end
+
+    local charKey = self:GetCharacterKey()
+    local charData = UltraCursorFXDB.characters[charKey]
+
+    if charData and not charData.useAccountSettings and charData.profiles then
+        -- Use character-specific profiles
+        return charData.profiles
+    else
+        -- Use account-wide profiles
+        UltraCursorFXDB.account.profiles = UltraCursorFXDB.account.profiles or {}
+        return UltraCursorFXDB.account.profiles
+    end
+end
+
+-- Get list of characters that have used the addon
+function addon:GetCharacterList()
+    if not UltraCursorFXDB.characters then
+        return {}
+    end
+
+    local chars = {}
+    for charKey, charData in pairs(UltraCursorFXDB.characters) do
+        table.insert(chars, {
+            key = charKey,
+            lastLogin = charData.lastLogin or 0,
+            useAccountSettings = charData.useAccountSettings,
+        })
+    end
+
+    -- Sort by last login (most recent first)
+    table.sort(chars, function(a, b)
+        return a.lastLogin > b.lastLogin
+    end)
+
+    return chars
+end
+
+-- Toggle between account-wide and character-specific settings
+function addon:SetUseAccountSettings(useAccount)
+    if not UltraCursorFXDB.characters then
+        UltraCursorFXDB.characters = {}
+    end
+    if not UltraCursorFXDB.account then
+        UltraCursorFXDB.account = {}
+    end
+
+    local charKey = self:GetCharacterKey()
+    local charData = UltraCursorFXDB.characters[charKey]
+
+    if not charData then
+        charData = {}
+        UltraCursorFXDB.characters[charKey] = charData
+    end
+
+    charData.useAccountSettings = useAccount
+
+    if not useAccount and not charData.profiles then
+        -- Initialize character-specific profiles by copying from account
+        charData.profiles = {}
+        UltraCursorFXDB.account.profiles = UltraCursorFXDB.account.profiles or {}
+        for profileKey, profileData in pairs(UltraCursorFXDB.account.profiles) do
+            charData.profiles[profileKey] = {}
+            for k, v in pairs(profileData) do
+                if type(v) == "table" then
+                    charData.profiles[profileKey][k] = { unpack(v) }
+                else
+                    charData.profiles[profileKey][k] = v
+                end
+            end
+        end
+        print("|cFF00FFFFUltraCursorFX:|r Created character-specific profiles for " .. charKey)
+    end
+end
+
 -- Get current zone profile type
 function addon:GetCurrentZoneProfile()
     local inInstance, instanceType = IsInInstance()
@@ -30,11 +113,13 @@ end
 
 -- Save current settings to a profile
 function addon:SaveToProfile(profileKey)
-    if not UltraCursorFXDB.profiles[profileKey] then
-        UltraCursorFXDB.profiles[profileKey] = {}
+    local profiles = self:GetActiveProfileTable()
+
+    if not profiles[profileKey] then
+        profiles[profileKey] = {}
     end
 
-    local profile = UltraCursorFXDB.profiles[profileKey]
+    local profile = profiles[profileKey]
     profile.color = { unpack(UltraCursorFXDB.color) }
     profile.points = UltraCursorFXDB.points
     profile.size = UltraCursorFXDB.size
@@ -54,7 +139,8 @@ end
 
 -- Load settings from a profile
 function addon:LoadFromProfile(profileKey)
-    local profile = UltraCursorFXDB.profiles[profileKey]
+    local profiles = self:GetActiveProfileTable()
+    local profile = profiles[profileKey]
     if not profile then
         return false
     end
@@ -90,8 +176,8 @@ function addon:SwitchToZoneProfile()
         self.currentZoneProfile = newProfile
         self:LoadFromProfile(newProfile)
 
-        local profileName = UltraCursorFXDB.profiles[newProfile] and UltraCursorFXDB.profiles[newProfile].name
-            or newProfile
+        local profiles = self:GetActiveProfileTable()
+        local profileName = profiles[newProfile] and profiles[newProfile].name or newProfile
         print("|cFF00FFFFUltraCursorFX:|r Switched to " .. profileName .. " profile")
     end
 end
@@ -100,9 +186,22 @@ end
 -- Profile Migration
 -- ===============================
 function addon:MigrateProfiles()
-    -- Initialize profiles structure
-    UltraCursorFXDB.profiles = UltraCursorFXDB.profiles or {}
+    -- Initialize new structure if needed
+    if not UltraCursorFXDB.account then
+        -- First time setup or migration needed
+        UltraCursorFXDB.account = UltraCursorFXDB.account or {}
+        UltraCursorFXDB.characters = UltraCursorFXDB.characters or {}
 
+        -- Get current character
+        local charKey = self:GetCharacterKey()
+        UltraCursorFXDB.characters[charKey] = UltraCursorFXDB.characters[charKey] or {}
+
+        -- Mark that this character has used the addon
+        UltraCursorFXDB.characters[charKey].lastLogin = time()
+        UltraCursorFXDB.characters[charKey].useAccountSettings = true
+    end
+
+    -- Legacy migration from old flat structure
     if UltraCursorFXDB.profilesMigrated == nil then
         UltraCursorFXDB.profilesMigrated = false
     end
@@ -157,39 +256,71 @@ function addon:MigrateProfiles()
             end
         end
 
-        -- If user has custom settings, migrate them to the world profile
+        -- If user has custom settings, migrate them to account-wide
         if hasCustomSettings then
-            UltraCursorFXDB.profiles.world = UltraCursorFXDB.profiles.world or {}
-            local worldProfile = UltraCursorFXDB.profiles.world
-
+            -- Migrate to account-wide settings
             for _, key in ipairs(settingsToMigrate) do
                 if UltraCursorFXDB[key] ~= nil then
                     if type(UltraCursorFXDB[key]) == "table" then
-                        worldProfile[key] = { unpack(UltraCursorFXDB[key]) }
+                        UltraCursorFXDB.account[key] = { unpack(UltraCursorFXDB[key]) }
                     else
-                        worldProfile[key] = UltraCursorFXDB[key]
+                        UltraCursorFXDB.account[key] = UltraCursorFXDB[key]
                     end
                 end
             end
+            local charKey = self:GetCharacterKey()
+            print("|cFF00FFFFUltraCursorFX:|r Migrated custom settings to account-wide for " .. charKey)
+            print("|cFFFFD700→|r All your characters will now share these cursor settings!")
+        end
 
-            worldProfile.name = "World"
-            print("|cFF00FFFFUltraCursorFX:|r Migrated your custom settings to the World profile!")
+        -- Migrate old profiles structure to account.profiles
+        if UltraCursorFXDB.profiles and type(UltraCursorFXDB.profiles) == "table" then
+            UltraCursorFXDB.account.profiles = UltraCursorFXDB.account.profiles or {}
+            local profileCount = 0
+            -- Copy valid profiles only
+            for profileKey, profileData in pairs(UltraCursorFXDB.profiles) do
+                if type(profileData) == "table" then
+                    UltraCursorFXDB.account.profiles[profileKey] = profileData
+                    profileCount = profileCount + 1
+                end
+            end
+            if profileCount > 0 then
+                print("|cFF00FFFFUltraCursorFX:|r Migrated " .. profileCount .. " situational profile(s) to new system")
+            end
+            UltraCursorFXDB.profiles = nil -- Clean up old structure
         end
 
         UltraCursorFXDB.profilesMigrated = true
     end
 
-    -- Initialize all profiles with defaults if they don't exist
+    -- Ensure account has profiles table
+    UltraCursorFXDB.account.profiles = UltraCursorFXDB.account.profiles or {}
+
+    -- Initialize all profiles with defaults if they don't exist (in account-wide)
     for profileKey, profileData in pairs(self.profileDefaults) do
-        if not UltraCursorFXDB.profiles[profileKey] then
-            UltraCursorFXDB.profiles[profileKey] = {}
+        if
+            not UltraCursorFXDB.account.profiles[profileKey]
+            or type(UltraCursorFXDB.account.profiles[profileKey]) ~= "table"
+        then
+            UltraCursorFXDB.account.profiles[profileKey] = {}
             for k, v in pairs(profileData) do
                 if type(v) == "table" then
-                    UltraCursorFXDB.profiles[profileKey][k] = { unpack(v) }
+                    UltraCursorFXDB.account.profiles[profileKey][k] = { unpack(v) }
                 else
-                    UltraCursorFXDB.profiles[profileKey][k] = v
+                    UltraCursorFXDB.account.profiles[profileKey][k] = v
                 end
             end
         end
+    end
+
+    -- Update current character's last login
+    local charKey = self:GetCharacterKey()
+    if UltraCursorFXDB.characters[charKey] then
+        UltraCursorFXDB.characters[charKey].lastLogin = time()
+    end
+
+    -- Sync current settings to flat structure for backwards compatibility
+    if self.SyncSettingsToFlat then
+        self:SyncSettingsToFlat()
     end
 end

@@ -17,6 +17,13 @@ UltraCursorFXDB = UltraCursorFXDB or {}
 -- Forward declarations
 function addon:UpdateCursorState() end
 
+-- Helper to get character key
+function addon:GetCharacterKey()
+    local name = UnitName("player")
+    local realm = GetRealmName()
+    return name .. "-" .. realm
+end
+
 addon.defaults = {
     enabled = true,
     flashEnabled = true,
@@ -263,14 +270,105 @@ addon.particleTextures = {
 -- Initialization
 -- ===============================
 function addon:InitializeDefaults()
-    -- Initialize profiles structure first
-    UltraCursorFXDB.profiles = UltraCursorFXDB.profiles or {}
+    -- Initialize new database structure
+    UltraCursorFXDB.account = UltraCursorFXDB.account or {}
+    UltraCursorFXDB.characters = UltraCursorFXDB.characters or {}
 
-    -- Apply defaults for any missing values
+    local charKey = self:GetCharacterKey()
+    UltraCursorFXDB.characters[charKey] = UltraCursorFXDB.characters[charKey] or {}
+
+    -- Default to account-wide settings for new characters
+    if UltraCursorFXDB.characters[charKey].useAccountSettings == nil then
+        UltraCursorFXDB.characters[charKey].useAccountSettings = true
+    end
+
+    -- Apply defaults for any missing values in account
     for k, v in pairs(addon.defaults) do
-        if UltraCursorFXDB[k] == nil then
-            UltraCursorFXDB[k] = v
+        if UltraCursorFXDB.account[k] == nil and UltraCursorFXDB[k] == nil then
+            UltraCursorFXDB.account[k] = v
         end
+    end
+
+    -- Sync to flat structure for backwards compatibility
+    self:SyncSettingsToFlat()
+end
+
+-- Get effective setting value (supports account/character hierarchy)
+function addon:GetSetting(key)
+    local charKey = self:GetCharacterKey()
+    local charData = UltraCursorFXDB.characters and UltraCursorFXDB.characters[charKey]
+
+    -- If character uses their own settings and has this setting defined
+    if charData and not charData.useAccountSettings and charData[key] ~= nil then
+        return charData[key]
+    end
+
+    -- Check account-wide
+    if UltraCursorFXDB.account and UltraCursorFXDB.account[key] ~= nil then
+        return UltraCursorFXDB.account[key]
+    end
+
+    -- Check legacy flat structure (for migration)
+    if UltraCursorFXDB[key] ~= nil then
+        return UltraCursorFXDB[key]
+    end
+
+    -- Fall back to defaults
+    return self.defaults[key]
+end
+
+-- Get a setting value for a specific character (for viewing other characters' settings)
+function addon:GetSettingForCharacter(charKey, key)
+    if not UltraCursorFXDB.characters or not UltraCursorFXDB.characters[charKey] then
+        -- Character not found, return account or default
+        if UltraCursorFXDB.account and UltraCursorFXDB.account[key] ~= nil then
+            return UltraCursorFXDB.account[key]
+        end
+        return self.defaults[key]
+    end
+
+    local charData = UltraCursorFXDB.characters[charKey]
+
+    -- If character uses their own settings and has this setting defined
+    if charData and not charData.useAccountSettings and charData[key] ~= nil then
+        return charData[key]
+    end
+
+    -- Check account-wide
+    if UltraCursorFXDB.account and UltraCursorFXDB.account[key] ~= nil then
+        return UltraCursorFXDB.account[key]
+    end
+
+    -- Fall back to defaults
+    return self.defaults[key]
+end
+
+-- Set a setting value (writes to appropriate location)
+function addon:SetSetting(key, value)
+    local charKey = self:GetCharacterKey()
+    local charData = UltraCursorFXDB.characters and UltraCursorFXDB.characters[charKey]
+
+    if charData and not charData.useAccountSettings then
+        -- Write to character-specific
+        charData[key] = value
+    else
+        -- Write to account-wide
+        if UltraCursorFXDB.account then
+            UltraCursorFXDB.account[key] = value
+        end
+    end
+
+    -- ALWAYS update legacy flat structure for backwards compatibility
+    UltraCursorFXDB[key] = value
+end
+
+-- Sync settings from account/character to flat structure (for backwards compatibility)
+function addon:SyncSettingsToFlat()
+    if not self.defaults then
+        return
+    end
+    for key, _ in pairs(self.defaults) do
+        UltraCursorFXDB[key] = self:GetSetting(key)
     end
 end
 
