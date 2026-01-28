@@ -1147,7 +1147,44 @@ function addon:CreateSettingsPanel()
     local githubLabel = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     githubLabel:SetPoint("TOPLEFT", 20, yPos)
     githubLabel:SetText("|cFFFFD700GitHub:|r |cFF00FFFFhttps://github.com/Stackout/ultra-cursor-fx|r")
-    yPos = yPos - 40
+    yPos = yPos - 50
+
+    -- RESET SETTINGS
+    yPos = CreateSection("Reset", yPos)
+
+    local resetBtn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    resetBtn:SetSize(140, 28)
+    resetBtn:SetPoint("TOPLEFT", 20, yPos)
+    resetBtn:SetText("Reset Settings")
+    resetBtn:SetScript("OnClick", function()
+        StaticPopup_Show("ULTRACURSORFX_RESET_CONFIRM")
+    end)
+    resetBtn:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Reset all settings to default values")
+        GameTooltip:AddLine("This cannot be undone!", 1, 0.2, 0.2)
+        GameTooltip:Show()
+    end)
+    resetBtn:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+    end)
+    yPos = yPos - 50
+
+    -- Register confirmation dialog
+    StaticPopupDialogs["ULTRACURSORFX_RESET_CONFIRM"] = {
+        text = "Are you sure you want to reset all UltraCursorFX settings to defaults?",
+        button1 = "Yes",
+        button2 = "No",
+        OnAccept = function()
+            addon:ResetSettings()
+            RefreshUI()
+            print("|cFF00FFFFUltraCursorFX:|r Settings have been reset to defaults.")
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3,
+    }
 
     content:SetHeight(math.abs(yPos) + 100)
 

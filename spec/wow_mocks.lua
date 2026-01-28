@@ -270,6 +270,7 @@ end
 _G.GameTooltip = {
     SetOwner = function() end,
     SetText = function() end,
+    AddLine = function() end,
     Show = function() end,
     Hide = function() end,
     IsShown = function()
@@ -279,6 +280,16 @@ _G.GameTooltip = {
         return nil
     end,
 }
+
+-- Static popup dialogs system
+_G.StaticPopupDialogs = {}
+
+_G.StaticPopup_Show = function(dialog)
+    local dialogData = _G.StaticPopupDialogs[dialog]
+    if dialogData and dialogData.OnAccept then
+        -- For testing, we can optionally auto-accept
+    end
+end
 
 -- Unit functions for reticle system
 _G.UnitExists = function(unit)
