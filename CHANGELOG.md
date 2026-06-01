@@ -2,6 +2,11 @@
 
 All notable changes to UltraCursorFX will be documented in this file.
 
+## [1.0.1] - 2026-06-01
+
+### Changed
+- Updated Interface version to 120005 (WoW 12.0.5 compatibility)
+
 ## [1.0.0] - 2025-01-28
 
 ### Breaking Changes
